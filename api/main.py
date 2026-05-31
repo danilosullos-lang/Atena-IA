@@ -50,6 +50,15 @@ SUGGESTIONS = [
 
 app = FastAPI(title=f"{APP_NAME} Dashboard", version=APP_VERSION)
 
+
+@app.middleware("http")
+async def add_request_id_header(request: Request, call_next):
+    """Propaga ou cria um x-request-id para rastreabilidade HTTP."""
+    request_id = request.headers.get("x-request-id") or str(uuid4())
+    response = await call_next(request)
+    response.headers["x-request-id"] = request_id
+    return response
+
 # Inicialização segura do modelo
 if GEMINI_API_KEY:
     try:
@@ -82,10 +91,21 @@ def local_fallback_response(message: str) -> str:
 
 @app.get("/healthz")
 def healthz():
-    return {"status": "ok", "timestamp": utc_now()}
+    return {"status": "ok"}
+
+@app.get("/status")
+def status():
+    return {
+        "service": "atena",
+        "status": "ok",
+        "release": APP_VERSION,
+        "environment": os.getenv("ATENA_ENV", "local"),
+        "started_at": STARTED_AT,
+    }
+
 
 @app.get("/api/status")
-def status():
+def api_status():
     return {
         "service": "atena-dashboard",
         "status": "online",
@@ -150,7 +170,7 @@ def dashboard():
 </head>
 <body>
   <div class="panel">
-    <h1>ATENA Ω</h1>
+    <h1>ATENA Dashboard</h1>
     <p>Neural Cockpit - v{APP_VERSION}</p>
     <div class="stats">
       <div class="stat"><small>STATUS</small><br/><b id="statusText">...</b></div>
