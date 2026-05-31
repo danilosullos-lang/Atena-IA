@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="ATENA Satellite 3D Mapper: protótipo de mapa 3D em tempo real a partir de frames de satélite/DEM." />
+  <title>ATENA Satellite 3D Mapper</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">ATENA Ω · realtime terrain intelligence</p>
+      <h1>Mapa 3D em tempo real com pipeline de satélite.</h1>
+      <p class="lead">Protótipo local: simula frames de satélite/DEM, renderiza terreno 3D, mostra telemetria e já deixa contrato pronto para conectar provedores reais.</p>
+    </div>
+    <div class="status-card">
+      <span class="pulse"></span>
+      <strong id="streamStatus">STREAM ONLINE</strong>
+      <small id="frameId">aguardando frame</small>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="viewport-card" aria-label="Mapa 3D">
+      <canvas id="terrainCanvas" width="1100" height="720"></canvas>
+      <div class="map-overlay">
+        <span>SAT-LINK</span>
+        <span id="coordinates">--</span>
+      </div>
+    </section>
+
+    <aside class="control-panel">
+      <h2>Controle de missão</h2>
+      <label>Latitude central <input id="latInput" type="number" step="0.0001" value="-23.5505" /></label>
+      <label>Longitude central <input id="lonInput" type="number" step="0.0001" value="-46.6333" /></label>
+      <label>Zoom orbital <input id="zoomInput" type="range" min="6" max="15" value="11" /></label>
+      <label>Resolução <input id="resolutionInput" type="range" min="14" max="46" value="28" /></label>
+      <div class="button-row">
+        <button id="generateFrame" type="button">Gerar frame</button>
+        <button id="toggleStream" type="button">Pausar</button>
+      </div>
+      <dl class="metrics">
+        <div><dt>Amostras</dt><dd id="sampleCount">0</dd></div>
+        <div><dt>Elevação média</dt><dd id="avgElevation">0 m</dd></div>
+        <div><dt>Confiança</dt><dd id="confidence">0%</dd></div>
+        <div><dt>Latência</dt><dd id="latency">0 ms</dd></div>
+      </dl>
+      <p class="note">Nota: este demo não usa APIs privadas do Google. Ele é um motor próprio, pronto para plugar fontes públicas/autorizadas.</p>
+    </aside>
+  </main>
+
+  <section class="pipeline">
+    <article><strong>1. Captura</strong><span>Satélite/DEM/tile provider</span></article>
+    <article><strong>2. Fusão</strong><span>Normaliza bbox, confiança e elevação</span></article>
+    <article><strong>3. Mesh 3D</strong><span>Grid georreferenciado + alturas</span></article>
+    <article><strong>4. Tempo real</strong><span>Frames incrementais no navegador</span></article>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
