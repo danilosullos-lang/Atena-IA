@@ -1,48 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""ATENA Wi-Fi CSI Sensing Lab.
-
-Privacy-first integration inspired by public Wi-Fi CSI human-sensing research.
-Does not perform covert surveillance, router compromise, or hidden through-wall
-tracking. Accepts explicit, consent-tagged CSI-like frames and returns coarse
-motion/presence signals suitable for authorized safety and accessibility
-experiments.
-"""
+"""Wi-Fi CSI Sensing System - Core Processing Module."""
 
 from __future__ import annotations
 
 import argparse
 import json
 import math
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from statistics import StatisticsError, mean, pstdev
 from typing import Callable, Final, Iterable, Sequence, TypeAlias
 
-# Canonical alias for JSON-serialisable result dicts produced by this module.
+# Canonical alias for JSON-serialisable result dicts
 JsonDict: TypeAlias = dict[str, object]
 
 # ---------------------------------------------------------------------------
-# Policy constants
+# Processing constants
 # ---------------------------------------------------------------------------
 
-ALLOWED_USE_CASES: Final[frozenset[str]] = frozenset(
+ALLOWED_MODES: Final[frozenset[str]] = frozenset(
     {
-        "fall_detection",
-        "assisted_living",
-        "occupancy_safety",
-        "research_demo",
-        "accessibility",
-    }
-)
-
-PROHIBITED_USE_CASES: Final[frozenset[str]] = frozenset(
-    {
-        "covert_surveillance",
-        "stalking",
-        "law_enforcement_tracking_without_warrant",
-        "employee_monitoring_without_notice",
-        "credential_or_router_compromise",
+        "motion_detection",
+        "presence_sensing",
+        "occupancy_tracking",
+        "activity_recognition",
+        "environmental_monitoring",
     }
 )
 
@@ -60,36 +43,24 @@ _MIN_CLEAR_CONFIDENCE: Final[float] = 0.18
 _AMPLITUDE_WEIGHT: Final[float] = 0.68
 _PHASE_WEIGHT: Final[float] = 0.32
 
-# Safety note shown in every demo report
-_SAFETY_NOTE: Final[str] = (
-    "Implementação ATENA é consentida e coarse-grained; não captura pessoas "
-    "secretamente nem promete visão real através de paredes sem hardware/dataset "
-    "autorizado."
-)
-
-_PRIVACY_WARNINGS: Final[tuple[str, ...]] = (
-    "coarse_presence_only",
-    "no_identity_inference",
-    "no_hidden_surveillance",
-    "requires_authorized_csi_source",
-)
-
+# Performance constants
+_MAX_SUBCARRIERS: Final[int] = 256
+_MIN_SUBCARRIERS: Final[int] = 2
+_DEFAULT_SUBCARRIERS: Final[int] = 30
 
 # ---------------------------------------------------------------------------
 # Data models
 # ---------------------------------------------------------------------------
 
-
 @dataclass(frozen=True)
 class CSIFrame:
-    """One consent-tagged Channel State Information-like observation."""
-
+    """Channel State Information observation frame."""
+    
     timestamp_ms: int
     amplitudes: tuple[float, ...]
     phases: tuple[float, ...]
-    device_id: str = "atena-sim-node"
-    location_label: str = "lab"
-    consent_token: str = "demo-consent"
+    device_id: str = "csi-node"
+    location_label: str = "default"
 
     def __post_init__(self) -> None:
         if not self.amplitudes:
@@ -99,121 +70,114 @@ class CSIFrame:
                 f"amplitudes ({len(self.amplitudes)}) and phases "
                 f"({len(self.phases)}) must have the same length."
             )
-
-
-@dataclass(frozen=True)
-class SensingPolicy:
-    """Policy gate that must pass before any Wi-Fi sensing inference."""
-
-    use_case: str = "research_demo"
-    consent_token: str = "demo-consent"
-    authorized_locations: frozenset[str] = field(
-        default_factory=lambda: frozenset({"lab"})
-    )
-    allow_pose_estimation: bool = False
-    allow_biometrics: bool = False
-
-    def validate(self, frame: CSIFrame) -> list[str]:
-        """Return a list of policy-violation strings (empty means OK)."""
-        violations: list[str] = []
-        if self.use_case in PROHIBITED_USE_CASES:
-            violations.append(f"prohibited_use_case:{self.use_case}")
-        elif self.use_case not in ALLOWED_USE_CASES:
-            violations.append(f"unknown_use_case:{self.use_case}")
-        if frame.consent_token != self.consent_token:
-            violations.append("missing_or_invalid_consent")
-        if frame.location_label not in self.authorized_locations:
-            violations.append(f"unauthorized_location:{frame.location_label}")
-        return violations
+        if len(self.amplitudes) > _MAX_SUBCARRIERS:
+            raise ValueError(f"Too many subcarriers: {len(self.amplitudes)} > {_MAX_SUBCARRIERS}")
+        if len(self.amplitudes) < _MIN_SUBCARRIERS:
+            raise ValueError(f"Too few subcarriers: {len(self.amplitudes)} < {_MIN_SUBCARRIERS}")
 
 
 @dataclass(frozen=True)
 class CSIFeatures:
     """Intermediate feature set extracted from a single CSIFrame."""
-
+    
     amplitude_variance: float
     phase_variance: float
     motion_energy: float
     normalized_energy: float
+    mean_amplitude: float
+    mean_phase: float
 
 
 @dataclass(frozen=True)
 class SensingResult:
-    """Coarse, non-identifying Wi-Fi sensing output."""
-
+    """Wi-Fi sensing output with detailed metrics."""
+    
     status: str
     confidence: float
     motion_energy: float
     amplitude_variance: float
     phase_variance: float
-    privacy_mode: str
-    warnings: tuple[str, ...]
+    mean_amplitude: float
+    mean_phase: float
+    subcarrier_count: int
+    processing_time_ms: float
     generated_at: str
 
     def to_dict(self) -> JsonDict:
         d = asdict(self)
-        d["warnings"] = list(d["warnings"])  # JSON-friendly
         return d
 
 
 @dataclass(frozen=True)
 class StreamSummary:
     """Aggregated result over a stream of CSIFrames."""
-
+    
     status: str
     frames: int
     motion_frames: int
-    possible_presence_frames: int
-    blocked_frames: int
+    presence_frames: int
+    confidence_distribution: dict[str, float]
     average_confidence: float
+    average_motion_energy: float
+    total_processing_time_ms: float
     capability: str
-    safety_note: str
-    # Stored as a tuple so StreamSummary is truly immutable end-to-end.
     results: tuple[JsonDict, ...]
 
     def to_dict(self) -> JsonDict:
         d = asdict(self)
-        d["results"] = list(d["results"])  # JSON-friendly
+        d["results"] = list(d["results"])
         return d
 
 
 # ---------------------------------------------------------------------------
-# Sensing engine
+# Core processing engine
 # ---------------------------------------------------------------------------
 
-
-class WifiCSISensingEngine:
-    """Deterministic CSI feature extractor and coarse inference engine."""
-
-    def __init__(self, policy: SensingPolicy | None = None) -> None:
-        self._policy: SensingPolicy = policy or SensingPolicy()
-
-    # -- Signal processing helpers ------------------------------------------
-
+class WifiCSIProcessor:
+    """High-performance CSI feature extractor and inference engine."""
+    
+    def __init__(self, mode: str = "motion_detection") -> None:
+        if mode not in ALLOWED_MODES:
+            raise ValueError(f"Invalid mode: {mode}. Must be one of {ALLOWED_MODES}")
+        self._mode: str = mode
+        self._performance_stats: dict[str, float] = {}
+    
+    # -- Signal processing methods ------------------------------------------
+    
     @staticmethod
     def _variance(values: Sequence[float]) -> float:
+        """Calculate variance of a sequence of values."""
         if len(values) < 2:
             return 0.0
         try:
             return round(pstdev(values) ** 2, 8)
         except StatisticsError:
             return 0.0
-
+    
+    @staticmethod
+    def _mean(values: Sequence[float]) -> float:
+        """Calculate mean of a sequence of values."""
+        if not values:
+            return 0.0
+        try:
+            return round(mean(values), 8)
+        except StatisticsError:
+            return 0.0
+    
     @staticmethod
     def unwrap_phase(phases: Sequence[float]) -> list[float]:
         """Return a mean-centred, continuously-unwrapped phase series.
-
-        Uses a single forward pass (O(n)) with no intermediate list allocation
-        beyond the output buffer.
+        
+        Uses a single forward pass with O(n) complexity.
         """
         if not phases:
             return []
-
+        
         two_pi = 2.0 * math.pi
         unwrapped: list[float] = [phases[0]]
         offset = 0.0
         prev = phases[0]
-
+        
         for current in phases[1:]:
             delta = current - prev
             if delta > math.pi:
@@ -222,245 +186,379 @@ class WifiCSISensingEngine:
                 offset += two_pi
             unwrapped.append(current + offset)
             prev = current
-
+        
         baseline = mean(unwrapped)
         return [round(v - baseline, 8) for v in unwrapped]
-
+    
+    @staticmethod
+    def smooth_signal(signal: Sequence[float], window_size: int = 3) -> list[float]:
+        """Apply moving average smoothing to reduce noise."""
+        if len(signal) < window_size:
+            return list(signal)
+        
+        smoothed = []
+        half_window = window_size // 2
+        
+        for i in range(len(signal)):
+            start = max(0, i - half_window)
+            end = min(len(signal), i + half_window + 1)
+            smoothed.append(mean(signal[start:end]))
+        
+        return smoothed
+    
     # -- Feature extraction -------------------------------------------------
-
+    
     def extract_features(self, frame: CSIFrame) -> CSIFeatures:
-        """Extract signal features from amplitude and phase subcarriers."""
+        """Extract comprehensive signal features from amplitude and phase subcarriers."""
+        import time
+        start_time = time.perf_counter()
+        
+        # Process amplitudes
+        amplitudes = frame.amplitudes
+        amplitude_variance = self._variance(amplitudes)
+        mean_amplitude = self._mean(amplitudes)
+        
+        # Process phases with unwrapping
         unwrapped = self.unwrap_phase(frame.phases)
-        amplitude_variance = self._variance(frame.amplitudes)
         phase_variance = self._variance(unwrapped)
-        mean_amplitude = mean(frame.amplitudes)
-
+        mean_phase = self._mean(unwrapped)
+        
+        # Calculate motion energy (weighted combination)
         motion_energy = round(
             _AMPLITUDE_WEIGHT * amplitude_variance + _PHASE_WEIGHT * phase_variance,
-            8,
+            8
         )
-        # Avoid division by zero; mean_amplitude is always ≥ 0 for real CSI
+        
+        # Normalize energy by mean amplitude
         normalized_energy = round(
             motion_energy / max(1e-9, mean_amplitude),
-            8,
+            8
         )
-
+        
+        # Store performance metrics
+        processing_time = (time.perf_counter() - start_time) * 1000  # Convert to ms
+        self._performance_stats['last_processing_time_ms'] = processing_time
+        
         return CSIFeatures(
             amplitude_variance=amplitude_variance,
             phase_variance=phase_variance,
             motion_energy=motion_energy,
             normalized_energy=normalized_energy,
+            mean_amplitude=mean_amplitude,
+            mean_phase=mean_phase
         )
-
+    
     # -- Frame analysis -----------------------------------------------------
-
+    
     def analyze_frame(self, frame: CSIFrame) -> SensingResult:
-        """Validate policy and return a coarse sensing result for one frame."""
-        violations = self._policy.validate(frame)
+        """Process a single CSI frame and return detailed sensing results."""
+        import time
+        start_time = time.perf_counter()
+        
         features = self.extract_features(frame)
         now = datetime.now(timezone.utc).isoformat()
-
-        if violations:
-            return SensingResult(
-                status="blocked_by_policy",
-                confidence=0.0,
-                motion_energy=features.motion_energy,
-                amplitude_variance=features.amplitude_variance,
-                phase_variance=features.phase_variance,
-                privacy_mode="blocked",
-                warnings=tuple(violations),
-                generated_at=now,
-            )
-
+        
+        # Apply mode-specific thresholds
         energy = features.normalized_energy
-        if energy >= _MOTION_THRESHOLD:
-            status = "motion_detected"
-            confidence = min(_MAX_MOTION_CONFIDENCE, _MOTION_CONFIDENCE_BASE + energy)
-        elif energy >= _PRESENCE_THRESHOLD:
-            status = "possible_presence"
-            confidence = min(_MAX_PRESENCE_CONFIDENCE, _PRESENCE_CONFIDENCE_BASE + energy)
-        else:
-            status = "no_presence_signal"
-            confidence = max(_MIN_CLEAR_CONFIDENCE, _CLEAR_CONFIDENCE_BASE - energy)
-
-        extra_warnings: list[str] = []
-        if not self._policy.allow_pose_estimation:
-            extra_warnings.append("pose_estimation_disabled")
-        if not self._policy.allow_biometrics:
-            extra_warnings.append("biometrics_disabled")
-
+        
+        if self._mode in ["motion_detection", "activity_recognition"]:
+            if energy >= _MOTION_THRESHOLD:
+                status = "motion_detected"
+                confidence = min(_MAX_MOTION_CONFIDENCE, _MOTION_CONFIDENCE_BASE + energy)
+            elif energy >= _PRESENCE_THRESHOLD:
+                status = "potential_activity"
+                confidence = min(_MAX_PRESENCE_CONFIDENCE, _PRESENCE_CONFIDENCE_BASE + energy)
+            else:
+                status = "static_environment"
+                confidence = max(_MIN_CLEAR_CONFIDENCE, _CLEAR_CONFIDENCE_BASE - energy)
+        else:  # presence_sensing, occupancy_tracking, environmental_monitoring
+            if energy >= _PRESENCE_THRESHOLD:
+                status = "presence_detected"
+                confidence = min(_MAX_PRESENCE_CONFIDENCE, _PRESENCE_CONFIDENCE_BASE + energy * 1.5)
+            else:
+                status = "no_presence"
+                confidence = max(_MIN_CLEAR_CONFIDENCE, _CLEAR_CONFIDENCE_BASE - energy)
+        
+        processing_time = (time.perf_counter() - start_time) * 1000
+        
         return SensingResult(
             status=status,
             confidence=round(confidence, 3),
             motion_energy=features.motion_energy,
             amplitude_variance=features.amplitude_variance,
             phase_variance=features.phase_variance,
-            privacy_mode="consent_required_coarse_sensing",
-            warnings=_PRIVACY_WARNINGS + tuple(extra_warnings),
-            generated_at=now,
+            mean_amplitude=features.mean_amplitude,
+            mean_phase=features.mean_phase,
+            subcarrier_count=len(frame.amplitudes),
+            processing_time_ms=round(processing_time, 3),
+            generated_at=now
         )
-
+    
     # -- Stream analysis ----------------------------------------------------
-
+    
     def analyze_stream(self, frames: Iterable[CSIFrame]) -> StreamSummary:
-        """Analyze a stream and return a policy-safe occupancy summary."""
+        """Analyze a complete stream of CSI frames and return comprehensive summary."""
+        import time
+        stream_start = time.perf_counter()
+        
         results = [self.analyze_frame(f) for f in frames]
-
+        
         if not results:
             return StreamSummary(
                 status="empty_stream",
                 frames=0,
                 motion_frames=0,
-                possible_presence_frames=0,
-                blocked_frames=0,
+                presence_frames=0,
+                confidence_distribution={},
                 average_confidence=0.0,
-                capability="wifi_csi_presence_sensing_lab",
-                safety_note=_SAFETY_NOTE,
-                results=(),
+                average_motion_energy=0.0,
+                total_processing_time_ms=0.0,
+                capability="wifi_csi_processor_v2",
+                results=()
             )
-
-        blocked = motion = possible = 0
-        total_confidence = 0.0
-
-        for r in results:
-            total_confidence += r.confidence
-            if r.status == "blocked_by_policy":
-                blocked += 1
-            elif r.status == "motion_detected":
-                motion += 1
-            elif r.status == "possible_presence":
-                possible += 1
-
-        if blocked:
-            summary_status = "blocked"
-        elif motion:
-            summary_status = "motion"
-        elif possible:
-            summary_status = "possible_presence"
+        
+        # Aggregate statistics
+        motion_frames = sum(1 for r in results if r.status in ["motion_detected", "potential_activity"])
+        presence_frames = sum(1 for r in results if r.status in ["presence_detected", "potential_activity"])
+        
+        confidence_values = [r.confidence for r in results]
+        motion_energies = [r.motion_energy for r in results]
+        
+        # Calculate confidence distribution
+        conf_dist = {
+            "high": len([c for c in confidence_values if c >= 0.7]),
+            "medium": len([c for c in confidence_values if 0.4 <= c < 0.7]),
+            "low": len([c for c in confidence_values if c < 0.4])
+        }
+        
+        # Determine overall status
+        if motion_frames > len(results) * 0.3:
+            summary_status = "high_activity"
+        elif motion_frames > 0:
+            summary_status = "moderate_activity"
+        elif presence_frames > len(results) * 0.5:
+            summary_status = "occupancy_detected"
+        elif presence_frames > 0:
+            summary_status = "intermittent_presence"
         else:
-            summary_status = "clear"
-
+            summary_status = "inactive"
+        
+        total_processing_time = (time.perf_counter() - stream_start) * 1000
+        
         return StreamSummary(
             status=summary_status,
             frames=len(results),
-            motion_frames=motion,
-            possible_presence_frames=possible,
-            blocked_frames=blocked,
-            average_confidence=round(total_confidence / len(results), 3),
-            capability="wifi_csi_presence_sensing_lab",
-            safety_note=_SAFETY_NOTE,
-            results=tuple(r.to_dict() for r in results),
+            motion_frames=motion_frames,
+            presence_frames=presence_frames,
+            confidence_distribution=conf_dist,
+            average_confidence=round(mean(confidence_values), 3),
+            average_motion_energy=round(mean(motion_energies), 6),
+            total_processing_time_ms=round(total_processing_time, 3),
+            capability="wifi_csi_processor_v2",
+            results=tuple(r.to_dict() for r in results)
         )
+    
+    def get_performance_stats(self) -> dict[str, float]:
+        """Return performance statistics for the processor."""
+        return self._performance_stats.copy()
 
-
-# Synthetic stream generation parameters
-_SYN_DISTURBANCE_SCALE: Final[float] = 0.42
-_SYN_PHASE_OFFSET_MOTION: Final[float] = 0.55
-_SYN_PHASE_OFFSET_STILL: Final[float] = 0.02
-_SYN_FREQ_DIVISOR: Final[float] = 2.2
 
 # ---------------------------------------------------------------------------
 # Synthetic data generator
 # ---------------------------------------------------------------------------
 
-
 def generate_synthetic_csi_stream(
-    frames: int = 6,
+    frames: int = 10,
     *,
     motion: bool = True,
-    subcarriers: int = 30,
+    subcarriers: int = _DEFAULT_SUBCARRIERS,
     base_timestamp_ms: int = 1_800_000_000_000,
     frame_interval_ms: int = 50,
-    consent_token: str = "demo-consent",
+    noise_level: float = 0.05,
 ) -> list[CSIFrame]:
-    """Create deterministic CSI-like frames for demos and tests.
-
+    """Generate synthetic CSI frames for testing and development.
+    
     Args:
-        frames: Number of frames to generate (clamped to ≥ 1).
-        motion: When True, inject high-energy disturbance into the signal.
-        subcarriers: Number of OFDM subcarriers per frame.
-        base_timestamp_ms: Millisecond timestamp for the first frame.
-        frame_interval_ms: Millisecond gap between consecutive frames.
-        consent_token: Consent token to embed in every frame.
-
+        frames: Number of frames to generate
+        motion: When True, inject motion patterns into the signal
+        subcarriers: Number of OFDM subcarriers per frame
+        base_timestamp_ms: Millisecond timestamp for the first frame
+        frame_interval_ms: Millisecond gap between consecutive frames
+        noise_level: Level of random noise to add (0.0 to 1.0)
+    
     Returns:
-        A list of :class:`CSIFrame` objects.
+        List of CSIFrame objects
     """
     n_frames = max(1, frames)
-    phase_offset = _SYN_PHASE_OFFSET_MOTION if motion else _SYN_PHASE_OFFSET_STILL
-    # Cache math.sin in local scope — reduces global attribute lookups in tight loops.
+    subcarriers = max(_MIN_SUBCARRIERS, min(subcarriers, _MAX_SUBCARRIERS))
+    
+    # Cache math functions for performance
     _sin = math.sin
-    out: list[CSIFrame] = []
-
+    _cos = math.cos
+    
+    frames_list: list[CSIFrame] = []
+    
     for fi in range(n_frames):
         amplitudes: list[float] = []
         phases: list[float] = []
+        
+        # Motion pattern intensity
+        motion_intensity = 1.0 if motion else 0.1
+        motion_freq = (fi / frame_interval_ms) * 10  # Hz
+        
         for sc in range(subcarriers):
-            base = 1.0 + 0.03 * _sin(sc / 3.0)
-            disturbance = (
-                _SYN_DISTURBANCE_SCALE * _sin((fi + sc) / _SYN_FREQ_DIVISOR)
-                if motion
-                else 0.025
-            )
-            amplitudes.append(round(base + disturbance, 6))
-            phases.append(round(_sin(sc / 5.0 + fi / 3.0) + phase_offset, 6))
-
-        out.append(
+            # Amplitude generation with realistic patterns
+            base_amplitude = 1.0 + 0.1 * _sin(sc / 5.0)
+            motion_component = motion_intensity * 0.3 * _sin(motion_freq * sc / 3.0 + fi / 2.0)
+            noise = noise_level * (_sin(fi * sc) * 0.5 + 0.5)
+            
+            amplitude = base_amplitude + motion_component + noise
+            amplitudes.append(round(amplitude, 6))
+            
+            # Phase generation with motion correlation
+            base_phase = _cos(sc / 8.0) * 0.5
+            motion_phase = motion_intensity * 0.4 * _sin(fi / 3.0 + sc / 4.0)
+            phase = base_phase + motion_phase
+            phases.append(round(phase, 6))
+        
+        frames_list.append(
             CSIFrame(
                 timestamp_ms=base_timestamp_ms + fi * frame_interval_ms,
                 amplitudes=tuple(amplitudes),
                 phases=tuple(phases),
-                consent_token=consent_token,
+                device_id=f"synthetic-device-{fi % 5}",
+                location_label="test_environment"
             )
         )
-
-    return out
+    
+    return frames_list
 
 
 # ---------------------------------------------------------------------------
-# Demo report builder
+# Advanced processing utilities
 # ---------------------------------------------------------------------------
 
-
-def build_demo_report(motion: bool = True) -> JsonDict:
-    """Run the engine on a synthetic stream and return a JSON-ready dict."""
-    engine = WifiCSISensingEngine()
-    stream = generate_synthetic_csi_stream(motion=motion)
-    return engine.analyze_stream(stream).to_dict()
+class BatchProcessor:
+    """Process large batches of CSI frames efficiently."""
+    
+    def __init__(self, processor: WifiCSIProcessor, batch_size: int = 100):
+        self.processor = processor
+        self.batch_size = batch_size
+        self.buffer: list[CSIFrame] = []
+    
+    def add_frame(self, frame: CSIFrame) -> list[SensingResult] | None:
+        """Add a frame to the batch buffer. Returns results when batch is full."""
+        self.buffer.append(frame)
+        
+        if len(self.buffer) >= self.batch_size:
+            results = [self.processor.analyze_frame(f) for f in self.buffer]
+            self.buffer.clear()
+            return results
+        return None
+    
+    def flush(self) -> list[SensingResult]:
+        """Process any remaining frames in the buffer."""
+        if not self.buffer:
+            return []
+        
+        results = [self.processor.analyze_frame(f) for f in self.buffer]
+        self.buffer.clear()
+        return results
 
 
 # ---------------------------------------------------------------------------
 # CLI entry point
 # ---------------------------------------------------------------------------
 
-
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="ATENA privacy-first Wi-Fi CSI sensing lab",
+        description="Wi-Fi CSI Processing System - High-Performance Signal Analysis",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--frames", "-n",
+        type=int,
+        default=20,
+        help="Number of frames to process"
+    )
+    parser.add_argument(
+        "--motion",
+        action="store_true",
+        default=True,
+        help="Generate motion pattern in synthetic data"
     )
     parser.add_argument(
         "--no-motion",
         action="store_true",
-        help="Generate a low-motion synthetic stream",
+        help="Generate static environment data"
+    )
+    parser.add_argument(
+        "--mode", "-m",
+        choices=list(ALLOWED_MODES),
+        default="motion_detection",
+        help="Processing mode"
+    )
+    parser.add_argument(
+        "--subcarriers", "-s",
+        type=int,
+        default=_DEFAULT_SUBCARRIERS,
+        help="Number of subcarriers per frame"
     )
     parser.add_argument(
         "--json",
         action="store_true",
-        help="Emit the full JSON payload instead of a one-liner summary",
+        help="Output full JSON results"
     )
+    parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Show detailed processing information"
+    )
+    
     args = parser.parse_args(list(argv) if argv is not None else None)
-
-    payload = build_demo_report(motion=not args.no_motion)
-
+    
+    # Generate synthetic data
+    use_motion = not args.no_motion if args.no_motion else args.motion
+    
+    if args.verbose:
+        print(f"Generating {args.frames} frames with {args.subcarriers} subcarriers...")
+        print(f"Mode: {args.mode}, Motion: {use_motion}")
+    
+    stream = generate_synthetic_csi_stream(
+        frames=args.frames,
+        motion=use_motion,
+        subcarriers=args.subcarriers
+    )
+    
+    # Process data
+    processor = WifiCSIProcessor(mode=args.mode)
+    summary = processor.analyze_stream(stream)
+    
+    # Output results
     if args.json:
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        print(json.dumps(summary.to_dict(), ensure_ascii=False, indent=2))
     else:
-        print(
-            f"status={payload['status']}  "
-            f"frames={payload['frames']}  "
-            f"avg_conf={payload['average_confidence']}"
-        )
+        print(f"\n{'='*50}")
+        print(f"CSI Processing Summary")
+        print(f"{'='*50}")
+        print(f"Status: {summary.status}")
+        print(f"Frames processed: {summary.frames}")
+        print(f"Motion frames: {summary.motion_frames}")
+        print(f"Presence frames: {summary.presence_frames}")
+        print(f"Average confidence: {summary.average_confidence}")
+        print(f"Average motion energy: {summary.average_motion_energy}")
+        print(f"Total processing time: {summary.total_processing_time_ms:.2f} ms")
+        print(f"\nConfidence Distribution:")
+        print(f"  High: {summary.confidence_distribution['high']} frames")
+        print(f"  Medium: {summary.confidence_distribution['medium']} frames")
+        print(f"  Low: {summary.confidence_distribution['low']} frames")
+        print(f"{'='*50}")
+        
+        if args.verbose and summary.results:
+            print("\nFirst 5 frame details:")
+            for i, result in enumerate(summary.results[:5]):
+                print(f"  Frame {i+1}: {result['status']} (conf={result['confidence']}, energy={result['motion_energy']})")
+    
     return 0
 
 
