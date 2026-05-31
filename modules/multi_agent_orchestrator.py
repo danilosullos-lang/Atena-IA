@@ -56,16 +56,19 @@ class MultiAgentOrchestrator:
                 task = self.task_queue.get(timeout=1)
                 logger.info(f"Orquestrador: Nova tarefa na fila: {task.get('description', 'Sem descrição')}")
                 assigned = False
+                task_handled = False
                 task.setdefault("_retries", 0)
                 for agent_id, agent in self.agents.items():
                     if agent.status == "idle" and all(cap in agent.capabilities for cap in task.get("required_capabilities", [])):
                         try:
                             agent.assign_task(task)
                             assigned = True
+                            task_handled = True
                             break
                         except Exception:
-                            # Se o agente falhar, tentar outro ou re-enfileirar
-                            logger.warning(f"Agente {agent_id} falhou na tarefa, tentando outro ou re-enfileirando.")
+                            # Se o agente falhar, re-enfileirar uma única vez nesta tentativa
+                            task_handled = True
+                            logger.warning(f"Agente {agent_id} falhou na tarefa, re-enfileirando se houver tentativas disponíveis.")
                             task["_retries"] += 1
                             if task["_retries"] <= self.max_retries:
                                 self.task_queue.put(task)
@@ -76,7 +79,7 @@ class MultiAgentOrchestrator:
                                     task.get("description", "Sem descrição")
                                 )
                             break
-                if not assigned:
+                if not assigned and not task_handled:
                     task["_retries"] += 1
                     if task["_retries"] <= self.max_retries:
                         logger.warning(
