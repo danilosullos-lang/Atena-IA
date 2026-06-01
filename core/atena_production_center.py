@@ -17,7 +17,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from core.heavy_mode_selector import choose_mode
-from core.internet_challenge import run_continuous_internet_evolution, run_internet_challenge
+from core.internet_challenge import inject_best_public_apis, run_continuous_internet_evolution, run_internet_challenge
 from core.production_access import QuotaManager, TenantQuota
 from core.production_advanced_suite import (
     build_issue_to_pr_plan,
@@ -215,6 +215,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_net = sub.add_parser("internet-challenge", help="Executa desafio de pesquisa complexa multi-fonte")
     p_net.add_argument("--topic", required=True)
     _add_top_api_policy_flags(p_net)
+
+    p_api_inject = sub.add_parser("api-autoinject", help="Ranqueia e injeta as melhores APIs públicas no pool ativo")
+    p_api_inject.add_argument("--topic", required=True)
+    p_api_inject.add_argument("--limit", type=int, default=8)
     p_net_loop = sub.add_parser("internet-evolution-loop", help="Executa evolução contínua com múltiplos ciclos")
     p_net_loop.add_argument("--topic", required=True)
     p_net_loop.add_argument("--cycles", type=int, default=3)
@@ -453,6 +457,11 @@ def main() -> int:
         _emit("internet-challenge", payload, full_text=args.full_text)
         return 0 if payload["status"] in {"ok", "partial"} else 2
 
+    if args.cmd == "api-autoinject":
+        payload = inject_best_public_apis(args.topic, limit=args.limit)
+        _emit("api-autoinject", payload, full_text=args.full_text)
+        return 0 if payload["status"] == "ok" else 2
+
     if args.cmd == "internet-evolution-loop":
         use_top_only = bool(getattr(args, "top_apis_only", False) or not getattr(args, "allow_all_apis", False))
         with _temporary_top_api_enforcement(use_top_only):
@@ -547,7 +556,7 @@ def main() -> int:
             max_cost_units=args.max_cost_units,
             window_days=args.window_days,
         )
-        decision = evaluate_go_live(readiness=readiness, remediation=remediation, slo_alert=slo_payload)
+        decision = evaluate_go_live(readiness=readiness, remediation=remediation, slo_alert=slo_payload).to_dict()
         _emit("go-live-gate", decision, full_text=args.full_text)
         return 0 if decision["decision"] == "GO" else 2
 

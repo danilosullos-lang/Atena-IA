@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: atena-production-api
+    env: python
+    plan: starter
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scripts/bootstrap_production_readiness.py && uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    autoDeploy: false
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: ATENA_ENV
+        value: production
+      - key: ATENA_TELEMETRY
+        value: "1"

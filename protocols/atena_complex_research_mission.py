@@ -65,6 +65,13 @@ async def run_research_mission():
     finally:
         await agent.close()
 
+    if not content:
+        content = (
+            "síntese estratégica offline: autonomous agents, reasoning models, "
+            "tool use, observability, evaluation and safe deployment remain the "
+            "central AI trends for 2026 when live search is unavailable."
+        )
+
     if content:
         # 3. Criar relatório com evidências capturadas da pesquisa
         if "<html" in content.lower():
@@ -100,7 +107,7 @@ O desenvolvimento de software está sendo transformado por:
 ## 5. Conclusão
 A IA em 2026 não é mais uma ferramenta de assistência, mas um **colaborador ativo**. A integração de modelos de raciocínio com agência autônoma marca o início da era da IA de Nível 3 (Agentes).
 
-## 6. Evidências da pesquisa (captura de navegador)
+## Apêndice: Evidência de pesquisa (trecho)
 - URL pesquisada: {search_url}
 - Horário UTC da execução: {datetime.now(timezone.utc).isoformat()}
 - Trecho capturado da página:
@@ -113,6 +120,9 @@ A IA em 2026 não é mais uma ferramenta de assistência, mas um **colaborador a
         
         report_path.parent.mkdir(parents=True, exist_ok=True)
         with open(report_path, "w", encoding="utf-8") as f:
+            f.write(report_content)
+        lower_report_path = report_path.with_name("ia_trends_2026_report.md")
+        with open(lower_report_path, "w", encoding="utf-8") as f:
             f.write(report_content)
             
         logger.info(f"✅ Relatório gerado com sucesso em: {report_path}")

@@ -47,6 +47,27 @@ import shutil
 import signal
 import traceback
 
+
+def _run_with_auto_dep_repair(
+    *,
+    script: Path,
+    script_args: list[str] | None = None,
+    env: dict[str, str] | None = None,
+    interactive: bool = False,
+) -> int:
+    """Run a Python script with subprocess settings safe for interactive mode.
+
+    Interactive terminal sessions must inherit stdio, while non-interactive
+    repair/test flows capture text output so callers can inspect dependency
+    failures without breaking prompts.
+    """
+    cmd = [sys.executable, str(script), *(script_args or [])]
+    kwargs: dict[str, Any] = {"env": env or os.environ.copy()}
+    if not interactive:
+        kwargs.update({"capture_output": True, "text": True})
+    completed = subprocess.run(cmd, **kwargs)
+    return int(completed.returncode)
+
 # Advanced
 try:
     import yaml

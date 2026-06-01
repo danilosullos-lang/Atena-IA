@@ -1,26 +1,22 @@
-<<<<<<< ours
-from pathlib import Path
-import sys
-
-from fastapi.testclient import TestClient
-=======
+import importlib.util
 import sys
 from pathlib import Path
 
 import pytest
->>>>>>> theirs
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-<<<<<<< ours
-=======
 pytest.importorskip("fastapi.testclient")
 from fastapi.testclient import TestClient
 
->>>>>>> theirs
-from app.main import app
+spec = importlib.util.spec_from_file_location("atena_firezone_backend", BACKEND_ROOT / "app" / "main.py")
+assert spec and spec.loader
+backend_module = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = backend_module
+spec.loader.exec_module(backend_module)
+app = backend_module.app
 
 
 def test_health() -> None:

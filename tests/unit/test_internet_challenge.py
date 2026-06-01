@@ -2,10 +2,12 @@ import json
 from unittest.mock import patch
 
 from core.internet_challenge import (
+    _build_public_api_catalog,
     _fetch_raw,
     _normalize_api_entries,
     run_internet_challenge,
     discover_any_apis,
+    inject_best_public_apis,
     select_best_api_for_task,
 )
 
@@ -124,3 +126,26 @@ def test_select_best_api_for_task_prefers_matching_category(monkeypatch):
     monkeypatch.setattr("core.internet_challenge.rank_api_candidates", _fake_rank)
     best = select_best_api_for_task("buscar repo github")
     assert best["name"] == "CodeAPI"
+
+
+def test_public_api_catalog_exposes_entries():
+    catalog = _build_public_api_catalog()
+    assert catalog["api_count"] >= 100
+    assert isinstance(catalog["entries"], list)
+    assert any(item["name"] == "github" for item in catalog["entries"])
+
+
+def test_inject_best_public_apis_persists_ranked_manifest(monkeypatch, tmp_path):
+    monkeypatch.setattr("core.internet_challenge.PUBLIC_API_DIR", tmp_path)
+    monkeypatch.setattr("core.internet_challenge.API_POOL_FILE", tmp_path / "api_pool.json")
+    monkeypatch.setattr("core.internet_challenge.API_INJECTION_FILE", tmp_path / "best_api_injections.json")
+    monkeypatch.setattr("core.internet_challenge.SOURCE_PERFORMANCE_FILE", tmp_path / "source_performance.json")
+    monkeypatch.setattr("core.internet_challenge.discover_any_apis", lambda query, limit=10: [])
+
+    payload = inject_best_public_apis("github repo api", limit=5)
+
+    assert payload["status"] == "ok"
+    assert payload["count"] >= 1
+    assert (tmp_path / "best_api_injections.json").exists()
+    names = [item["name"] for item in payload["active"]]
+    assert "github" in names

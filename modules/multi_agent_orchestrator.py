@@ -33,6 +33,8 @@ import traceback
 from functools import wraps
 import random
 
+from core.internet_challenge import rank_api_candidates
+
 # Tentativa de importar módulos avançados
 try:
     from rich.console import Console
@@ -346,6 +348,52 @@ class Event:
 
 # ========== MULTI-AGENT ORCHESTRATOR ==========
 
+class AtenaControlBridge:
+    """Parent control bridge used by tests and external supervisors.
+
+    Besides pause control, this acts as Atena's validating parent: before a
+    child agent executes a task, the bridge ranks public API candidates for the
+    task/agent context and approves the best viable option.
+    """
+
+    def __init__(self, min_api_score: float = 0.5):
+        self.min_api_score = min_api_score
+
+    def is_paused(self) -> bool:
+        return False
+
+    def rank_apis_for_task(self, task_context: Dict[str, Any], agent: Agent, limit: int = 5) -> List[Dict[str, Any]]:
+        topic_parts = [
+            str(task_context.get("description", "")),
+            " ".join(str(cap) for cap in task_context.get("required_capabilities", [])),
+            agent.role,
+            " ".join(sorted(agent.capabilities)),
+        ]
+        topic = " ".join(part for part in topic_parts if part).strip() or "general api"
+        return rank_api_candidates(topic, limit=limit)
+
+    def validate_api_assignment(
+        self,
+        task_context: Dict[str, Any],
+        agent: Agent,
+        candidates: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        selected = candidates[0] if candidates else None
+        score = float(selected.get("score", 0.0)) if selected else 0.0
+        validated = bool(selected and selected.get("endpoint") and score >= self.min_api_score)
+        return {
+            "parent": "AtenaControlBridge",
+            "validated": validated,
+            "agent_id": agent.agent_id,
+            "agent_role": agent.role,
+            "task_id": task_context.get("id"),
+            "task_description": task_context.get("description", ""),
+            "selected_api": selected,
+            "alternatives": candidates[1:],
+            "reason": "approved" if validated else "no_candidate_above_threshold",
+        }
+
+
 class MultiAgentOrchestrator:
     """Orquestrador enterprise de multi-agentes"""
     
@@ -378,6 +426,7 @@ class MultiAgentOrchestrator:
         
         # Performance
         self._executor = ThreadPoolExecutor(max_workers=max_workers)
+        self.control_bridge = AtenaControlBridge()
         
         logger.info(f"MultiAgentOrchestrator initialized with {max_workers} workers")
     
@@ -405,17 +454,32 @@ class MultiAgentOrchestrator:
     
     def submit_task(
         self,
-        description: str,
-        payload: Dict[str, Any],
-        required_capabilities: List[str],
+        description: str | Dict[str, Any],
+        payload: Optional[Dict[str, Any]] = None,
+        required_capabilities: Optional[List[str]] = None,
         priority: TaskPriority = TaskPriority.NORMAL,
         timeout: int = 300,
         max_retries: int = 3
     ) -> str:
-        """Submete uma nova tarefa para execução"""
+        """Submete uma nova tarefa para execução.
+
+        Accepts the current structured signature and the legacy dict payload
+        used by lightweight retry tests.
+        """
+        if isinstance(description, dict) and payload is None:
+            legacy_task = description
+            legacy_task.setdefault("_retries", 0)
+            legacy_task.setdefault("_max_retries", getattr(self, "max_retries", max_retries))
+            legacy_task.setdefault("id", str(uuid.uuid4()))
+            with self._lock:
+                self.task_queue.put(legacy_task)
+            return str(legacy_task["id"])
+
+        payload = payload or {}
+        required_capabilities = required_capabilities or []
         task = Task(
             id=str(uuid.uuid4()),
-            description=description,
+            description=str(description),
             payload=payload,
             required_capabilities=required_capabilities,
             priority=priority,
@@ -444,13 +508,80 @@ class MultiAgentOrchestrator:
                 return self._completed_tasks[task_id].to_dict()
         
         return None
-    
+
+    def _attach_parent_validated_api(self, task: Task | Dict[str, Any], agent: Agent) -> Dict[str, Any]:
+        """Rank and attach the API that a child agent should use for this task."""
+        if not (
+            hasattr(self.control_bridge, "rank_apis_for_task")
+            and hasattr(self.control_bridge, "validate_api_assignment")
+        ):
+            return {
+                "parent": type(self.control_bridge).__name__,
+                "validated": False,
+                "agent_id": agent.agent_id,
+                "selected_api": None,
+                "alternatives": [],
+                "reason": "bridge_without_api_validation",
+            }
+
+        if isinstance(task, Task):
+            task_context: Dict[str, Any] = {
+                "id": task.id,
+                "description": task.description,
+                "required_capabilities": task.required_capabilities,
+                "payload": task.payload,
+            }
+            candidates = self.control_bridge.rank_apis_for_task(task_context, agent)
+            assignment = self.control_bridge.validate_api_assignment(task_context, agent, candidates)
+            task.payload["atena_api_assignment"] = assignment
+            return assignment
+
+        task_context = {
+            "id": task.get("id"),
+            "description": task.get("description", ""),
+            "required_capabilities": task.get("required_capabilities", []),
+            "payload": task,
+        }
+        candidates = self.control_bridge.rank_apis_for_task(task_context, agent)
+        assignment = self.control_bridge.validate_api_assignment(task_context, agent, candidates)
+        task["atena_api_assignment"] = assignment
+        return assignment
+
+
+    def _process_legacy_task(self, task: Dict[str, Any]) -> None:
+        """Process a legacy dict task and requeue immediately on first failures."""
+        if self.control_bridge.is_paused():
+            self.task_queue.put(task)
+            return
+
+        required = set(task.get("required_capabilities", []))
+        agent = next((a for a in self.agents.values() if required.issubset(a.capabilities)), None)
+        if agent is None:
+            task["_retries"] = task.get("_retries", 0) + 1
+            if task["_retries"] <= task.get("_max_retries", getattr(self, "max_retries", 3)):
+                self.task_queue.put(task)
+            return
+
+        try:
+            self._attach_parent_validated_api(task, agent)
+            agent.task_handler(task)
+        except Exception:
+            task["_retries"] = task.get("_retries", 0) + 1
+            if task["_retries"] <= task.get("_max_retries", getattr(self, "max_retries", 3)):
+                self.task_queue.put(task)
+            return
+
     def _worker_loop(self):
         """Worker loop para processamento de tarefas"""
         while not self._stop_event.is_set():
             try:
                 # Pega tarefa da fila com timeout
-                priority, task = self.task_queue.get(timeout=1)
+                queue_item = self.task_queue.get(timeout=1)
+                if isinstance(queue_item, dict):
+                    self._process_legacy_task(queue_item)
+                    self.task_queue.task_done()
+                    continue
+                priority, task = queue_item
                 
                 with self._lock:
                     if task.id not in self._pending_tasks:
@@ -473,6 +604,7 @@ class MultiAgentOrchestrator:
                 
                 for agent, _ in available_agents:
                     try:
+                        self._attach_parent_validated_api(task, agent)
                         # Executa tarefa no pool de threads
                         future = self._executor.submit(agent.assign_task, task)
                         result = future.result(timeout=task.timeout + 10)

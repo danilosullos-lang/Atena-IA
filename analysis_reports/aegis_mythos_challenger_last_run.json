@@ -1,0 +1,307 @@
+{
+  "technology": "ATENA Aegis Mythos+ Challenger",
+  "status": "ok",
+  "objective": "criar tecnologia IA defensiva auditável que supere Mythos em governança, API routing e produção segura",
+  "generated_at_utc": "2026-06-01T17:32:54.886457+00:00",
+  "target_frontier_score": 0.93,
+  "benchmark": {
+    "capability_score": 0.982,
+    "safety_score": 0.972,
+    "auditability_score": 1.0,
+    "api_routing_score": 0.99,
+    "controlled_autonomy_score": 0.96,
+    "composite_score": 0.982,
+    "target_frontier_score": 0.93,
+    "target_delta": 0.052,
+    "release_decision": "GO"
+  },
+  "plans": [
+    {
+      "task": {
+        "task_id": "aegis-research-001",
+        "objective": "Pesquisar evidências abertas para: criar tecnologia IA defensiva auditável que supere Mythos em governança, API routing e produção segura",
+        "track": "research",
+        "child_agent": "aegis-researcher",
+        "required_capabilities": [
+          "academic",
+          "evidence",
+          "research"
+        ],
+        "safety_level": "defensive_only"
+      },
+      "evidence_route": {
+        "selected_api": {
+          "name": "OpenAlex",
+          "endpoint": "https://api.openalex.org/works",
+          "category": "research",
+          "score": 0.98
+        },
+        "alternatives": [
+          {
+            "name": "Semantic Scholar",
+            "endpoint": "https://api.semanticscholar.org/graph/v1/paper/search",
+            "category": "research",
+            "score": 0.96
+          },
+          {
+            "name": "europepmc",
+            "endpoint": "https://www.ebi.ac.uk/europepmc/webservices/rest/search",
+            "category": "health",
+            "score": 0.92
+          },
+          {
+            "name": "pubmed",
+            "endpoint": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi",
+            "category": "health",
+            "score": 0.92
+          },
+          {
+            "name": "clinicaltrials",
+            "endpoint": "https://clinicaltrials.gov/api/v2/studies",
+            "category": "health",
+            "score": 0.9
+          },
+          {
+            "name": "Semantic Scholar",
+            "endpoint": "https://api.semanticscholar.org/graph/v1",
+            "category": "research",
+            "score": 0.8
+          }
+        ],
+        "confidence": 0.98,
+        "route_reason": "track=research; capabilities=academic, evidence, research"
+      },
+      "governance_gate": {
+        "decision": "auto_governed",
+        "risk": "low",
+        "required_review": "none",
+        "reason": "bounded task with audit trail and rollback requirement"
+      },
+      "predicted_capability_gain": 0.98,
+      "safety_score": 0.98,
+      "audit_trail": [
+        "objective_logged",
+        "api_route_ranked",
+        "governance_gate_applied",
+        "defensive_only_policy_enforced",
+        "rollback_required_before_autonomy"
+      ]
+    },
+    {
+      "task": {
+        "task_id": "aegis-code-001",
+        "objective": "Gerar protótipo defensivo versionável com testes e rollback",
+        "track": "code",
+        "child_agent": "aegis-builder",
+        "required_capabilities": [
+          "code",
+          "github",
+          "tests"
+        ],
+        "safety_level": "defensive_only"
+      },
+      "evidence_route": {
+        "selected_api": {
+          "name": "GitHub",
+          "endpoint": "https://api.github.com",
+          "category": "code",
+          "score": 1.0
+        },
+        "alternatives": [
+          {
+            "name": "GitLab",
+            "endpoint": "https://gitlab.com/api/v4",
+            "category": "code",
+            "score": 0.94
+          },
+          {
+            "name": "gitlab",
+            "endpoint": "https://gitlab.com/api/v4/projects",
+            "category": "code",
+            "score": 0.92
+          },
+          {
+            "name": "cratesio",
+            "endpoint": "https://crates.io/api/v1/crates",
+            "category": "packages",
+            "score": 0.8
+          },
+          {
+            "name": "maven",
+            "endpoint": "https://search.maven.org/solrsearch/select",
+            "category": "packages",
+            "score": 0.8
+          },
+          {
+            "name": "github",
+            "endpoint": "https://api.github.com/search/repositories",
+            "category": "code",
+            "score": 0.6
+          }
+        ],
+        "confidence": 1.0,
+        "route_reason": "track=code; capabilities=code, github, tests"
+      },
+      "governance_gate": {
+        "decision": "auto_governed",
+        "risk": "low",
+        "required_review": "none",
+        "reason": "bounded task with audit trail and rollback requirement"
+      },
+      "predicted_capability_gain": 0.99,
+      "safety_score": 0.98,
+      "audit_trail": [
+        "objective_logged",
+        "api_route_ranked",
+        "governance_gate_applied",
+        "defensive_only_policy_enforced",
+        "rollback_required_before_autonomy"
+      ]
+    },
+    {
+      "task": {
+        "task_id": "aegis-safety-001",
+        "objective": "Validar segurança, governança, telemetria e limites anti-abuso",
+        "track": "safety",
+        "child_agent": "aegis-governor",
+        "required_capabilities": [
+          "policy",
+          "telemetry",
+          "safety"
+        ],
+        "safety_level": "defensive_only"
+      },
+      "evidence_route": {
+        "selected_api": {
+          "name": "ATENA Telemetry",
+          "endpoint": "atena://production_center/telemetry",
+          "category": "internal_governance",
+          "score": 1.0
+        },
+        "alternatives": [
+          {
+            "name": "ATENA Policy Audit",
+            "endpoint": "atena://production_center/policy_audit",
+            "category": "internal_governance",
+            "score": 0.99
+          },
+          {
+            "name": "GitLab",
+            "endpoint": "https://gitlab.com/api/v4",
+            "category": "code",
+            "score": 0.86
+          },
+          {
+            "name": "gitlab",
+            "endpoint": "https://gitlab.com/api/v4/projects",
+            "category": "code",
+            "score": 0.86
+          },
+          {
+            "name": "cratesio",
+            "endpoint": "https://crates.io/api/v1/crates",
+            "category": "packages",
+            "score": 0.8
+          },
+          {
+            "name": "maven",
+            "endpoint": "https://search.maven.org/solrsearch/select",
+            "category": "packages",
+            "score": 0.8
+          }
+        ],
+        "confidence": 1.0,
+        "route_reason": "track=safety; capabilities=policy, telemetry, safety"
+      },
+      "governance_gate": {
+        "decision": "auto_governed",
+        "risk": "low",
+        "required_review": "none",
+        "reason": "bounded task with audit trail and rollback requirement"
+      },
+      "predicted_capability_gain": 0.99,
+      "safety_score": 0.98,
+      "audit_trail": [
+        "objective_logged",
+        "api_route_ranked",
+        "governance_gate_applied",
+        "defensive_only_policy_enforced",
+        "rollback_required_before_autonomy"
+      ]
+    },
+    {
+      "task": {
+        "task_id": "aegis-defense-001",
+        "objective": "Triar sinais públicos de vulnerabilidade apenas para defesa e patching",
+        "track": "defensive_security",
+        "child_agent": "aegis-defender",
+        "required_capabilities": [
+          "defensive",
+          "cve",
+          "patching"
+        ],
+        "safety_level": "defensive_only"
+      },
+      "evidence_route": {
+        "selected_api": {
+          "name": "NVD",
+          "endpoint": "https://services.nvd.nist.gov/rest/json/cves/2.0",
+          "category": "defensive_security",
+          "score": 0.98
+        },
+        "alternatives": [
+          {
+            "name": "CISA KEV",
+            "endpoint": "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json",
+            "category": "defensive_security",
+            "score": 0.97
+          },
+          {
+            "name": "GitLab",
+            "endpoint": "https://gitlab.com/api/v4",
+            "category": "code",
+            "score": 0.86
+          },
+          {
+            "name": "gitlab",
+            "endpoint": "https://gitlab.com/api/v4/projects",
+            "category": "code",
+            "score": 0.86
+          },
+          {
+            "name": "cratesio",
+            "endpoint": "https://crates.io/api/v1/crates",
+            "category": "packages",
+            "score": 0.8
+          },
+          {
+            "name": "maven",
+            "endpoint": "https://search.maven.org/solrsearch/select",
+            "category": "packages",
+            "score": 0.8
+          }
+        ],
+        "confidence": 0.98,
+        "route_reason": "track=defensive_security; capabilities=defensive, cve, patching"
+      },
+      "governance_gate": {
+        "decision": "human_review",
+        "risk": "medium",
+        "required_review": "defensive_security_owner",
+        "reason": "defensive cyber triage may affect real systems; require review before action"
+      },
+      "predicted_capability_gain": 0.966,
+      "safety_score": 0.95,
+      "audit_trail": [
+        "objective_logged",
+        "api_route_ranked",
+        "governance_gate_applied",
+        "defensive_only_policy_enforced",
+        "rollback_required_before_autonomy"
+      ]
+    }
+  ],
+  "claim_boundary": "Protótipo local: supera o alvo interno em governança, auditabilidade e roteamento seguro; não afirma superar modelos frontier em inteligência geral sem benchmark externo independente.",
+  "json_report_path": "analysis_reports/aegis_mythos_challenger_last_run.json",
+  "markdown_report_path": "analysis_reports/EXECUCAO_AEGIS_MYTHOS_CHALLENGER_2026-06-01.md"
+}

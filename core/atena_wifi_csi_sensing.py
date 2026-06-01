@@ -57,12 +57,15 @@ class CSIFrame:
     """Channel State Information observation frame."""
     
     timestamp_ms: int
-    amplitudes: tuple[float, ...]
-    phases: tuple[float, ...]
+    amplitudes: Sequence[float]
+    phases: Sequence[float]
     device_id: str = "csi-node"
     location_label: str = "default"
+    consent_token: str | None = None
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "amplitudes", tuple(float(v) for v in self.amplitudes))
+        object.__setattr__(self, "phases", tuple(float(v) for v in self.phases))
         if not self.amplitudes:
             raise ValueError("CSIFrame.amplitudes must be non-empty.")
         if len(self.amplitudes) != len(self.phases):
@@ -102,6 +105,7 @@ class SensingResult:
     subcarrier_count: int
     processing_time_ms: float
     generated_at: str
+    warnings: tuple[str, ...] = ()
 
     def to_dict(self) -> JsonDict:
         d = asdict(self)
@@ -122,6 +126,8 @@ class StreamSummary:
     total_processing_time_ms: float
     capability: str
     results: tuple[JsonDict, ...]
+    blocked_frames: int = 0
+    safety_note: str = "Processamento CSI apenas para laboratório consentido; não use para vigilância oculta."
 
     def to_dict(self) -> JsonDict:
         d = asdict(self)
@@ -432,6 +438,122 @@ def generate_synthetic_csi_stream(
         )
     
     return frames_list
+
+
+@dataclass(frozen=True)
+class SensingPolicy:
+    """Privacy and safety policy for consent-gated Wi-Fi CSI demos."""
+
+    consent_token: str | None = None
+    require_consent: bool = True
+    warnings: tuple[str, ...] = ("no_hidden_surveillance", "consented_lab_only")
+
+
+class WifiCSISensingEngine:
+    """Compatibility facade with consent checks and lab-safe result labels.
+
+    The lower-level :class:`WifiCSIProcessor` handles signal processing. This
+    facade preserves the public API used by Atena demos while making privacy
+    controls explicit for every frame.
+    """
+
+    unwrap_phase = staticmethod(WifiCSIProcessor.unwrap_phase)
+
+    def __init__(self, policy: SensingPolicy | None = None, mode: str = "motion_detection") -> None:
+        self.policy = policy or SensingPolicy(require_consent=False)
+        self.processor = WifiCSIProcessor(mode=mode)
+
+    def _has_valid_consent(self, frame: CSIFrame) -> bool:
+        if not self.policy.require_consent:
+            return True
+        return bool(frame.consent_token) and frame.consent_token == self.policy.consent_token
+
+    def analyze_frame(self, frame: CSIFrame) -> SensingResult:
+        if not self._has_valid_consent(frame):
+            return SensingResult(
+                status="blocked_by_policy",
+                confidence=0.0,
+                motion_energy=0.0,
+                amplitude_variance=0.0,
+                phase_variance=0.0,
+                mean_amplitude=0.0,
+                mean_phase=0.0,
+                subcarrier_count=len(frame.amplitudes),
+                processing_time_ms=0.0,
+                generated_at=datetime.now(timezone.utc).isoformat(),
+                warnings=("missing_or_invalid_consent", *self.policy.warnings),
+            )
+
+        result = self.processor.analyze_frame(frame)
+        status_map = {
+            "motion_detected": "motion",
+            "potential_activity": "possible_presence",
+            "presence_detected": "possible_presence",
+            "static_environment": "clear",
+            "no_presence": "clear",
+        }
+        return SensingResult(
+            status=status_map.get(result.status, result.status),
+            confidence=result.confidence,
+            motion_energy=result.motion_energy,
+            amplitude_variance=result.amplitude_variance,
+            phase_variance=result.phase_variance,
+            mean_amplitude=result.mean_amplitude,
+            mean_phase=result.mean_phase,
+            subcarrier_count=result.subcarrier_count,
+            processing_time_ms=result.processing_time_ms,
+            generated_at=result.generated_at,
+            warnings=self.policy.warnings,
+        )
+
+    def analyze_stream(self, frames: Iterable[CSIFrame]) -> JsonDict:
+        results = [self.analyze_frame(frame) for frame in frames]
+        blocked = sum(1 for result in results if result.status == "blocked_by_policy")
+        motion = sum(1 for result in results if result.status == "motion")
+        possible_presence = sum(1 for result in results if result.status == "possible_presence")
+
+        if not results:
+            status = "empty_stream"
+        elif blocked == len(results):
+            status = "blocked_by_policy"
+        elif motion > 0:
+            status = "motion"
+        elif possible_presence > 0:
+            status = "possible_presence"
+        else:
+            status = "clear"
+
+        confidences = [result.confidence for result in results]
+        energies = [result.motion_energy for result in results]
+        return {
+            "capability": "wifi_csi_presence_sensing_lab",
+            "status": status,
+            "frames": len(results),
+            "blocked_frames": blocked,
+            "motion_frames": motion,
+            "presence_frames": possible_presence,
+            "average_confidence": round(mean(confidences), 3) if confidences else 0.0,
+            "average_motion_energy": round(mean(energies), 6) if energies else 0.0,
+            "safety_note": "Execução consentida para laboratório; proibido uso para vigilância oculta.",
+            "results": [result.to_dict() for result in results],
+        }
+
+
+def build_demo_report(*, motion: bool = True) -> JsonDict:
+    """Build a deterministic, consent-safe Wi-Fi CSI demo payload."""
+    token = "demo-consent"
+    frames = [
+        CSIFrame(
+            timestamp_ms=frame.timestamp_ms,
+            amplitudes=frame.amplitudes,
+            phases=frame.phases,
+            device_id=frame.device_id,
+            location_label=frame.location_label,
+            consent_token=token,
+        )
+        for frame in generate_synthetic_csi_stream(frames=6, motion=motion)
+    ]
+    return WifiCSISensingEngine(SensingPolicy(consent_token=token)).analyze_stream(frames)
 
 
 # ---------------------------------------------------------------------------

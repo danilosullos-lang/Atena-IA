@@ -51,3 +51,42 @@ def test_main_writes_watchlist(monkeypatch, tmp_path):
     payload = json.loads(out_file.read_text(encoding="utf-8"))
     assert payload["count"] >= 2
     assert payload["repos"][0]["full_name"] == "org/x"
+
+    report_file = tmp_path / "analysis_reports" / "EXECUCAO_GITHUB_TOP_STARS_ABSORPTION_2026-06-01.md"
+    assert report_file.exists()
+    assert "Padrões absorvidos" in report_file.read_text(encoding="utf-8")
+
+
+def test_main_uses_local_watchlist_fallback(monkeypatch, tmp_path):
+    mod = _load_module()
+
+    def failing_search(_query: str, per_page: int = 20):
+        raise OSError("network blocked")
+
+    monkeypatch.setattr(mod, "search_repos", failing_search)
+    monkeypatch.chdir(tmp_path)
+
+    fallback = {
+        "repos": [
+            {
+                "full_name": "big/ai",
+                "html_url": "https://example/big-ai",
+                "description": "LLM agent framework with RAG and observability",
+                "stargazers_count": 123456,
+                "language": "Python",
+                "updated_at": "2026-01-01",
+            }
+        ]
+    }
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "ai_repo_watchlist.json").write_text(json.dumps(fallback), encoding="utf-8")
+
+    rc = mod.main()
+
+    assert rc == 0
+    payload = json.loads((docs / "ai_repo_watchlist.json").read_text(encoding="utf-8"))
+    assert payload == fallback
+    report = (tmp_path / "analysis_reports" / "EXECUCAO_GITHUB_TOP_STARS_ABSORPTION_2026-06-01.md").read_text(encoding="utf-8")
+    assert "big/ai" in report
+    assert "API ao vivo" in report
