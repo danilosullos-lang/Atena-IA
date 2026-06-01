@@ -144,6 +144,17 @@ def test_internet_policy_flags_are_mutually_exclusive():
     assert "not allowed with argument" in proc.stderr
 
 
+
+def test_api_autoinject_command():
+    proc = run_cli("api-autoinject", "--topic", "github repo api", "--limit", "5")
+    assert proc.returncode == 0
+    payload = json.loads(proc.stdout)
+    assert payload["contract_valid"] is True
+    assert payload["status"] == "ok"
+    assert payload["count"] >= 1
+    assert any(item["name"] == "github" for item in payload["active"])
+
+
 def test_enterprise_final_check_command():
     proc = run_cli("enterprise-final-check", "--topic", "enterprise ai governance", "--cycles", "1")
     assert proc.returncode in {0, 2}

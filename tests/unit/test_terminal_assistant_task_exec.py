@@ -68,6 +68,15 @@ def test_build_local_task_exec_fallback_for_tests_count() -> None:
     assert commands[0].startswith("python3 -c ")
 
 
+def test_build_local_task_exec_fallback_for_portuguese_test_count() -> None:
+    commands = assistant.build_local_task_exec_fallback(
+        "contar quantos arquivos de teste python existem em tests e sair"
+    )
+    assert len(commands) == 1
+    assert commands[0].startswith("python3 -c ")
+    assert "tests/**/*.py" in commands[0]
+
+
 def test_build_local_task_exec_fallback_for_generic_json_count() -> None:
     commands = assistant.build_local_task_exec_fallback(
         "Verifique se existe pasta atena_evolution e conte arquivos json nela"
@@ -76,6 +85,11 @@ def test_build_local_task_exec_fallback_for_generic_json_count() -> None:
     assert "python3 -c " in commands[0]
     assert "*.json" in commands[0]
     assert "atena_evolution" in commands[0]
+
+
+def test_build_local_task_exec_fallback_for_generic_health_check() -> None:
+    commands = assistant.build_local_task_exec_fallback("mostrar status genérico")
+    assert commands == ["python3 -m py_compile core/atena_terminal_assistant.py"]
 
 
 def test_run_task_exec_uses_objective_fallback_when_plan_has_no_commands(monkeypatch, tmp_path) -> None:

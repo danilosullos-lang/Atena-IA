@@ -1,0 +1,27 @@
+{
+  "timestamp_utc": "2026-06-01T16:52:52.823825+00:00",
+  "topic": "Atena API Swarm NeuroCausal Fabric: tecnologia nova para agentes filhos escolherem APIs públicas por tarefa, pesquisar evidências e reduzir custo energético",
+  "mode": "standard",
+  "capabilities_detected": [
+    "AtenaSysAware",
+    "CRYPTO-ANALYTICS",
+    "Voice",
+    "architectactuator",
+    "atena advanced essentials",
+    "atena advanced portfolio optimizer",
+    "atena agent orchestrator",
+    "atena browser agent",
+    "atena code module",
+    "atena codex",
+    "atena control bridge",
+    "atena engine"
+  ],
+  "keywords": [
+    "otimização",
+    "telemetria",
+    "multiagente",
+    "autônomo"
+  ],
+  "blueprint_path": "docs/BLUEPRINT_FUTURO_IA_2026-06-01.md",
+  "status": "ok"
+}

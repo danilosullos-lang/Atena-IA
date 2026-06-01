@@ -571,27 +571,55 @@ class CodeGenerator:
         self._dados[chave] = valor
         self._ordem.append(chave)
 """
-            return """class LRUCache:
+            return """class _Node:
+    def __init__(self, key=None, value=None):
+        self.key = key
+        self.value = value
+        self.prev = None
+        self.next = None
+
+
+class LRUCache:
     def __init__(self, capacity: int):
         self.capacity = capacity
         self._data = {}
-        self._order = []
+        self._head = _Node()
+        self._tail = _Node()
+        self._head.next = self._tail
+        self._tail.prev = self._head
+
+    def _remove(self, node: _Node) -> None:
+        node.prev.next = node.next
+        node.next.prev = node.prev
+
+    def _add_front(self, node: _Node) -> None:
+        node.next = self._head.next
+        node.prev = self._head
+        self._head.next.prev = node
+        self._head.next = node
 
     def get(self, key):
         if key not in self._data:
             return -1
-        self._order.remove(key)
-        self._order.append(key)
-        return self._data[key]
+        node = self._data[key]
+        self._remove(node)
+        self._add_front(node)
+        return node.value
 
     def put(self, key, value) -> None:
         if key in self._data:
-            self._order.remove(key)
-        elif len(self._data) >= self.capacity:
-            oldest = self._order.pop(0)
-            del self._data[oldest]
-        self._data[key] = value
-        self._order.append(key)
+            node = self._data[key]
+            node.value = value
+            self._remove(node)
+            self._add_front(node)
+            return
+        node = _Node(key, value)
+        self._data[key] = node
+        self._add_front(node)
+        if len(self._data) > self.capacity:
+            victim = self._tail.prev
+            self._remove(victim)
+            del self._data[victim.key]
 """
 
         if "servidor http" in lowered and "socket" in lowered:

@@ -1,0 +1,190 @@
+{
+  "technology": "Atena API Swarm NeuroCausal Fabric",
+  "status": "ok",
+  "generated_at_utc": "2026-06-01T16:59:37.083668+00:00",
+  "tasks_planned": 3,
+  "approved_plans": 3,
+  "average_confidence": 1.0,
+  "avoided_energy_units": 7.14,
+  "plans": [
+    {
+      "task_id": "child-code-001",
+      "child_agent": "child-code-researcher",
+      "selected_api": {
+        "name": "GitHub",
+        "endpoint": "https://api.github.com",
+        "category": "code",
+        "score": 1.0
+      },
+      "alternatives": [
+        {
+          "name": "OpenAlex",
+          "endpoint": "https://api.openalex.org/works",
+          "category": "research",
+          "score": 1.0
+        },
+        {
+          "name": "github",
+          "endpoint": "https://api.github.com/search/repositories",
+          "category": "code",
+          "score": 1.0
+        },
+        {
+          "name": "GitLab",
+          "endpoint": "https://gitlab.com/api/v4",
+          "category": "code",
+          "score": 1.0
+        },
+        {
+          "name": "gitlab",
+          "endpoint": "https://gitlab.com/api/v4/projects",
+          "category": "code",
+          "score": 1.0
+        },
+        {
+          "name": "Semantic Scholar",
+          "endpoint": "https://api.semanticscholar.org/graph/v1/paper/search",
+          "category": "research",
+          "score": 0.98
+        },
+        {
+          "name": "cratesio",
+          "endpoint": "https://crates.io/api/v1/crates",
+          "category": "packages",
+          "score": 0.8
+        }
+      ],
+      "causal_trace": {
+        "hypothesis": "child-code-researcher deve usar a API com maior aderência para: pesquisar repositórios GitHub e bibliotecas úteis para evolução da Atena",
+        "evidence": [
+          "7 APIs candidatas ranqueadas",
+          "score selecionado=1.00",
+          "capacidades=code, github, research"
+        ],
+        "risk_reduced": "reduz chamadas redundantes, APIs fracas e custo energético por tentativa/erro",
+        "confidence": 1.0
+      },
+      "estimated_energy_units": 1.48,
+      "avoided_energy_units": 2.52,
+      "validation": "approved"
+    },
+    {
+      "task_id": "child-weather-001",
+      "child_agent": "child-climate-analyst",
+      "selected_api": {
+        "name": "Open-Meteo",
+        "endpoint": "https://api.open-meteo.com/v1/forecast",
+        "category": "weather",
+        "score": 1.0
+      },
+      "alternatives": [
+        {
+          "name": "GitHub",
+          "endpoint": "https://api.github.com",
+          "category": "code",
+          "score": 0.9
+        },
+        {
+          "name": "github",
+          "endpoint": "https://api.github.com/search/repositories",
+          "category": "code",
+          "score": 0.9
+        },
+        {
+          "name": "GitLab",
+          "endpoint": "https://gitlab.com/api/v4",
+          "category": "code",
+          "score": 0.86
+        },
+        {
+          "name": "gitlab",
+          "endpoint": "https://gitlab.com/api/v4/projects",
+          "category": "code",
+          "score": 0.86
+        },
+        {
+          "name": "cratesio",
+          "endpoint": "https://crates.io/api/v1/crates",
+          "category": "packages",
+          "score": 0.8
+        }
+      ],
+      "causal_trace": {
+        "hypothesis": "child-climate-analyst deve usar a API com maior aderência para: buscar sinais climáticos públicos para simulação causal de risco operacional",
+        "evidence": [
+          "6 APIs candidatas ranqueadas",
+          "score selecionado=1.00",
+          "capacidades=weather, risk, simulation"
+        ],
+        "risk_reduced": "reduz chamadas redundantes, APIs fracas e custo energético por tentativa/erro",
+        "confidence": 1.0
+      },
+      "estimated_energy_units": 1.4,
+      "avoided_energy_units": 2.1,
+      "validation": "approved"
+    },
+    {
+      "task_id": "child-academic-001",
+      "child_agent": "child-academic-validator",
+      "selected_api": {
+        "name": "OpenAlex",
+        "endpoint": "https://api.openalex.org/works",
+        "category": "research",
+        "score": 1.0
+      },
+      "alternatives": [
+        {
+          "name": "europepmc",
+          "endpoint": "https://www.ebi.ac.uk/europepmc/webservices/rest/search",
+          "category": "health",
+          "score": 1.0
+        },
+        {
+          "name": "pubmed",
+          "endpoint": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi",
+          "category": "health",
+          "score": 1.0
+        },
+        {
+          "name": "clinicaltrials",
+          "endpoint": "https://clinicaltrials.gov/api/v2/studies",
+          "category": "health",
+          "score": 1.0
+        },
+        {
+          "name": "Semantic Scholar",
+          "endpoint": "https://api.semanticscholar.org/graph/v1/paper/search",
+          "category": "research",
+          "score": 0.98
+        },
+        {
+          "name": "openlibrary",
+          "endpoint": "https://openlibrary.org/search.json",
+          "category": "books",
+          "score": 0.78
+        },
+        {
+          "name": "gutenberg",
+          "endpoint": "https://gutendex.com/books",
+          "category": "books",
+          "score": 0.76
+        }
+      ],
+      "causal_trace": {
+        "hypothesis": "child-academic-validator deve usar a API com maior aderência para: validar hipótese neurocausal com fontes acadêmicas abertas",
+        "evidence": [
+          "7 APIs candidatas ranqueadas",
+          "score selecionado=1.00",
+          "capacidades=research, academic, evidence"
+        ],
+        "risk_reduced": "reduz chamadas redundantes, APIs fracas e custo energético por tentativa/erro",
+        "confidence": 1.0
+      },
+      "estimated_energy_units": 1.48,
+      "avoided_energy_units": 2.52,
+      "validation": "approved"
+    }
+  ],
+  "json_report_path": "analysis_reports/api_swarm_neurocausal_fabric_last_run.json",
+  "markdown_report_path": "analysis_reports/EXECUCAO_API_SWARM_NEUROCAUSAL_FABRIC_2026-06-01.md"
+}

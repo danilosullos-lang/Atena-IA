@@ -107,6 +107,13 @@ show_mini_banner() {
 # Funções Utilitárias Aprimoradas
 # =============================================================================
 
+error_exit() {
+    local msg="$1"
+    local code="${2:-1}"
+    log ERROR "$msg"
+    exit "$code"
+}
+
 log() {
     local level="$1"
     shift
@@ -655,6 +662,7 @@ ${BOLD}Comandos:${NC}
     install-deps        Planeja/instala dependências (use --apply para executar)
     github-scan         Vasculha GitHub para evolução da ATENA
     future-ai-fabric    Cria blueprint de tecnologia futura de IA
+    aegis-mythos        Programa/executa tecnologia segura ATENA Aegis Mythos+
 
 ${BOLD}Variáveis de Ambiente:${NC}
     ATENA_FORCE         Força execução mesmo com lock
@@ -764,7 +772,7 @@ main() {
                 mode="perf_diag"
                 shift
                 ;;
-            assistant|manus|codex|claude-code|benchmark|self-test|release-gate|install-deps|github-scan|future-ai-fabric|production-center)
+            assistant|manus|codex|claude-code|benchmark|self-test|release-gate|install-deps|github-scan|future-ai-fabric|aegis-mythos|production-center)
                 mode="$1"
                 shift
                 ;;
@@ -830,7 +838,7 @@ main() {
     rotate_old_logs
     
     # Mostra banner (se não for modo especial)
-    if [[ "$mode" != "install-deps" ]] && [[ "$mode" != "github-scan" ]] && [[ "$mode" != "future-ai-fabric" ]]; then
+    if [[ "$mode" != "install-deps" ]] && [[ "$mode" != "github-scan" ]] && [[ "$mode" != "future-ai-fabric" ]] && [[ "$mode" != "aegis-mythos" ]]; then
         show_banner
     fi
     
@@ -864,6 +872,10 @@ main() {
         future-ai-fabric)
             log INFO "Criando tecnologia futura de IA..."
             exec $PYTHON_CMD "$CORE_DIR/atena_neurocausal_memory_fabric.py" "${args[@]}"
+            ;;
+        aegis-mythos)
+            log INFO "Programando tecnologia ATENA Aegis Mythos+..."
+            exec $PYTHON_CMD -m core.atena_aegis_mythos_challenger "${args[@]}"
             ;;
         monitor)
             log INFO "Iniciando com monitoramento..."

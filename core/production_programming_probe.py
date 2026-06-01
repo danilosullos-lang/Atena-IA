@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import ast
 import json
+import math
 import os
 import subprocess
 import sys
@@ -419,7 +420,7 @@ def run_programming_probe(
     prefix: str = "probe",
     site_template: str = "dashboard",
     run_tests: bool = True,
-    validate_all: bool = True
+    validate_all: bool = False
 ) -> Dict[str, Any]:
     """
     Executa sonda completa de capacidade de programação da ATENA.

@@ -634,7 +634,7 @@ async def production_gate(
         max_cost_units=max_cost_units,
         window_days=window_days,
     )
-    return evaluate_go_live(readiness=readiness, remediation=remediation, slo_alert=slo)
+    return evaluate_go_live(readiness=readiness, remediation=remediation, slo_alert=slo).to_dict()
 
 
 @app.post("/production/slo-alert", tags=["Production"])
