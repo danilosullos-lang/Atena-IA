@@ -43,6 +43,7 @@ logger = logging.getLogger("InternetChallenge")
 ROOT = Path(__file__).resolve().parent.parent
 PUBLIC_API_DIR = ROOT / "analysis_reports" / "public_api_catalog"
 API_POOL_FILE = PUBLIC_API_DIR / "api_pool.json"
+API_INJECTION_FILE = PUBLIC_API_DIR / "best_api_injections.json"
 EVOLUTION_SIGNAL_FILE = PUBLIC_API_DIR / "evolution_signal.json"
 SOURCE_PERFORMANCE_FILE = PUBLIC_API_DIR / "source_performance.json"
 API_POOL_TARGET_SIZE = 100
@@ -260,6 +261,13 @@ def _normalize_host(value: str) -> str:
     return host.split("@")[-1].split(":")[0]
 
 
+def _display_path(path: Path) -> str:
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
 def _build_public_api_catalog() -> dict[str, object]:
     """Gera/atualiza catálogo de APIs públicas incluindo seed local e descoberta no GitHub."""
     PUBLIC_API_DIR.mkdir(parents=True, exist_ok=True)
@@ -325,9 +333,10 @@ def _build_public_api_catalog() -> dict[str, object]:
     public_registry_count = len(_public_api_registry())
 
     return {
-        "catalog_path": str(API_POOL_FILE.relative_to(ROOT)),
-        "discovery_path": str(discovery_path.relative_to(ROOT)) if discovery_path.exists() else "",
+        "catalog_path": _display_path(API_POOL_FILE),
+        "discovery_path": _display_path(discovery_path) if discovery_path.exists() else "",
         "api_count": len(catalog),
+        "entries": catalog,
     }
 
 
@@ -808,6 +817,28 @@ def rank_api_candidates(topic: str, limit: int = 8) -> list[dict[str, object]]:
 
     merged.sort(key=lambda x: float(x.get("score", 0.0)), reverse=True)
     return merged[: max(1, int(limit))]
+
+
+def inject_best_public_apis(topic: str, limit: int = 8) -> dict[str, object]:
+    """Persist the best ranked APIs as Atena's active self-injection pool.
+
+    This keeps Atena from depending only on live discovery: even when external
+    catalog calls fail, the internal API pool is ranked and written to disk as
+    a small active manifest that other tools can audit or reuse.
+    """
+    ranked = rank_api_candidates(topic, limit=limit)
+    PUBLIC_API_DIR.mkdir(parents=True, exist_ok=True)
+    payload: dict[str, object] = {
+        "status": "ok" if ranked else "empty",
+        "topic": topic,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "injection_path": _display_path(API_INJECTION_FILE),
+        "count": len(ranked),
+        "active": ranked,
+        "catalog": _build_public_api_catalog(),
+    }
+    API_INJECTION_FILE.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return payload
 
 
 def select_best_api_for_task(task: str) -> dict[str, object]:
