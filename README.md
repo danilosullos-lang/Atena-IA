@@ -158,7 +158,7 @@ Depois execute:
 Uma célula única no Colab (clone + bootstrap + run):
 
 ```bash
-!mkdir -p /content/projects && cd /content/projects && rm -rf ATENA- && git clone https://github.com/AtenaAuto/ATENA-.git && bash /content/projects/ATENA-/setup/colab_bootstrap.sh /content/projects/ATENA- && cd /content/projects/ATENA- && ATENA_AUTO_ENDPOINT_SETUP=false USER=colab bash atena assistant
+!mkdir -p /content/projects && cd /content/projects && rm -rf ATENA- && git clone https://github.com/AtenaAuto/ATENA-.git && bash /content/projects/ATENA-/setup/colab_bootstrap.sh /content/projects/ATENA- && cd /content/projects/Atena-IA && ATENA_AUTO_ENDPOINT_SETUP=false USER=colab bash atena assistant
 ```
 
 Uma célula Python alternativa (com fallback de `pip` no venv):
@@ -171,10 +171,10 @@ Uma célula Python alternativa (com fallback de `pip` no venv):
 
 # Remover pasta existente (se existir)
 # 'Remove-Item' é um comando PowerShell. No Linux, 'rm -rf' é usado.
-!rm -rf Atena-agente-
+!rm -rf Atena-IA
 
 # Clonar o repositório
-!git clone https://github.com/AtenaAuto/Atena-agente-.git
+!git clone [.] https://github.com/danilosullos-lang/Atena-IA.git
 
 # Entrar na pasta
 %cd Atena-agente-
