@@ -177,7 +177,7 @@ Uma célula Python alternativa (com fallback de `pip` no venv):
 !git clone [.] https://github.com/danilosullos-lang/Atena-IA.git
 
 # Entrar na pasta
-%cd Atena-agente-
+%cd Atena-IA
 
 # Ir para setup
 %cd setup
