@@ -68,7 +68,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Constantes
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 REPORT_DIR = ROOT / "data" / "github_scans"
 CLONE_DIR = ROOT / "data" / "github_clones"
 INCORPORATED_DIR = ROOT / "core" / "incorporated_github"
@@ -982,6 +982,93 @@ class GitHubEvolutionScanner:
             "total_incorporated": len(list(self.incorporated_dir.glob("*"))),
             "cache_size": len(self.cache._cache)
         }
+
+
+def run_github_evolution_scan(
+    objective: str = "evolução autônoma",
+    *,
+    absorb: bool = False,
+    clone: bool = False,
+    clone_limit: int | None = None,
+    incorporate: bool = False,
+    incorporate_limit: int | None = None,
+    config: ScanConfig | None = None,
+) -> Dict[str, Any]:
+    """Run the async GitHub evolution scanner from synchronous callers.
+
+    The terminal assistant imports this helper directly.  It normalizes the
+    richer scanner report into the compact payload consumed by the interactive
+    command while keeping errors non-fatal for offline/local test runs.
+    """
+
+    async def _run() -> Dict[str, Any]:
+        scanner = GitHubEvolutionScanner(config)
+        try:
+            report = await scanner.scan(objective)
+            cloned: Dict[str, Any] | None = None
+            incorporated: Dict[str, Any] | None = None
+            absorbed_path: str | None = None
+
+            if clone:
+                cloned = await scanner.clone_repositories(clone_limit)
+            if incorporate:
+                incorporated = await scanner.incorporate_repositories(incorporate_limit)
+            if absorb:
+                absorbed_path = str(await scanner.absorb_insights())
+
+            latest_md = scanner.report_dir / "latest_scan.md"
+            markdown_path = str(latest_md if latest_md.exists() else scanner.report_dir)
+            repositories = report.get("repositories", [])
+            names = [str(repo.get("full_name", "")) for repo in repositories if repo.get("full_name")]
+            return {
+                "status": "ok" if report.get("status") in {"success", "warning"} else "failed",
+                "objective": objective,
+                "repo_count": report.get("summary", {}).get("total_repos", len(repositories)),
+                "markdown_path": markdown_path,
+                "report": report,
+                "findings_summary": {
+                    "answer_what_she_found": names,
+                    "verdict": "interessante" if names else "sem achados relevantes no momento",
+                    "does_she_always_find_interesting_things": bool(names),
+                },
+                "cloned": cloned,
+                "incorporated": incorporated,
+                "absorbed_path": absorbed_path,
+            }
+        finally:
+            await scanner.close()
+
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        try:
+            return asyncio.run(_run())
+        except Exception as exc:  # pragma: no cover - network/offline fallback
+            logger.exception("GitHub evolution scan failed")
+            return {
+                "status": "failed",
+                "objective": objective,
+                "repo_count": 0,
+                "markdown_path": None,
+                "findings_summary": {
+                    "answer_what_she_found": [],
+                    "verdict": f"erro: {exc}",
+                    "does_she_always_find_interesting_things": False,
+                },
+                "error": str(exc),
+            }
+
+    import threading
+
+    holder: dict[str, Dict[str, Any]] = {}
+
+    def _thread_target() -> None:
+        holder["payload"] = asyncio.run(_run())
+
+    thread = threading.Thread(target=_thread_target, daemon=True)
+    thread.start()
+    thread.join()
+    return holder["payload"]
 
 # =============================================================================
 # CLI Interface
