@@ -54,6 +54,7 @@ from core.atena_module_preloader import preload_all_modules
 from core.atena_terminal_python_script import create_and_run_terminal_python_script
 from core.atena_dependency_installer import install_atena_dependencies
 from core.atena_github_evolution_scan import run_github_evolution_scan
+from core.atena_aegis_mythos_challenger import AegisMythosChallenger, write_reports as write_aegis_reports
 
 # --- Tentativa de importar módulos avançados ---
 try:
@@ -1169,6 +1170,7 @@ def print_help():
             ("/python-script <objetivo>", "Cria e executa um script Python local"),
             ("/install-deps [--apply]", "Planeja ou instala dependências da ATENA"),
             ("/github-evolution-scan [--absorb] [--clone] [--incorporate] <tema>", "Vasculha GitHub e pode incorporar snapshots no core"),
+            ("/aegis-mythos <objetivo>", "Pesquisa e cria a tecnologia ATENA Aegis Mythos+"),
             ("/self-test [quick|full|security|perf]", "Executa validações automáticas"),
             ("/release-governor", "Executa gates security/release/perf"),
             ("/saas-bootstrap <nome>", "Gera stack SaaS web/api/cli"),
@@ -1195,7 +1197,7 @@ def print_help():
         
         CONSOLE.print(Panel(table, title="[bold cyan]Comandos Disponíveis[/bold cyan]", border_style="cyan"))
     else:
-        print("\nComandos: /task, /internet, /api-scan, /api-filter, /api-pick, /task-exec, /python-script, /install-deps, /github-evolution-scan, /self-test, /release-governor, /saas-bootstrap, /telemetry-insights, /orchestrate, /memory-suggest, /benchmark, /device-control, /security-scan, /secret-audit, /policy, /plugins, /memory, /plan, /run, /context, /model, /clear, /exit\n")
+        print("\nComandos: /task, /internet, /api-scan, /api-filter, /api-pick, /task-exec, /python-script, /install-deps, /github-evolution-scan, /aegis-mythos, /self-test, /release-governor, /saas-bootstrap, /telemetry-insights, /orchestrate, /memory-suggest, /benchmark, /device-control, /security-scan, /secret-audit, /policy, /plugins, /memory, /plan, /run, /context, /model, /clear, /exit\n")
 
 
 # =============================================================================
@@ -2109,6 +2111,22 @@ def main():
                 dashboard.update_metrics(tasks_completed=tasks_completed)
                 continue
 
+            if user_input.startswith("/aegis-mythos"):
+                objective = user_input[len("/aegis-mythos"):].strip() or "superar Mythos em segurança operacional, auditabilidade e roteamento de agentes defensivos"
+                with atena_thinking("Pesquisando e programando Aegis Mythos+..."):
+                    payload = AegisMythosChallenger().build_plan(objective)
+                    json_path, md_path = write_aegis_reports(payload)
+                    payload["json_report_path"] = str(json_path.relative_to(ROOT))
+                    payload["markdown_report_path"] = str(md_path.relative_to(ROOT))
+                    json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+                bench = payload.get("benchmark", {})
+                color = "green" if payload.get("status") == "ok" else "yellow"
+                CONSOLE.print(f"[bold {color}]Aegis Mythos+: {str(payload.get('status')).upper()}[/bold {color}]")
+                CONSOLE.print(f"[dim]Score:[/dim] {bench.get('composite_score')}  [dim]Delta:[/dim] {bench.get('target_delta')}  [dim]Decision:[/dim] {bench.get('release_decision')}")
+                CONSOLE.print(f"[dim]Report:[/dim] {payload.get('markdown_report_path')}")
+                CONSOLE.print(payload.get("claim_boundary", ""))
+                continue
+
             if user_input.startswith("/internet "):
                 with atena_thinking("Pesquisando na internet..."):
                     answer = run_user_internet_research(user_input)
@@ -2131,16 +2149,20 @@ def main():
                 if top_ranked:
                     lines.append("\n## APIs ranqueadas")
                     for i, api in enumerate(top_ranked[:8], 1):
-                        lines.append(f"{i}. **{api.get('name','API')}** — score={api.get('score',0):.3f} — {api.get('base_url','n/a')}")
+                        lines.append(f"{i}. **{api.get('name','API')}** — score={api.get('score',0):.3f} — {api.get('endpoint') or api.get('base_url') or api.get('url','n/a')}")
                 if curated:
                     lines.append("\n## APIs públicas recomendadas")
                     for api in curated[:5]:
-                        lines.append(f"- **{api.get('name','API')}** ({api.get('category','n/a')}): {api.get('why','')} — {api.get('url','n/a')}")
+                        lines.append(f"- **{api.get('name','API')}** ({api.get('category','n/a')}): {api.get('why','')} — {api.get('endpoint') or api.get('url','n/a')}")
                 if discovered:
                     lines.append("\n## Catálogo adicional")
                     for api in discovered[:5]:
-                        lines.append(f"- {api.get('name','API')} — {api.get('url','n/a')}")
-                CONSOLE.print(Panel(Markdown("\n".join(lines)), title="[bold cyan]ATENA API Scanner[/bold cyan]", border_style="cyan"))
+                        lines.append(f"- {api.get('name','API')} — {api.get('endpoint') or api.get('url','n/a')}")
+                rendered = "\n".join(lines)
+                if HAS_RICH:
+                    CONSOLE.print(Panel(Markdown(rendered), title="[bold cyan]ATENA API Scanner[/bold cyan]", border_style="cyan"))
+                else:
+                    print(f"\nATENA API Scanner:\n{rendered}\n")
                 continue
 
             if user_input.startswith("/api-filter "):
@@ -2156,8 +2178,12 @@ def main():
                 lines = ["# Filtro de APIs por tarefa", f"**Filtro:** {objective}", "\n## Top 5"]
                 for i, api in enumerate(top_ranked[:5], 1):
                     tags = ", ".join(api.get("tags", [])[:4]) if isinstance(api.get("tags"), list) else ""
-                    lines.append(f"{i}. **{api.get('name','API')}** — score={api.get('score',0):.3f}\n   - URL: {api.get('base_url','n/a')}\n   - Tags: {tags or 'n/a'}")
-                CONSOLE.print(Panel(Markdown("\n".join(lines)), title="[bold cyan]ATENA API Filter[/bold cyan]", border_style="cyan"))
+                    lines.append(f"{i}. **{api.get('name','API')}** — score={api.get('score',0):.3f}\n   - URL: {api.get('endpoint') or api.get('base_url') or api.get('url','n/a')}\n   - Tags: {tags or 'n/a'}")
+                rendered = "\n".join(lines)
+                if HAS_RICH:
+                    CONSOLE.print(Panel(Markdown(rendered), title="[bold cyan]ATENA API Filter[/bold cyan]", border_style="cyan"))
+                else:
+                    print(f"\nATENA API Filter:\n{rendered}\n")
                 continue
 
             if user_input.startswith("/api-pick "):
@@ -2192,7 +2218,11 @@ def main():
                     "print(resp.text[:500])",
                     "```",
                 ]
-                CONSOLE.print(Panel(Markdown("\n".join(lines)), title="[bold cyan]ATENA API Pick[/bold cyan]", border_style="cyan"))
+                rendered = "\n".join(lines)
+                if HAS_RICH:
+                    CONSOLE.print(Panel(Markdown(rendered), title="[bold cyan]ATENA API Pick[/bold cyan]", border_style="cyan"))
+                else:
+                    print(f"\nATENA API Pick:\n{rendered}\n")
                 continue
 
             if user_input.startswith("/saas-bootstrap "):
@@ -2349,11 +2379,13 @@ def extract_dag_commands(plan_text: str) -> list[dict]:
 
 def build_local_task_exec_fallback(objective: str) -> list[str]:
     text = (objective or "").lower()
-    if "tests" in text and ".py" in text:
-        return ['python3 -c "import glob; print(len(glob.glob(\'tests/**/*.py\', recursive=True)))"']
+    wants_test_count = ("tests" in text or "teste" in text) and (".py" in text or "python" in text)
+    if wants_test_count:
+        return ["python3 -c \"import glob; print(len(glob.glob('tests/**/*.py', recursive=True)))\""]
     if "json" in text and "atena_evolution" in text:
-        return ['python3 -c "import glob; print(len(glob.glob(\'atena_evolution/**/*.json\', recursive=True)))"']
-    return ["./atena doctor"]
+        return ["python3 -c \"import glob; print(len(glob.glob('atena_evolution/**/*.json', recursive=True)))\""]
+    # Avoid recursively invoking ./atena from inside the assistant: the launcher lock blocks nested runs.
+    return ['python3 -m py_compile core/atena_terminal_assistant.py']
 
 
 def summarize_task_exec_report(report_path: str) -> str:
