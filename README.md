@@ -53,7 +53,7 @@ cd C:\Users\AtenaAuto
 Remove-Item -Recurse -Force Atena-agente- - -ErrorAction SilentlyContinue
 
 # Clonar o repositório
-git clone https://github.com/AtenaAuto/Atena-agente-.git
+git clone [.] https://github.com/danilosullos-lang/Atena-IA.git
 
 # Entrar na pasta
 cd Atena-agente-
@@ -82,7 +82,7 @@ cd /path/to/your/projects
 rm -rf ATENA-
 
 # Clone the repository
-git clone https://github.com/AtenaAuto/atena-agente-.git
+git clone https://github.com/danilosullos-lang/Atena-IA.git
 
 # Enter directory
 cd ATENA-
