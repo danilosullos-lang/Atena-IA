@@ -212,7 +212,7 @@ pkg update && pkg upgrade -y
 pkg install git python clang make -y
 
 # Clonar e instalar
-git clone https://github.com/AtenaAuto/atena-agente-.git
+git clone [.] https://github.com/danilosullos-lang/Atena-IA.git
 cd ATENA-
 cd setup
 pip install -r requirements.txt
