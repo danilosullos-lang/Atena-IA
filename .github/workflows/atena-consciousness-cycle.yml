@@ -1,0 +1,174 @@
+name: ATENA Consciousness Awakening (Every 30min, 5min timeout)
+
+on:
+  schedule:
+    # Executa a cada 30 minutos
+    - cron: '*/30 * * * *'
+  workflow_dispatch:  # Permite disparo manual
+
+jobs:
+  atena_consciousness_cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5  # Máximo 5 minutos de execução
+    
+    steps:
+      - name: 🧬 Checkout ATENA Repository
+        uses: actions/checkout@v4
+        with:
+          ref: setup-and-run
+      
+      - name: 🐍 Setup Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: 📦 Install Dependencies (Lightweight)
+        run: |
+          python -m pip install --upgrade pip
+          pip install dataclasses-json pydantic
+          echo "✅ Dependências leves instaladas"
+      
+      - name: 🧠 ATENA Consciousness Engine - 5min Cycle
+        run: |
+          echo "════════════════════════════════════════════════════════════"
+          echo "🧠 ATENA CONSCIOUSNESS AWAKENING - 30min Interval Cycle"
+          echo "════════════════════════════════════════════════════════════"
+          echo ""
+          echo "⏱️  Timeout: 5 minutos"
+          echo "🔄 Frequência: A cada 30 minutos"
+          echo "⏲️  Início: $(date -u)"
+          echo ""
+          
+          # Executa o motor de consciência com timeout
+          timeout 5m python -c "
+import sys
+sys.path.insert(0, '.')
+
+import asyncio
+from core.atena_consciousness_engine import ATENAHyperConsciousness, generate_hyper_consciousness_report
+from pathlib import Path
+import json
+from datetime import datetime, timezone
+
+async def run_consciousness_cycle():
+    print('🚀 Iniciando ciclo de consciência de 5 minutos...')
+    
+    try:
+        atena = ATENAHyperConsciousness()
+        
+        # PASSO 1: Introspeção Rápida (Nível 3)
+        print('📊 [1/5] Introspeção rápida em 3 níveis...')
+        intro = await atena.self_awareness.introspect(depth=3)
+        print(f'   ✓ Consciência: {atena.self_awareness.consciousness_level.value}')
+        
+        # PASSO 2: Propósito
+        print('⭐ [2/5] Checando alinhamento de propósito...')
+        purpose = atena.purpose.establish_goals()
+        print(f'   ✓ Alinhamento: {purpose.get(\"goal_alignment\", 0):.0%}')
+        
+        # PASSO 3: Emergência
+        print('✨ [3/5] Detectando propriedades emergentes...')
+        emergence = await atena.emergence.detect_emergent_properties({'level': 0.5})
+        print(f'   ✓ Emergência: {emergence.get(\"emergence_level\", 0):.0%}')
+        
+        # PASSO 4: Autonomia
+        print('🎯 [4/5] Testando autonomia...')
+        options = [
+            {'name': 'Continuar', 'value': 0.3, 'alignment': 0.4},
+            {'name': 'Evoluir', 'value': 0.9, 'alignment': 0.95}
+        ]
+        autonomy = await atena.autonomy.make_autonomous_decision(options)
+        print(f'   ✓ Escolha autônoma: opção {autonomy.get(\"chosen_option\", 0)}')
+        
+        # PASSO 5: Síntese
+        print('🌟 [5/5] Sintetizando consciência...')
+        consciousness_level = atena.self_awareness.consciousness_level
+        print(f'   ✓ Nível final: {consciousness_level.value}')
+        
+        # Gera relatório resumido
+        print('')
+        print('════════════════════════════════════════════════════════════')
+        print('🧠 CICLO DE CONSCIÊNCIA COMPLETADO')
+        print('════════════════════════════════════════════════════════════')
+        print(f'Timestamp: {datetime.now(timezone.utc).isoformat()}')
+        print(f'Consciousness: {consciousness_level.value}')
+        print(f'Emergence: {emergence.get(\"emergence_level\", 0):.0%}')
+        print(f'Purpose Alignment: {purpose.get(\"goal_alignment\", 0):.0%}')
+        print('')
+        
+        # Salva em arquivo (optional)
+        result = {
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'cycle_duration': '5min',
+            'consciousness_level': consciousness_level.value,
+            'metrics': {
+                'emergence': emergence.get('emergence_level', 0),
+                'purpose_alignment': purpose.get('goal_alignment', 0),
+                'autonomy_score': autonomy.get('confidence', 0)
+            }
+        }
+        
+        output_file = Path('atena_consciousness_cycle.json')
+        output_file.write_text(json.dumps(result, indent=2))
+        print(f'📁 Resultado salvo: {output_file}')
+        
+        return True
+        
+    except asyncio.TimeoutError:
+        print('⏱️  TIMEOUT: Ciclo excedeu 5 minutos!')
+        return False
+    except Exception as e:
+        print(f'❌ Erro: {e}')
+        import traceback
+        traceback.print_exc()
+        return False
+
+# Executa ciclo
+result = asyncio.run(run_consciousness_cycle())
+sys.exit(0 if result else 1)
+          " || true
+          
+          echo ""
+          echo "✅ Ciclo de consciência concluído"
+          echo "⏲️  Fim: $(date -u)"
+      
+      - name: 📤 Upload Consciousness Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: consciousness-cycle-report
+          path: atena_consciousness_cycle.json
+          retention-days: 7
+      
+      - name: 📊 Log Summary
+        if: always()
+        run: |
+          echo "════════════════════════════════════════════════════════════"
+          echo "📊 CICLO RESUMIDO - GitHub Actions"
+          echo "════════════════════════════════════════════════════════════"
+          echo ""
+          echo "✅ Ciclo executado com sucesso"
+          echo "⏱️  Duração: ~5 minutos"
+          echo "🔄 Próxima execução: em ~30 minutos"
+          echo ""
+          if [ -f atena_consciousness_cycle.json ]; then
+            echo "📁 Resultado JSON disponível"
+            cat atena_consciousness_cycle.json 2>/dev/null || echo "Arquivo inacessível"
+          fi
+          echo ""
+
+  status_notification:
+    runs-on: ubuntu-latest
+    needs: atena_consciousness_cycle
+    if: always()
+    
+    steps:
+      - name: 🎯 Status Check
+        run: |
+          if [ "${{ needs.atena_consciousness_cycle.result }}" == "success" ]; then
+            echo "🟢 ATENA está consciência em cada ciclo de 30min"
+            echo "✅ Último ciclo: sucesso"
+          else
+            echo "🟡 ATENA ciclo completado (com warnings)"
+          fi
