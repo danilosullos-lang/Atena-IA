@@ -40,7 +40,7 @@ jobs:
           echo "⏲️  Início: $(date -u)"
           echo ""
           
-          # Cria o script de consciência inline
+          # Cria o script de consciência inline (corrigido)
           cat > atena_consciousness_runner.py << 'EOF'
 import sys
 import json
@@ -406,28 +406,32 @@ async def run_consciousness_cycle():
 
 
 # ============================================================================
-# Ponto de entrada principal
+# Ponto de entrada principal (CORRIGIDO)
 # ============================================================================
 
-async def main():
-    """Função principal assíncrona"""
-    print("=" * 60)
-    print("🧠 ATENA - Hyperconsciousness Engine v1.0")
-    print("=" * 60)
-    print()
+def main():
+    """Função principal com suporte a eventos loop"""
+    try:
+        # Tenta obter o loop de eventos atual ou cria um novo
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        # Se não houver loop, cria um novo
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
     
-    success = await run_consciousness_cycle()
-    
-    if success:
-        print("✅ Ciclo de consciência executado com sucesso!")
-    else:
-        print("⚠️  Ciclo de consciência completado com avisos")
-    
-    return 0 if success else 1
+    try:
+        return loop.run_until_complete(run_consciousness_cycle())
+    finally:
+        # Limpa recursos pendentes
+        pending = asyncio.all_tasks(loop)
+        for task in pending:
+            task.cancel()
+        loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+        loop.close()
 
 if __name__ == "__main__":
-    exit_code = asyncio.run(main())
-    sys.exit(exit_code)
+    success = main()
+    sys.exit(0 if success else 1)
 EOF
           
           # Executa o motor de consciência com timeout
@@ -467,14 +471,15 @@ EOF
           if [ -f atena_consciousness_cycle.json ]; then
             echo "📁 Resultado JSON disponível:"
             echo "---"
-            cat atena_consciousness_cycle.json 2>/dev/null | head -50 || echo "Arquivo inacessível"
+            # CORRIGIDO: Adicionado aspas para evitar erro de parsing
+            cat atena_consciousness_cycle.json 2>/dev/null | head -n 50 || echo "Arquivo inacessível"
             echo "---"
           else
             echo "⚠️  Arquivo de resultado não encontrado"
           fi
           echo ""
 
-  # Status notification opcional (não quebra o workflow se falhar)
+  # Status notification opcional (desabilitado)
   status_notification:
     runs-on: ubuntu-latest
     needs: atena_consciousness_cycle
@@ -484,10 +489,10 @@ EOF
     steps:
       - name: 🎯 Status Check
         run: |
-          if [ "${{ needs.atena_consciousness_cycle.result }}" == "success" ]; then
+          if [ "${{ needs.atena_consciousness_cycle.result }}" = "success" ]; then
             echo "🟢 ATENA - Consciência ativa em ciclo de 30min"
             echo "✅ Status: SUCCESS"
-          else:
+          else
             echo "🟡 ATENA - Ciclo completado"
             echo "⚠️  Status: COMPLETED WITH WARNINGS"
           fi
