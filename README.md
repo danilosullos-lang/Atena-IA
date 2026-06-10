@@ -211,12 +211,19 @@ pkg update && pkg upgrade -y
 # Instalar dependências
 pkg install git python clang make -y
 
-# Clonar e instalar
-git clone [.] https://github.com/danilosullos-lang/Atena-IA.git
-cd ATENA-
+# Clonar o repositório
+git clone https://github.com/danilosullos-lang/Atena-IA.git
+
+# Acessar a pasta correta (ajustado para o repositório)
+cd Atena-IA
+
+# Acessar a pasta de setup e instalar requisitos
 cd setup
 pip install -r requirements.txt
+
+# Voltar para a raiz do projeto (opcional, se precisar rodar algo lá)
 cd ..
+
 ```
 
 ### Verificação de Instalação
