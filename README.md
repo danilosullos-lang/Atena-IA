@@ -85,7 +85,7 @@ rm -rf Atena-IA
 git clone https://github.com/danilosullos-lang/Atena-IA.git
 
 # Enter directory
-cd ATENA-
+cd Atena-IA
 
 # Create virtual environment (recommended)
 python3 -m venv venv
