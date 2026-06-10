@@ -152,13 +152,13 @@ Depois execute:
 
 ```bash
 !cd /content/projects/Atena-IA && bash atena doctor
-!cd /content/projects/atena-agente- && ATENA_AUTO_ENDPOINT_SETUP=false USER=colab bash atena assistant
+!cd /content/projects/atena-IA && ATENA_AUTO_ENDPOINT_SETUP=false USER=colab bash atena assistant
 ```
 
 Uma célula única no Colab (clone + bootstrap + run):
 
 ```bash
-!mkdir -p /content/projects && cd /content/projects && rm -rf ATENA- && git clone https://github.com/AtenaAuto/ATENA-.git && bash /content/projects/ATENA-/setup/colab_bootstrap.sh /content/projects/Atena-IA && cd /content/projects/Atena-IA && ATENA_AUTO_ENDPOINT_SETUP=false USER=colab bash atena assistant
+!mkdir -p /content/projects && cd /content/projects && rm -rf ATENA- && git clone https://github.com/danilosullos-lang/Atena-IA.git && bash /content/projects/ATENA-/setup/colab_bootstrap.sh /content/projects/Atena-IA && cd /content/projects/Atena-IA && ATENA_AUTO_ENDPOINT_SETUP=false USER=colab bash atena assistant
 ```
 
 Uma célula Python alternativa (com fallback de `pip` no venv):
