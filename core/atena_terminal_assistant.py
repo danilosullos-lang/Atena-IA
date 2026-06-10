@@ -54,7 +54,7 @@ from core.atena_module_preloader import preload_all_modules
 from core.atena_terminal_python_script import create_and_run_terminal_python_script
 from core.atena_dependency_installer import install_atena_dependencies
 from core.atena_github_evolution_scan import run_github_evolution_scan
-from core.atena_aegis_mythos_challenger import AegisMythosChallenger, write_reports as write_aegis_reports
+#from core.atena_aegis_mythos_challenger import AegisMythosChallenger, write_reports as # write_aegis_reports
 
 # --- Tentativa de importar módulos avançados ---
 try:
@@ -2115,7 +2115,7 @@ def main():
                 objective = user_input[len("/aegis-mythos"):].strip() or "superar Mythos em segurança operacional, auditabilidade e roteamento de agentes defensivos"
                 with atena_thinking("Pesquisando e programando Aegis Mythos+..."):
                     payload = AegisMythosChallenger().build_plan(objective)
-                    json_path, md_path = write_aegis_reports(payload)
+                    # json_path, md_path = write_aegis_reports(payload)
                     payload["json_report_path"] = str(json_path.relative_to(ROOT))
                     payload["markdown_report_path"] = str(md_path.relative_to(ROOT))
                     json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
