@@ -190,7 +190,7 @@ Uma célula Python alternativa (com fallback de `pip` no venv):
 %cd ..
 
 # Conceder permissão de execução ao script 'atena'
-!chmod +x atena
+!chmod +x Atena-IA
 
 # Rodar o assistente
 # '.\atena assistant' é um caminho de executável Windows.
