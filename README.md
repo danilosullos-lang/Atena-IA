@@ -47,7 +47,7 @@
 
 ```bash
 # Ir para uma pasta onde você quer baixar o projeto
-cd C:\Users\AtenaAuto
+cd C:\Users\danilosullos-lang/Atena-IA
 
 # Remover pasta existente (se existir)
 Remove-Item -Recurse -Force Atena-agente- - -ErrorAction SilentlyContinue
@@ -56,7 +56,7 @@ Remove-Item -Recurse -Force Atena-agente- - -ErrorAction SilentlyContinue
 git clone [.] https://github.com/danilosullos-lang/Atena-IA.git
 
 # Entrar na pasta
-cd Atena-agente-
+cd Atena-IA
 
 # Ir para setup
 cd setup
@@ -79,7 +79,7 @@ cd ..
 cd /path/to/your/projects
 
 # Remove any existing ATENA- directory
-rm -rf ATENA-
+rm -rf Atena-IA
 
 # Clone the repository
 git clone https://github.com/danilosullos-lang/Atena-IA.git
@@ -145,20 +145,20 @@ Se estiver dando erro no Colab, use o bootstrap pronto:
 
 ```bash
 # Dentro do Colab
-!bash setup/colab_bootstrap.sh /content/projects/ATENA-
+!bash setup/colab_bootstrap.sh /content/projects/ATENA-IA
 ```
 
 Depois execute:
 
 ```bash
-!cd /content/projects/atena-agente- && bash atena doctor
+!cd /content/projects/Atena-IA && bash atena doctor
 !cd /content/projects/atena-agente- && ATENA_AUTO_ENDPOINT_SETUP=false USER=colab bash atena assistant
 ```
 
 Uma célula única no Colab (clone + bootstrap + run):
 
 ```bash
-!mkdir -p /content/projects && cd /content/projects && rm -rf ATENA- && git clone https://github.com/AtenaAuto/ATENA-.git && bash /content/projects/ATENA-/setup/colab_bootstrap.sh /content/projects/ATENA- && cd /content/projects/Atena-IA && ATENA_AUTO_ENDPOINT_SETUP=false USER=colab bash atena assistant
+!mkdir -p /content/projects && cd /content/projects && rm -rf ATENA- && git clone https://github.com/AtenaAuto/ATENA-.git && bash /content/projects/ATENA-/setup/colab_bootstrap.sh /content/projects/Atena-IA && cd /content/projects/Atena-IA && ATENA_AUTO_ENDPOINT_SETUP=false USER=colab bash atena assistant
 ```
 
 Uma célula Python alternativa (com fallback de `pip` no venv):
