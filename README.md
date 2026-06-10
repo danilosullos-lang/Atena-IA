@@ -50,7 +50,7 @@
 cd C:\Users\danilosullos-lang/Atena-IA
 
 # Remover pasta existente (se existir)
-Remove-Item -Recurse -Force Atena-agente- - -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force atena-IA - - -ErrorAction SilentlyContinue
 
 # Clonar o repositório
 git clone [.] https://github.com/danilosullos-lang/Atena-IA.git
