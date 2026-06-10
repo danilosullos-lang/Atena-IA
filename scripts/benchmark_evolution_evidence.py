@@ -16,7 +16,7 @@ def run_batch(iterations: int, topic: str, strict: bool) -> dict:
     out = subprocess.run(cmd, capture_output=True, text=True, check=True)
     m = re.search(r"json=(.*)", out.stdout)
     payload = json.loads(Path(m.group(1).strip()).read_text(encoding="utf-8"))
-    return payload["summary"]
+    return payload.get("summary", payload)
 
 
 def slope(values: list[float]) -> float:
