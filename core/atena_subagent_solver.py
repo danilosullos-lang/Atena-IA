@@ -533,7 +533,107 @@ class CodeGenerator:
         lowered = problem.lower()
 
         # Templates determinísticos de alta confiança devem preceder o cache legado.
-        if any(token in lowered for token in ("balanceados", "balanced brackets", "parênteses", "parenteses", "colchetes", "chaves")):
+        if "shunting" in lowered or "shunting-yard" in lowered or "rpn" in lowered or "pós-fixo" in lowered or "pos-fixo" in lowered or "notação polonesa" in lowered or "notacao polonesa" in lowered:
+            return '''import re
+
+
+_PRECEDENCE = {"+": 1, "-": 1, "*": 2, "/": 2, "**": 3}
+_RIGHT_ASSOC = {"**"}
+
+_TOKEN_RE = re.compile(r"\\d+\\.\\d+|\\d+|\\*\\*|[+\\-*/()]")
+
+
+def tokenize(expression: str):
+    """Converte uma string de expressão em uma lista de tokens."""
+    tokens = []
+    for match in _TOKEN_RE.finditer(expression):
+        tok = match.group()
+        if re.fullmatch(r"\\d+\\.\\d+|\\d+", tok):
+            tokens.append(float(tok) if "." in tok else int(tok))
+        else:
+            tokens.append(tok)
+    return tokens
+
+
+def to_rpn(tokens):
+    """Converte tokens infixos para notação polonesa reversa (shunting-yard)."""
+    output = []
+    op_stack = []
+
+    for tok in tokens:
+        if isinstance(tok, (int, float)):
+            output.append(tok)
+        elif tok in _PRECEDENCE:
+            while (
+                op_stack
+                and op_stack[-1] != "("
+                and (
+                    _PRECEDENCE[op_stack[-1]] > _PRECEDENCE[tok]
+                    or (
+                        _PRECEDENCE[op_stack[-1]] == _PRECEDENCE[tok]
+                        and tok not in _RIGHT_ASSOC
+                    )
+                )
+            ):
+                output.append(op_stack.pop())
+            op_stack.append(tok)
+        elif tok == "(":
+            op_stack.append(tok)
+        elif tok == ")":
+            while op_stack and op_stack[-1] != "(":
+                output.append(op_stack.pop())
+            if not op_stack:
+                raise ValueError("Parênteses desbalanceados")
+            op_stack.pop()  # remove '('
+        else:
+            raise ValueError(f"Token inválido: {tok!r}")
+
+    while op_stack:
+        op = op_stack.pop()
+        if op == "(":
+            raise ValueError("Parênteses desbalanceados")
+        output.append(op)
+
+    return output
+
+
+def eval_rpn(rpn):
+    """Avalia uma expressão em notação polonesa reversa."""
+    stack = []
+    for tok in rpn:
+        if isinstance(tok, (int, float)):
+            stack.append(tok)
+        else:
+            if len(stack) < 2:
+                raise ValueError("Expressão RPN inválida")
+            b = stack.pop()
+            a = stack.pop()
+            if tok == "+":
+                stack.append(a + b)
+            elif tok == "-":
+                stack.append(a - b)
+            elif tok == "*":
+                stack.append(a * b)
+            elif tok == "/":
+                stack.append(a / b)
+            elif tok == "**":
+                stack.append(a ** b)
+            else:
+                raise ValueError(f"Operador desconhecido: {tok!r}")
+
+    if len(stack) != 1:
+        raise ValueError("Expressão RPN inválida")
+    return stack[0]
+
+
+def evaluate_expression(expression: str):
+    """Avalia uma expressão aritmética com precedência de operadores."""
+    tokens = tokenize(expression)
+    rpn = to_rpn(tokens)
+    return eval_rpn(rpn)
+'''
+
+        if any(token in lowered for token in ("balanceados", "balanced brackets", "colchetes", "chaves")) or ("parênteses" in lowered and "express" not in lowered) or ("parenteses" in lowered and "express" not in lowered):
             return """def balanced_brackets(text: str) -> bool:
     pairs = {')': '(', ']': '[', '}': '{'}
     opens = set(pairs.values())

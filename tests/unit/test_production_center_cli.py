@@ -362,6 +362,48 @@ def test_subagent_solve_code_only_mode_returns_socket_http_server_code():
     assert 'if path == "/hello"' in proc.stdout
 
 
+def test_subagent_solve_code_only_mode_returns_shunting_yard_evaluator():
+    proc = run_cli(
+        "subagent-solve",
+        "--problem",
+        "Implemente em Python um parser e avaliador de expressões aritméticas com precedência de operadores (+, -, *, /, **, parênteses), usando o algoritmo shunting-yard para converter infixo em pós-fixo (RPN), e depois avalie o RPN. Sem usar eval() ou ast.",
+        "--code-only",
+    )
+    assert proc.returncode == 0
+    assert "def to_rpn" in proc.stdout
+    assert "def eval_rpn" in proc.stdout
+    assert "def evaluate_expression" in proc.stdout
+    assert "eval(" not in proc.stdout
+    assert "import ast" not in proc.stdout
+
+    namespace: dict = {}
+    exec(proc.stdout, namespace)
+    evaluate_expression = namespace["evaluate_expression"]
+
+    assert evaluate_expression("3 + 4 * 2") == 11
+    assert evaluate_expression("(3 + 4) * 2") == 14
+    assert evaluate_expression("2 ** 3 ** 2") == 512  # associatividade à direita
+    assert evaluate_expression("10 - 2 - 3") == 5      # associatividade à esquerda
+
+
+def test_subagent_solve_code_only_mode_returns_balanced_brackets_code():
+    proc = run_cli(
+        "subagent-solve",
+        "--problem",
+        "Verifique se uma string de parênteses está balanceada",
+        "--code-only",
+    )
+    assert proc.returncode == 0
+    assert "def balanced_brackets" in proc.stdout
+
+    namespace: dict = {}
+    exec(proc.stdout, namespace)
+    balanced_brackets = namespace["balanced_brackets"]
+
+    assert balanced_brackets("(a(b)c)") is True
+    assert balanced_brackets("(a(b)c") is False
+
+
 def test_subagent_solve_code_only_mode_returns_game_of_life_code():
     proc = run_cli(
         "subagent-solve",
