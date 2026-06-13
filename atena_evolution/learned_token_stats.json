@@ -1,0 +1,30 @@
+{
+  "printf": {
+    "count": 8.0,
+    "reward_sum": -1.5500000000000003
+  },
+  "pipe": {
+    "count": 8.0,
+    "reward_sum": -1.5500000000000003
+  },
+  "null": {
+    "count": 8.0,
+    "reward_sum": -1.5500000000000003
+  },
+  "trap": {
+    "count": 8.0,
+    "reward_sum": -1.5500000000000003
+  },
+  "ubuntu": {
+    "count": 1.0,
+    "reward_sum": 0.15
+  },
+  "source": {
+    "count": 1.0,
+    "reward_sum": 0.15
+  },
+  "home": {
+    "count": 1.0,
+    "reward_sum": 0.15
+  }
+}

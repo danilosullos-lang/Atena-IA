@@ -1,0 +1,442 @@
+[
+  {
+    "generation": 1,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:47.471743",
+    "end_time": "2026-06-13T16:05:47.522075",
+    "duration_ms": 50.34613609313965,
+    "mutation_type": "auto",
+    "score_before": 0.0,
+    "score_after": 0.07447771579733692,
+    "improvement": 0.07447771579733692,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 1,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:47.524345",
+    "end_time": "2026-06-13T16:05:47.574652",
+    "duration_ms": 50.32467842102051,
+    "mutation_type": "auto",
+    "score_before": 0.0,
+    "score_after": 0.016363939452960587,
+    "improvement": 0.016363939452960587,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 1,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:47.577412",
+    "end_time": "2026-06-13T16:05:47.627735",
+    "duration_ms": 50.3389835357666,
+    "mutation_type": "auto",
+    "score_before": 0.0,
+    "score_after": 0.04063763224181208,
+    "improvement": 0.04063763224181208,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 1,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:47.685641",
+    "end_time": "2026-06-13T16:05:47.735946",
+    "duration_ms": 50.318002700805664,
+    "mutation_type": "auto",
+    "score_before": 0.0,
+    "score_after": 0.12395807673913911,
+    "improvement": 0.12395807673913911,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 2,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:47.837227",
+    "end_time": "2026-06-13T16:05:47.887519",
+    "duration_ms": 50.30655860900879,
+    "mutation_type": "auto",
+    "score_before": 0.12395807673913911,
+    "score_after": 0.13294631312718377,
+    "improvement": 0.008988236388044663,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 3,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:47.988404",
+    "end_time": "2026-06-13T16:05:48.038731",
+    "duration_ms": 50.34327507019043,
+    "mutation_type": "auto",
+    "score_before": 0.13294631312718377,
+    "score_after": 0.14058607837373222,
+    "improvement": 0.007639765246548441,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 1,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:48.143269",
+    "end_time": "2026-06-13T16:05:48.193592",
+    "duration_ms": 50.34065246582031,
+    "mutation_type": "auto",
+    "score_before": 0.0,
+    "score_after": 0.12033167416823788,
+    "improvement": 0.12033167416823788,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 2,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:48.395114",
+    "end_time": "2026-06-13T16:05:48.445418",
+    "duration_ms": 50.31871795654297,
+    "mutation_type": "auto",
+    "score_before": 0.12033167416823788,
+    "score_after": 0.12252444991109589,
+    "improvement": 0.0021927757428580053,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 1,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:48.548927",
+    "end_time": "2026-06-13T16:05:48.599241",
+    "duration_ms": 50.330162048339844,
+    "mutation_type": "auto",
+    "score_before": 0.0,
+    "score_after": 0.07534081362868277,
+    "improvement": 0.07534081362868277,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 2,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:48.700579",
+    "end_time": "2026-06-13T16:05:48.750944",
+    "duration_ms": 50.3840446472168,
+    "mutation_type": "auto",
+    "score_before": 0.07534081362868277,
+    "score_after": 0.08104693184706657,
+    "improvement": 0.005706118218383807,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 3,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:48.852338",
+    "end_time": "2026-06-13T16:05:48.902664",
+    "duration_ms": 50.340890884399414,
+    "mutation_type": "auto",
+    "score_before": 0.08104693184706657,
+    "score_after": 0.08567469221348549,
+    "improvement": 0.004627760366418918,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 4,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:49.003802",
+    "end_time": "2026-06-13T16:05:49.054144",
+    "duration_ms": 50.35972595214844,
+    "mutation_type": "auto",
+    "score_before": 0.08567469221348549,
+    "score_after": 0.0934855002020023,
+    "improvement": 0.007810807988516813,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 5,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:49.155323",
+    "end_time": "2026-06-13T16:05:49.205625",
+    "duration_ms": 50.31752586364746,
+    "mutation_type": "auto",
+    "score_before": 0.0934855002020023,
+    "score_after": 0.0974210958522941,
+    "improvement": 0.003935595650291793,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 1,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:49.313499",
+    "end_time": "2026-06-13T16:05:49.363798",
+    "duration_ms": 50.316572189331055,
+    "mutation_type": "auto",
+    "score_before": 0.0,
+    "score_after": 0.10562581477946084,
+    "improvement": 0.10562581477946084,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 2,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:49.366250",
+    "end_time": "2026-06-13T16:05:49.416568",
+    "duration_ms": 50.33564567565918,
+    "mutation_type": "auto",
+    "score_before": 0.10562581477946084,
+    "score_after": 0.10694650798692422,
+    "improvement": 0.0013206932074633776,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 3,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:49.417870",
+    "end_time": "2026-06-13T16:05:49.468193",
+    "duration_ms": 50.341129302978516,
+    "mutation_type": "auto",
+    "score_before": 0.10694650798692422,
+    "score_after": 0.12284555797611746,
+    "improvement": 0.01589904998919324,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 1,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:49.472408",
+    "end_time": "2026-06-13T16:05:49.522718",
+    "duration_ms": 50.32706260681152,
+    "mutation_type": "auto",
+    "score_before": 0.0,
+    "score_after": 0.10847212465089255,
+    "improvement": 0.10847212465089255,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 2,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:49.624359",
+    "end_time": "2026-06-13T16:05:49.674710",
+    "duration_ms": 50.371646881103516,
+    "mutation_type": "auto",
+    "score_before": 0.10847212465089255,
+    "score_after": 0.11504774865899185,
+    "improvement": 0.006575624008099301,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 1,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:49.780021",
+    "end_time": "2026-06-13T16:05:49.833760",
+    "duration_ms": 53.74717712402344,
+    "mutation_type": "auto",
+    "score_before": 0.0,
+    "score_after": 0.1466539646624635,
+    "improvement": 0.1466539646624635,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  },
+  {
+    "generation": 2,
+    "status": "completed",
+    "start_time": "2026-06-13T16:05:49.935960",
+    "end_time": "2026-06-13T16:05:49.987074",
+    "duration_ms": 51.122188568115234,
+    "mutation_type": "auto",
+    "score_before": 0.1466539646624635,
+    "score_after": 0.1551933017830307,
+    "improvement": 0.008539337120567203,
+    "error": null,
+    "metrics": {
+      "is_new_best": true,
+      "success": true,
+      "adaptive_params": {
+        "mutation_rate": 0.3,
+        "exploration_rate": 0.1,
+        "intensity": 1.2
+      },
+      "user_metrics": {}
+    }
+  }
+]
