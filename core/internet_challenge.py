@@ -207,6 +207,9 @@ TOP_PUBLIC_API_DOMAINS = {
     "registry.npmjs.org", "crates.io", "search.maven.org", "packagist.org",
     "www.wikidata.org", "eutils.ncbi.nlm.nih.gov", "clinicaltrials.gov", "zenodo.org",
     "gutendex.com", "www.ebi.ac.uk", "www.thesportsdb.com",
+    "api.stripe.com", "api.mercadopago.com", "api-m.paypal.com",
+    "maps.googleapis.com", "api.mapbox.com", "nominatim.openstreetmap.org",
+    "api.openrouteservice.org", "places-api.foursquare.com",
 }
 
 # Seed estático com mais de 100 APIs públicas
@@ -237,6 +240,13 @@ STATIC_PUBLIC_API_SEED: list[dict[str, str]] = [
     {"name": "Open-Meteo", "endpoint": "https://api.open-meteo.com/v1/forecast", "category": "weather"},
     {"name": "OpenWeather", "endpoint": "https://api.openweathermap.org", "category": "weather"},
     {"name": "Nominatim", "endpoint": "https://nominatim.openstreetmap.org/search", "category": "maps"},
+    {"name": "OpenRouteService", "endpoint": "https://api.openrouteservice.org/v2", "category": "maps"},
+    {"name": "Google Maps Platform", "endpoint": "https://maps.googleapis.com/maps/api", "category": "maps"},
+    {"name": "Mapbox", "endpoint": "https://api.mapbox.com", "category": "maps"},
+    {"name": "Foursquare Places", "endpoint": "https://places-api.foursquare.com/places/search", "category": "local_search"},
+    {"name": "Stripe", "endpoint": "https://api.stripe.com/v1", "category": "payments"},
+    {"name": "Mercado Pago", "endpoint": "https://api.mercadopago.com", "category": "payments"},
+    {"name": "PayPal", "endpoint": "https://api-m.paypal.com", "category": "payments"},
     {"name": "CoinGecko", "endpoint": "https://api.coingecko.com/api/v3", "category": "finance"},
     {"name": "Frankfurter", "endpoint": "https://api.frankfurter.app/latest", "category": "finance"},
     {"name": "BoredAPI", "endpoint": "https://www.boredapi.com/api/activity", "category": "misc"},
@@ -565,6 +575,16 @@ def _detect_query_intent(topic: str) -> str:
     if any(kw in topic_lower for kw in academic_keywords):
         return "academic"
     
+    # Produto/local commerce: delivery, mapas, restaurantes, pagamentos
+    commerce_keywords = {
+        "delivery", "dellyvery", "comida", "restaurante", "restaurantes",
+        "pedido", "pedidos", "pagamento", "pagamentos", "pix", "checkout",
+        "mapa", "mapas", "geolocalizacao", "geolocalização", "rota", "rotas",
+        "entrega", "entregador", "endereco", "endereço",
+    }
+    if any(kw in topic_lower for kw in commerce_keywords):
+        return "commerce"
+
     # Código/ desenvolvimento
     code_keywords = {"código", "codigo", "github", "repo", "biblioteca", "library", "package", "api"}
     if any(kw in topic_lower for kw in code_keywords):
@@ -589,9 +609,22 @@ def recommend_public_apis(topic: str, limit: int = 5) -> list[dict[str, str]]:
         "academic": {"research", "health", "books"},
         "code": {"code", "packages", "search"},
         "news": {"news", "community", "search"},
+        "commerce": {"payments", "maps", "local_search", "finance", "search"},
         "general": {"knowledge", "search", "misc"},
     }
     preferred_categories = category_by_intent.get(intent, {"knowledge", "search"})
+    category_priority_by_intent = {
+        "commerce": ["payments", "maps", "local_search", "finance", "search"],
+        "sports": ["sports", "news"],
+        "academic": ["research", "health", "books"],
+        "code": ["code", "packages", "search"],
+        "news": ["news", "community", "search"],
+        "general": ["knowledge", "search", "misc"],
+    }
+    category_priority = {
+        category: index
+        for index, category in enumerate(category_priority_by_intent.get(intent, []))
+    }
     catalog = _build_public_api_catalog()
     entries = catalog.get("entries", [])
     if not isinstance(entries, list):
@@ -610,6 +643,12 @@ def recommend_public_apis(topic: str, limit: int = 5) -> list[dict[str, str]]:
                     "category": category,
                 }
             )
+    ranked.sort(
+        key=lambda item: (
+            category_priority.get(str(item.get("category", "")).lower(), 999),
+            str(item.get("name", "")).lower(),
+        )
+    )
     return ranked[: max(1, int(limit))]
 
 
@@ -855,6 +894,7 @@ def select_best_api_for_task(task: str) -> dict[str, object]:
         "academic": {"research", "health", "books"},
         "code": {"code", "packages", "private_llm"},
         "news": {"news", "community", "search"},
+        "commerce": {"payments", "maps", "local_search", "finance", "search", "private_catalog"},
         "general": {"knowledge", "search", "misc", "private_catalog", "private_llm"},
     }.get(intent, {"knowledge", "search", "misc"})
 

@@ -1,19 +1,37 @@
-<<<<<<< ours
-.gradle/
-=======
 # Python runtime artifacts
 __pycache__/
 *.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
 
-# Local production-center runtime state; regenerate with scripts/bootstrap_production_readiness.py
-atena_evolution/production_center/
+# Virtual environments and local env
+.venv/
+venv/
+.env
+.env.*
+!.env.example
 
-# Local Android/Gradle cache
-generated/atena_playstore_app/.gradle/
-
-# Local assistant runtime state
+# Logs and runtime state
+*.log
+*.log.old
+atena_evolution/logs/
 atena_evolution/task_reports/
 atena_evolution/knowledge/
 atena_evolution/learning_memory.jsonl
+atena_evolution/production_center/
+
+# Local Android/Gradle cache
+.gradle/
+generated/atena_playstore_app/.gradle/
+
+# Local assistant/plugin caches
 plugins/assistant_plugins/__pycache__/
->>>>>>> theirs
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/

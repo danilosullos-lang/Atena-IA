@@ -335,7 +335,6 @@ line-length     = 88
 target-version  = ["py310", "py311", "py312"]
 include         = '\.pyi?$'
 preview         = true
-magic_trailing_comma = true
 extend-exclude  = '''
 /(
   \.eggs | \.git | \.hg | \.mypy_cache | \.tox | \.venv | \.env

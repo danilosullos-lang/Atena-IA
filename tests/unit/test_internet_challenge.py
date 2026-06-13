@@ -2,10 +2,13 @@ import json
 from unittest.mock import patch
 
 from core.internet_challenge import (
+    _detect_query_intent,
     _fetch_raw,
     _normalize_api_entries,
     run_internet_challenge,
     discover_any_apis,
+    rank_api_candidates,
+    recommend_public_apis,
     select_best_api_for_task,
 )
 
@@ -124,3 +127,21 @@ def test_select_best_api_for_task_prefers_matching_category(monkeypatch):
     monkeypatch.setattr("core.internet_challenge.rank_api_candidates", _fake_rank)
     best = select_best_api_for_task("buscar repo github")
     assert best["name"] == "CodeAPI"
+
+
+def test_api_scanner_detects_delivery_commerce_intent():
+    assert _detect_query_intent("delivery de comida com pagamento e mapas") == "commerce"
+
+
+def test_api_scanner_recommends_delivery_stack_apis():
+    rows = recommend_public_apis("delivery de comida pagamentos mapas restaurantes", limit=10)
+    names = {row["name"] for row in rows}
+    assert {"Stripe", "Nominatim", "OpenRouteService"}.issubset(names)
+
+
+def test_api_scanner_ranks_delivery_stack_before_generic_knowledge():
+    ranked = rank_api_candidates("delivery de comida pagamentos mapas restaurantes", limit=5)
+    categories = [str(item.get("category")) for item in ranked]
+    assert "payments" in categories
+    assert "maps" in categories
+    assert "knowledge" not in categories[:3]
