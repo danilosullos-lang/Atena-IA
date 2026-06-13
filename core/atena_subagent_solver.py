@@ -308,7 +308,7 @@ class StaticAnalyzer:
                 analysis.best_practices.append("Uso de classes/POO")
             if "typing" in str(analysis.imports):
                 analysis.best_practices.append("Type hints detectado")
-            if any(doc for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.ClassDef)) and ast.get_docstring(node)):
+            if any(ast.get_docstring(node) for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.ClassDef))):
                 analysis.best_practices.append("Docstrings presentes")
             
         except SyntaxError as e:

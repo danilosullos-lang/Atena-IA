@@ -405,12 +405,25 @@ def main():
 
 if __name__ == "__main__":
     # Teste inline do script principal
-    # Para teste local, criaremos um arquivo dummy simples e executaremos refatoração nele
+    # Para teste local, criamos um arquivo dummy simples e executamos a refatoração nele
     dummy_module = """
 import numpy
 import os
 import sys
 
 def test_sum_simple():
-    a = [1,2,3]
-    b = [4,5
+    a = [1, 2, 3]
+    b = [4, 5, 6]
+    total = 0
+    for i in range(len(a)):
+        total += a[i] + b[i]
+    return total
+"""
+    ensure_dirs()
+    dummy_path = os.path.join(tempfile.gettempdir(), "atena_self_refactor_dummy.py")
+    with open(dummy_path, "w", encoding="utf-8") as f:
+        f.write(dummy_module)
+
+    MODULE_PATH = dummy_path
+    main()
+

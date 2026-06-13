@@ -19,7 +19,7 @@ import random
 import math
 import threading
 import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Dict, List, Optional, Tuple, Any
 from datetime import datetime
 from collections import deque

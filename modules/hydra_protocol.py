@@ -720,7 +720,7 @@ spec:
     
     def generate_ansible_playbook(self, inventory_path: str = "inventory.ini") -> str:
         """Gera playbook Ansible para deploy automático."""
-        playbook = f"""
+        playbook = """
 ---
 - name: Deploy ATENA Omega Cluster
   hosts: atena_nodes

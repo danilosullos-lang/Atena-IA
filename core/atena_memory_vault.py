@@ -24,6 +24,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import concurrent.futures
 import contextlib
 import datetime
@@ -70,6 +71,8 @@ from typing import (
     ParamSpec, Protocol, Self, Sequence, Set, Tuple, Type, TypeAlias,
     TypeGuard, TypeVar, TypedDict, Union, cast, final, overload, runtime_checkable
 )
+
+T = TypeVar("T")
 
 import aiofiles
 import anyio

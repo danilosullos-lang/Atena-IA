@@ -20,6 +20,7 @@
 
 from __future__ import annotations
 
+import argparse
 import ast
 import hashlib
 import json
@@ -1040,9 +1041,9 @@ class AtenaSREDoctor:
         
         document.getElementById('check-summary').innerHTML = `
             <div style="text-align: center; padding: 20px;">
-                <div style="font-size: 48px;">✅ {passed}</div>
+                <div style="font-size: 48px;">✅ ${{passed}}</div>
                 <div>Passed</div>
-                <div style="font-size: 48px; margin-top: 20px;">❌ {failed}</div>
+                <div style="font-size: 48px; margin-top: 20px;">❌ ${{failed}}</div>
                 <div>Failed</div>
                 <div style="margin-top: 20px;">Total: {len(self.results)} checks</div>
             </div>

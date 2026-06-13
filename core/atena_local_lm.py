@@ -53,6 +53,8 @@ from typing import (
 )
 from typing_extensions import TypedDict, Protocol
 
+logger = logging.getLogger("atena.local_lm")
+
 # ============================================================================
 # 1. CONFIGURAÇÃO AVANÇADA
 # ============================================================================

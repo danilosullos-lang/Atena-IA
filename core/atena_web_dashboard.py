@@ -479,4 +479,5 @@ if __name__ == "__main__":
     # Imprime relatório detalhado de evolução simulada
     if evolution_state.timestamps:
         logger.info(f"Total de iterações simuladas: {len(evolution_state.timestamps)}")
-        logger.info(f"Últimos valores - Loss: {evolution_state.loss_values[-1]:.4f}, Sharpe: {evolution_state.sh
+        logger.info(f"Últimos valores - Loss: {evolution_state.loss_values[-1]:.4f}, Sharpe: {evolution_state.sharpe_values[-1]:.4f}")
+
