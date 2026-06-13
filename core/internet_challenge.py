@@ -366,6 +366,40 @@ def _public_api_registry() -> dict[str, dict[str, str]]:
         "gutenberg": {"endpoint": "https://gutendex.com/books", "category": "books"},
         "europepmc": {"endpoint": "https://www.ebi.ac.uk/europepmc/webservices/rest/search", "category": "health"},
         "thesportsdb": {"endpoint": "https://www.thesportsdb.com/api/v1/json/3/", "category": "sports"},
+        # Clima / meteorologia
+        "open_meteo": {"endpoint": "https://api.open-meteo.com/v1/forecast", "category": "weather"},
+        "wttr": {"endpoint": "https://wttr.in/", "category": "weather"},
+        "open_weather": {"endpoint": "https://api.openweathermap.org/data/2.5/weather", "category": "weather"},
+        "meteo_br": {"endpoint": "https://apitempo.inmet.gov.br/", "category": "weather"},
+        # Finanças
+        "yahoo_finance": {"endpoint": "https://query1.finance.yahoo.com/v8/finance/chart/", "category": "finance"},
+        "alpha_vantage": {"endpoint": "https://www.alphavantage.co/query", "category": "finance"},
+        "coingecko": {"endpoint": "https://api.coingecko.com/api/v3", "category": "finance"},
+        "exchangerate": {"endpoint": "https://api.exchangerate-api.com/v4/latest/USD", "category": "finance"},
+        "openexchange": {"endpoint": "https://openexchangerates.org/api/latest.json", "category": "finance"},
+        # Astronomia / espaço
+        "nasa_apod": {"endpoint": "https://api.nasa.gov/planetary/apod", "category": "space"},
+        "nasa_neo": {"endpoint": "https://api.nasa.gov/neo/rest/v1/feed", "category": "space"},
+        "open_notify": {"endpoint": "http://api.open-notify.org/iss-now.json", "category": "space"},
+        "astro_api": {"endpoint": "https://api.astronomyapi.com/api/v2", "category": "space"},
+        "le_systeme_solaire": {"endpoint": "https://api.le-systeme-solaire.net/rest/bodies/", "category": "space"},
+        # Tradução
+        "libretranslate": {"endpoint": "https://libretranslate.com/translate", "category": "translation"},
+        "mymemory": {"endpoint": "https://api.mymemory.translated.net/get", "category": "translation"},
+        "lingva": {"endpoint": "https://lingva.ml/api/v1/", "category": "translation"},
+        # Geolocalização
+        "nominatim": {"endpoint": "https://nominatim.openstreetmap.org/search", "category": "geo"},
+        "ipapi": {"endpoint": "https://ipapi.co/json/", "category": "geo"},
+        "openrouteservice": {"endpoint": "https://api.openrouteservice.org/v2/directions/", "category": "geo"},
+        "geoapify": {"endpoint": "https://api.geoapify.com/v1/geocode/search", "category": "geo"},
+        # Música
+        "musicbrainz": {"endpoint": "https://musicbrainz.org/ws/2/recording/", "category": "music"},
+        "lastfm": {"endpoint": "https://ws.audioscrobbler.com/2.0/", "category": "music"},
+        "itunes": {"endpoint": "https://itunes.apple.com/search", "category": "music"},
+        # Imagem
+        "unsplash": {"endpoint": "https://api.unsplash.com/photos/random", "category": "image"},
+        "pexels": {"endpoint": "https://api.pexels.com/v1/search", "category": "image"},
+        "pixabay": {"endpoint": "https://pixabay.com/api/", "category": "image"},
     }
 
 
@@ -552,29 +586,61 @@ def _extract_team_name_for_schedule(text: str) -> str:
 
 @lru_cache(maxsize=128)
 def _detect_query_intent(topic: str) -> str:
-    """Detecta a intenção da consulta para otimizar fontes."""
-    topic_lower = topic.lower()
-    
+    """Detecta a intenção da consulta para otimizar seleção de fontes."""
+    t = topic.lower()
+
+    # Clima / meteorologia
+    if any(kw in t for kw in {"clima", "tempo", "meteorolog", "chuva", "temperatura",
+                               "weather", "forecast", "previsão do tempo", "vento", "umidade"}):
+        return "weather"
+    # Tradução / idioma (antes de finance para evitar falso-positivo)
+    if any(kw in t for kw in {"tradução", "traduzir", "translate", "idioma", "língua",
+                               "linguagem", "lingua", "detectar idioma", "tradutor"}):
+        return "translation"
+    # Geolocalização / mapas (antes de finance)
+    if any(kw in t for kw in {"mapa", "localização", "endereço", "geocod", "distância",
+                               "gps", "latitude", "longitude", "rota", "map", "geocode",
+                               "geocodificação"}):
+        return "geo"
+    # Astronomia / espaço (antes de finance)
+    if any(kw in t for kw in {"astronomia", "nasa", "space", "espaço", "planeta", "estrela",
+                               "telescópio", "órbita", "cometa", "satélite", "asteroid",
+                               "iss", "estação espacial", "foguete", "lua", "marte"}):
+        return "space"
+    # Finanças / mercado
+    if any(kw in t for kw in {"ação", "ações", "bolsa", "finança", "stock", "crypto",
+                               "bitcoin", "dólar", "câmbio", "cotação", "mercado financeiro",
+                               "investimento", "forex", "trade", "moeda"}):
+        return "finance"
+    # Música
+    if any(kw in t for kw in {"música", "musica", "song", "artista", "álbum", "album",
+                               "playlist", "spotify", "lyrics", "letra"}):
+        return "music"
+    # Imagem / foto
+    if any(kw in t for kw in {"imagem", "foto", "image", "photo", "unsplash", "pexels",
+                               "picture", "visualização"}):
+        return "image"
     # Esportes
-    sports_keywords = {"joga", "jogo", "futebol", "partida", "campeonato", "final", "copa"}
-    if any(kw in topic_lower for kw in sports_keywords):
+    if any(kw in t for kw in {"joga", "jogo", "futebol", "partida", "campeonato", "final",
+                               "copa", "sport", "placar", "gol", "nba", "nfl"}):
         return "sports"
-    
-    # Acadêmico/ pesquisa
-    academic_keywords = {"paper", "artigo", "pesquisa", "study", "research", "publicação"}
-    if any(kw in topic_lower for kw in academic_keywords):
+    # Acadêmico / pesquisa
+    if any(kw in t for kw in {"paper", "artigo", "pesquisa", "study", "research",
+                               "publicação", "arxiv", "ciência", "science", "estudo"}):
         return "academic"
-    
-    # Código/ desenvolvimento
-    code_keywords = {"código", "codigo", "github", "repo", "biblioteca", "library", "package", "api"}
-    if any(kw in topic_lower for kw in code_keywords):
+    # Código / desenvolvimento
+    if any(kw in t for kw in {"código", "codigo", "github", "repo", "biblioteca",
+                               "library", "package", "api", "npm", "pypi", "crate"}):
         return "code"
-    
     # Notícias
-    news_keywords = {"notícia", "noticia", "news", "último", "ultimo", "novo", "lançamento"}
-    if any(kw in topic_lower for kw in news_keywords):
+    if any(kw in t for kw in {"notícia", "noticia", "news", "último", "ultimo",
+                               "novo", "lançamento", "manchete"}):
         return "news"
-    
+    # Saúde
+    if any(kw in t for kw in {"saúde", "saude", "doença", "medicina", "remédio",
+                               "tratamento", "sintoma", "pubmed", "clinical"}):
+        return "health"
+
     return "general"
 
 
@@ -585,11 +651,19 @@ def recommend_public_apis(topic: str, limit: int = 5) -> list[dict[str, str]]:
     """
     intent = _detect_query_intent(topic or "")
     category_by_intent = {
-        "sports": {"sports", "news"},
-        "academic": {"research", "health", "books"},
-        "code": {"code", "packages", "search"},
-        "news": {"news", "community", "search"},
-        "general": {"knowledge", "search", "misc"},
+        "sports":      {"sports", "news"},
+        "academic":    {"research", "health", "books"},
+        "code":        {"code", "packages", "search"},
+        "news":        {"news", "community", "search"},
+        "weather":     {"weather"},
+        "finance":     {"finance"},
+        "geo":         {"geo"},
+        "space":       {"space"},
+        "translation": {"translation"},
+        "music":       {"music"},
+        "image":       {"image"},
+        "health":      {"health", "research"},
+        "general":     {"knowledge", "search", "misc"},
     }
     preferred_categories = category_by_intent.get(intent, {"knowledge", "search"})
     catalog = _build_public_api_catalog()
