@@ -25,6 +25,7 @@ import math
 import os
 import pickle
 import time
+import urllib.error
 import urllib.request
 from abc import ABC, abstractmethod
 from collections import deque
@@ -779,13 +780,22 @@ class AtenaLLMRouterAdvanced:
     def _has_internet(self) -> bool:
         probes = [
             "https://api.github.com/zen",
+            "https://www.google.com/generate_204",
             "https://httpbin.org/get",
+            "https://api.duckduckgo.com/",
         ]
         for url in probes:
             try:
                 with urllib.request.urlopen(url, timeout=3) as resp:
                     if 200 <= getattr(resp, "status", 200) < 500:
                         return True
+            except urllib.error.HTTPError as e:
+                # HTTPError é levantado para status 4xx/5xx, mas isso ainda
+                # significa que houve resposta HTTP válida — internet está OK
+                # (ex: rate limit 403/429, ou erro do servidor remoto).
+                if 200 <= e.code < 600:
+                    return True
+                continue
             except Exception:
                 continue
         return False
