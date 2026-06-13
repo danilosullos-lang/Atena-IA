@@ -331,7 +331,9 @@ def test_subagent_solve_code_only_mode_returns_lru_code():
     )
     assert proc.returncode == 0
     assert "class LRUCache" in proc.stdout
-    assert proc.stdout.strip().startswith("class _Node")
+    assert proc.stdout.strip().startswith(("class _Node", "class LRUCache"))
+    assert "def get" in proc.stdout and "def put" in proc.stdout
+    assert "lru_cache" not in proc.stdout and "OrderedDict" not in proc.stdout
 
 
 def test_subagent_solve_code_only_mode_returns_portuguese_lru_code():

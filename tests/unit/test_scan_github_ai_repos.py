@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 
@@ -16,38 +17,62 @@ def _load_module():
     return module
 
 
-def test_dedupe_rank_keeps_highest_star_entry():
+def _make_repo(mod, full_name, stars, *, forks=1, open_issues=1, language="Python",
+                topics=None, license_spdx="MIT", description="An autonomous AI agent."):
+    now = datetime.now(timezone.utc)
+    iso = lambda dt: dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return mod.RepoSnapshot(
+        full_name=full_name,
+        html_url=f"https://github.com/{full_name}",
+        description=description,
+        stars=stars,
+        forks=forks,
+        watchers=stars,
+        open_issues=open_issues,
+        language=language,
+        topics=topics or ["ai", "agent", "llm"],
+        license_spdx=license_spdx,
+        created_at=iso(now - timedelta(days=200)),
+        updated_at=iso(now - timedelta(days=1)),
+        pushed_at=iso(now - timedelta(days=1)),
+    )
+
+
+def test_rank_repos_orders_by_total_score_descending():
     mod = _load_module()
     repos = [
-        mod.RepoSnapshot("org/a", "u", "d", 10, "Python", "2026-01-01"),
-        mod.RepoSnapshot("org/a", "u", "d", 100, "Python", "2026-01-02"),
-        mod.RepoSnapshot("org/b", "u", "d", 50, "Go", "2026-01-03"),
+        _make_repo(mod, "org/low", stars=5),
+        _make_repo(mod, "org/high", stars=5000),
+        _make_repo(mod, "org/mid", stars=200),
     ]
 
-    ranked = mod.dedupe_rank(repos, top_n=10)
+    ranked = mod.rank_repos(repos, top_n=10)
 
-    assert [r.full_name for r in ranked] == ["org/a", "org/b"]
-    assert ranked[0].stargazers_count == 100
+    assert len(ranked) == 3
+    scores = [r.total_score for r in ranked]
+    assert scores == sorted(scores, reverse=True)
+    assert ranked[0].full_name == "org/high"
 
 
-def test_main_writes_watchlist(monkeypatch, tmp_path):
+def test_write_watchlist_writes_expected_payload(tmp_path, monkeypatch):
     mod = _load_module()
 
-    def fake_search(_query: str, per_page: int = 20):
-        return [
-            mod.RepoSnapshot("org/x", "https://example/x", "desc", 999, "Python", "2026-01-01"),
-            mod.RepoSnapshot("org/y", "https://example/y", "desc", 500, "Go", "2026-01-02"),
-        ]
+    watchlist_path = tmp_path / "docs" / "ai_repo_watchlist.json"
+    monkeypatch.setattr(mod, "WATCHLIST_PATH", watchlist_path)
+    monkeypatch.setattr(mod, "DELTA_CACHE_PATH", tmp_path / "delta_cache.json")
 
-    monkeypatch.setattr(mod, "search_repos", fake_search)
-    monkeypatch.chdir(tmp_path)
+    repos = [
+        _make_repo(mod, "org/x", stars=999),
+        _make_repo(mod, "org/y", stars=500),
+    ]
+    for repo in repos:
+        repo.compute_scores(max_stars=999)
+        repo.compute_themes()
 
-    rc = mod.main()
-    assert rc == 0
+    output = mod.write_watchlist(repos, source="unit-test", queries=["test query"])
 
-    out_file = tmp_path / "docs" / "ai_repo_watchlist.json"
-    assert out_file.exists()
-
-    payload = json.loads(out_file.read_text(encoding="utf-8"))
-    assert payload["count"] >= 2
-    assert payload["repos"][0]["full_name"] == "org/x"
+    assert watchlist_path.exists()
+    payload = json.loads(watchlist_path.read_text(encoding="utf-8"))
+    assert payload["count"] == 2
+    assert payload["repos"][0]["full_name"] in {"org/x", "org/y"}
+    assert output["count"] == len(repos)

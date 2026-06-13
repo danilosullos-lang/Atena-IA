@@ -271,7 +271,7 @@ class MirrorWorld:
         self._last_update_time = current_time
         
         # Start performance tracking
-    update_start = time.perf_counter()
+        update_start = time.perf_counter()
         
         # Apply time dilation
         dt_dilated = delta_time * self.state['time_dilation']

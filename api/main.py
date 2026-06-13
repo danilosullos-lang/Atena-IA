@@ -344,8 +344,7 @@ Diretrizes:
 - Mantenha contexto da conversa
 
 Horário atual: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}
-"""
-        ).strip()
+""".strip()
 
 # ========== GEMINI CLIENT ==========
 
@@ -475,7 +474,7 @@ class MetricsMiddleware:
 # Inicializa componentes
 gemini_client = GeminiClient()
 conversation_manager = ConversationManager()
-cache_manager = CacheManager(ttl=CACHE_TTL)
+cache_manager = CacheManager(default_ttl=CACHE_TTL)
 metrics_middleware = MetricsMiddleware()
 security_middleware = SecurityMiddleware(api_key=API_KEY)
 

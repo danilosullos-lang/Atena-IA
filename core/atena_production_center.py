@@ -547,7 +547,7 @@ def main() -> int:
             max_cost_units=args.max_cost_units,
             window_days=args.window_days,
         )
-        decision = evaluate_go_live(readiness=readiness, remediation=remediation, slo_alert=slo_payload)
+        decision = evaluate_go_live(readiness=readiness, remediation=remediation, slo_alert=slo_payload).to_dict()
         _emit("go-live-gate", decision, full_text=args.full_text)
         return 0 if decision["decision"] == "GO" else 2
 

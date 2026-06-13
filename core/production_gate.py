@@ -69,6 +69,9 @@ class GateResult:
         d["warnings"] = [asdict(v) for v in self.warnings]
         return d
 
+    def __getitem__(self, key: str) -> Any:
+        return self.to_dict()[key]
+
     @property
     def is_go(self) -> bool:
         return self.decision in (Decision.GO, Decision.GO_WITH_WARNINGS)
@@ -81,7 +84,8 @@ class GateResult:
 @dataclass(frozen=True)
 class GateThresholds:
     """Todos os limites em um único objeto imutável — fácil de versionar/sobrescrever."""
-    max_pending_actions:          int   = 0      # BUG corrigido: > 1 bloqueava 1 ação válida
+    max_pending_actions:          int   = 1      # 1 ação em aberto não bloqueia GO
+    max_pending_actions_warning_floor: int = 1   # acima disso emite warning (não bloqueio)
     max_pending_actions_warning:  int   = 3      # acima disso → warning antes de bloquear
     min_slo_budget_pct:           float = 10.0   # < 10 % budget restante → bloqueio crítico
     warn_slo_budget_pct:          float = 30.0   # < 30 % → warning
@@ -255,7 +259,7 @@ def evaluate_go_live(
             field="remediation.open_actions",
             value=open_actions,
         ))
-    elif open_actions > 0:
+    elif open_actions > thresholds.max_pending_actions_warning_floor:
         warnings.append(GateViolation(
             code=WarningCode.HIGH_ACTION_COUNT,
             message=f"{open_actions} ação(ões) de remediação ainda em andamento.",

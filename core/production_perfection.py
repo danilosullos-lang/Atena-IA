@@ -28,7 +28,7 @@ def build_perfection_plan(evolution_dir: Path | None = None) -> dict[str, object
         max_cost_units=500.0,
         window_days=30,
     )
-    gate = evaluate_go_live(readiness=readiness, remediation=remediation, slo_alert=slo)
+    gate = evaluate_go_live(readiness=readiness, remediation=remediation, slo_alert=slo).to_dict()
 
     telemetry_summary = telemetry.summarize()
     has_policy_audit = (evo / "policy_audit.jsonl").exists()
