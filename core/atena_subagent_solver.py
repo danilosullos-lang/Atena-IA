@@ -696,6 +696,63 @@ def rle_decode(encoded) -> str:
     return ''.join(char * count for char, count in encoded)
 """
 
+        if "game of life" in lowered or "jogo da vida" in lowered or "autômato celular" in lowered or "automato celular" in lowered or "conway" in lowered:
+            return """class Grid:
+    \"\"\"Grade toroidal para o Jogo da Vida de Conway.\"\"\"
+
+    def __init__(self, width: int, height: int, cells=None):
+        self.width = width
+        self.height = height
+        if cells is not None:
+            self.cells = {(x, y) for (x, y) in cells if 0 <= x < width and 0 <= y < height}
+        else:
+            self.cells = set()
+
+    def is_alive(self, x: int, y: int) -> bool:
+        return (x % self.width, y % self.height) in self.cells
+
+    def set_alive(self, x: int, y: int) -> None:
+        self.cells.add((x % self.width, y % self.height))
+
+    def _neighbors(self, x: int, y: int):
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                if dx == 0 and dy == 0:
+                    continue
+                yield (x + dx) % self.width, (y + dy) % self.height
+
+    def _live_neighbor_count(self, x: int, y: int) -> int:
+        return sum(1 for nx, ny in self._neighbors(x, y) if (nx, ny) in self.cells)
+
+    def step(self) -> None:
+        \"\"\"Avança uma geração seguindo as regras de Conway (grid toroidal).\"\"\"
+        candidates = set(self.cells)
+        for (x, y) in self.cells:
+            candidates.update(self._neighbors(x, y))
+
+        next_cells = set()
+        for (x, y) in candidates:
+            alive = (x, y) in self.cells
+            n = self._live_neighbor_count(x, y)
+            if alive and n in (2, 3):
+                next_cells.add((x, y))
+            elif not alive and n == 3:
+                next_cells.add((x, y))
+
+        self.cells = next_cells
+
+    def render(self, alive_char: str = "#", dead_char: str = ".") -> str:
+        \"\"\"Retorna uma representação em string da grade usando caracteres ASCII.\"\"\"
+        rows = []
+        for y in range(self.height):
+            row = "".join(
+                alive_char if (x, y) in self.cells else dead_char
+                for x in range(self.width)
+            )
+            rows.append(row)
+        return "\\n".join(rows)
+"""
+
         if "atenalang" in lowered:
             return """class Lexer:
     def tokenize(self, source: str):

@@ -362,6 +362,36 @@ def test_subagent_solve_code_only_mode_returns_socket_http_server_code():
     assert 'if path == "/hello"' in proc.stdout
 
 
+def test_subagent_solve_code_only_mode_returns_game_of_life_code():
+    proc = run_cli(
+        "subagent-solve",
+        "--problem",
+        "Crie um simulador de autômato celular (Conway's Game of Life) em Python puro, com classe Grid, método step() que avança uma geração seguindo as regras de Conway, suporte a grid toroidal (wrap-around nas bordas), e um método render() que retorna uma representação em string usando caracteres ASCII.",
+        "--code-only",
+    )
+    assert proc.returncode == 0
+    assert "class Grid" in proc.stdout
+    assert "def step" in proc.stdout
+    assert "def render" in proc.stdout
+
+    # O código gerado deve ser executável e produzir uma transição correta
+    # do padrão "glider" (verifica regras de Conway + grid toroidal).
+    namespace: dict = {}
+    exec(proc.stdout, namespace)
+    Grid = namespace["Grid"]
+
+    g = Grid(10, 10)
+    for (x, y) in [(1, 0), (2, 1), (0, 2), (1, 2), (2, 2)]:
+        g.set_alive(x, y)
+
+    initial_population = len(g.cells)
+    g.step()
+    # Um glider mantém 5 células vivas a cada geração
+    assert len(g.cells) == initial_population == 5
+    assert isinstance(g.render(), str)
+    assert "\n" in g.render()
+
+
 def test_subagent_solve_code_only_mode_returns_deadlock_detector_code():
     proc = run_cli(
         "subagent-solve",
