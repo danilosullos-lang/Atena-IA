@@ -629,17 +629,25 @@ if __name__ == "__main__":
     def _build_api(self, out: Path, name: str) -> None:
         (out / "requirements.txt").write_text("fastapi\nuvicorn\n", encoding="utf-8")
         (out / "main.py").write_text(
-            f"""from fastapi import FastAPI
+            f"""\"\"\"API gerada automaticamente pela ATENA.
 
-app = FastAPI(title=\"{name}\")
+Fornece endpoints básicos de health check e uma sugestão de melhoria.
+\"\"\"
+from fastapi import FastAPI
+
+app = FastAPI(title="{name}")
+
 
 @app.get('/health')
-def health():
-    return {{'status':'ok','service':'{name}'}}
+def health() -> dict[str, str]:
+    \"\"\"Retorna o status de saúde do serviço.\"\"\"
+    return {{'status': 'ok', 'service': '{name}'}}
+
 
 @app.get('/idea')
-def idea():
-    return {{'idea':'ATENA recomenda adicionar fila assíncrona + observabilidade por traces'}}
+def idea() -> dict[str, str]:
+    \"\"\"Retorna uma sugestão de melhoria arquitetural gerada pela ATENA.\"\"\"
+    return {{'idea': 'ATENA recomenda adicionar fila assíncrona + observabilidade por traces'}}
 """,
             encoding="utf-8",
         )
@@ -647,10 +655,15 @@ def idea():
     def _build_cli(self, out: Path, name: str) -> None:
         (out / "main.py").write_text(
             f"""#!/usr/bin/env python3
+\"\"\"CLI gerada automaticamente pela ATENA.
+
+Recebe um nome opcional e exibe uma saudação.
+\"\"\"
 import argparse
 
 
-def main():
+def main() -> None:
+    \"\"\"Ponto de entrada da CLI: faz o parsing dos argumentos e imprime a saudação.\"\"\"
     parser = argparse.ArgumentParser(prog='{name}', description='CLI gerada pela ATENA')
     parser.add_argument('nome', nargs='?', default='mundo')
     args = parser.parse_args()

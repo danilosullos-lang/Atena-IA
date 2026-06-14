@@ -175,21 +175,23 @@ class TokenCounter:
     def __init__(self):
         self._tiktoken_enc = None
         self._huggingface_tokenizer = None
-        
+
         # Tenta carregar tokenizer otimizado
         try:
             import tiktoken
             self._tiktoken_enc = tiktoken.get_encoding("cl100k_base")  # GPT-4 tokenizer
-        except ImportError:
+        except Exception:
             pass
-        
+
         if not self._tiktoken_enc:
             try:
                 from transformers import AutoTokenizer
                 self._huggingface_tokenizer = AutoTokenizer.from_pretrained(
                     "gpt2", trust_remote_code=False
                 )
-            except ImportError:
+            except Exception:
+                # Sem conexão com HuggingFace, modelo não em cache, transformers
+                # ausente, etc. — usa o fallback heurístico em count().
                 pass
     
     def count(self, text: str) -> int:
@@ -458,7 +460,10 @@ class SemanticCache:
             try:
                 from sentence_transformers import SentenceTransformer
                 self._embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-            except ImportError:
+            except Exception:
+                # Sem conexão com HuggingFace, modelo não em cache,
+                # sentence-transformers ausente, etc. — cache semântico
+                # fica desabilitado e o restante do roteador funciona normalmente.
                 pass
     
     async def _get_embedding(self, text: str) -> Optional[np.ndarray]:

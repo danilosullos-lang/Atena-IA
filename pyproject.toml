@@ -463,7 +463,7 @@ ignore           = [
     "evolution", "reference_dna", "atena_evolution",
     "analysis_reports", "tests", "docs",
 ]
-ignore-patterns  = ["test_*.py", "*_test.py"]
+ignore-patterns  = ["^test_.*\\.py$", ".*_test\\.py$"]
 jobs             = 0
 
 [tool.pylint."messages control"]

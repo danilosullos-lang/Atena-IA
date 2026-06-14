@@ -445,9 +445,9 @@ class MetricsMiddleware:
         
         if PROMETHEUS_AVAILABLE:
             self.prometheus_metrics = {
-                "requests": Counter('atena_requests_total', 'Total requests'),
-                "errors": Counter('atena_errors_total', 'Total errors'),
-                "duration": Histogram('atena_request_duration_seconds', 'Request duration'),
+                "requests": Counter('atena_requests_total', 'Total requests', ['path', 'method']),
+                "errors": Counter('atena_errors_total', 'Total errors', ['path']),
+                "duration": Histogram('atena_request_duration_seconds', 'Request duration', ['path']),
                 "active": Gauge('atena_active_requests', 'Active requests')
             }
     

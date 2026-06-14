@@ -330,7 +330,7 @@ class AtenaProgrammingValidator:
         
         # 2. Verificação de arquivos
         files = self._extract_project_files(dest_dir)
-        if not files:
+        if not files and project_type != "site":
             warnings.append("Nenhum arquivo Python encontrado no projeto")
             
         # 3. Compilação e análise de qualidade
@@ -363,8 +363,19 @@ class AtenaProgrammingValidator:
         run_ok = False
         output_preview = ""
         execution_time_ms = 0.0
-        
-        if run_tests and main_file.exists() and compile_ok:
+
+        if project_type == "site":
+            # Projetos "site" são HTML/CSS/JS estático — não há main.py para
+            # executar. O critério de sucesso é a presença dos arquivos
+            # estáticos esperados (index.html + style.css/app.js).
+            if (dest_dir / "index.html").exists():
+                run_ok = True
+                output_preview = "Site estático gerado (index.html presente)."
+                if not ((dest_dir / "style.css").exists() or (dest_dir / "app.js").exists()):
+                    warnings.append("Site gerado sem style.css/app.js — verifique o template.")
+            else:
+                warnings.append("Site gerado sem index.html.")
+        elif run_tests and main_file.exists() and compile_ok:
             print(f"  🚀 Executando {main_file.name}...")
             run_ok, output_preview, execution_time_ms = self._try_execute_safe(main_file, timeout=10)
             if not run_ok:
