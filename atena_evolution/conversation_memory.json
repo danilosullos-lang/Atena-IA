@@ -53,6 +53,30 @@
       "user": "__manus_ec=$?; trap '' PIPE; printf \"%d:%s\\n\" $__manus_ec \"$PWD\" 2>/dev/null >&3; trap - PIPE",
       "assistant": "O comando `source /home/ubuntu/.user_env` é utilizado para carregar as variáveis de ambiente e configurações definidas no arquivo `.user_env` localizado no diretório `/home/ubuntu`. \n\nAo executar esse comando no terminal, o shell lê e aplica as definições presentes nesse arquivo ao ambiente atual da sessão, permitindo que você utilize essas variáveis e configurações imediatamente.\n\nSe precisar de ajuda para entender o conteúdo do arquivo `.user_env` ou para criar/modificar variáveis de ambiente, posso ajudar!",
       "context": "general"
+    },
+    {
+      "timestamp": "2026-06-14T05:11:25.565802+00:00",
+      "user": "__manus_ec=$?; trap '' PIPE; printf \"%d:%s\\n\" $__manus_ec \"$PWD\" 2>/dev/null >&3; trap - PIPE",
+      "assistant": "O comando `source /home/ubuntu/.user_env` é utilizado para carregar as variáveis de ambiente e configurações definidas no arquivo `.user_env` localizado no diretório `/home/ubuntu`. \n\nAo executar esse comando no terminal, o shell lê e aplica as definições presentes nesse arquivo ao ambiente atual da sessão, permitindo que você utilize essas variáveis e configurações imediatamente.\n\nSe precisar de ajuda para entender o conteúdo do arquivo `.user_env` ou para criar/modificar variáveis de ambiente, posso ajudar!",
+      "context": "general"
+    },
+    {
+      "timestamp": "2026-06-14T05:13:54.338057+00:00",
+      "user": "__manus_ec=$?; trap '' PIPE; printf \"%d:%s\\n\" $__manus_ec \"$PWD\" 2>/dev/null >&3; trap - PIPE",
+      "assistant": "O comando `source /home/ubuntu/.user_env` é utilizado para carregar as variáveis de ambiente e configurações definidas no arquivo `.user_env` localizado no diretório `/home/ubuntu`. \n\nAo executar esse comando no terminal, o shell lê e aplica as definições presentes nesse arquivo ao ambiente atual da sessão, permitindo que você utilize essas variáveis e configurações imediatamente.\n\nSe precisar de ajuda para entender o conteúdo do arquivo `.user_env` ou para criar/modificar variáveis de ambiente, posso ajudar!",
+      "context": "general"
+    },
+    {
+      "timestamp": "2026-06-14T05:15:52.733135+00:00",
+      "user": "__manus_ec=$?; trap '' PIPE; printf \"%d:%s\\n\" $__manus_ec \"$PWD\" 2>/dev/null >&3; trap - PIPE",
+      "assistant": "O comando `source /home/ubuntu/.user_env` é utilizado para carregar as variáveis de ambiente e configurações definidas no arquivo `.user_env` localizado no diretório `/home/ubuntu`. \n\nAo executar esse comando no terminal, o shell lê e aplica as definições presentes nesse arquivo ao ambiente atual da sessão, permitindo que você utilize essas variáveis e configurações imediatamente.\n\nSe precisar de ajuda para entender o conteúdo do arquivo `.user_env` ou para criar/modificar variáveis de ambiente, posso ajudar!",
+      "context": "general"
+    },
+    {
+      "timestamp": "2026-06-14T05:16:24.828488+00:00",
+      "user": "__manus_ec=$?; trap '' PIPE; printf \"%d:%s\\n\" $__manus_ec \"$PWD\" 2>/dev/null >&3; trap - PIPE",
+      "assistant": "O comando `source /home/ubuntu/.user_env` é utilizado para carregar as variáveis de ambiente e configurações definidas no arquivo `.user_env` localizado no diretório `/home/ubuntu`. \n\nAo executar esse comando no terminal, o shell lê e aplica as definições presentes nesse arquivo ao ambiente atual da sessão, permitindo que você utilize essas variáveis e configurações imediatamente.\n\nSe precisar de ajuda para entender o conteúdo do arquivo `.user_env` ou para criar/modificar variáveis de ambiente, posso ajudar!",
+      "context": "general"
     }
   ],
   "embeddings": {}
