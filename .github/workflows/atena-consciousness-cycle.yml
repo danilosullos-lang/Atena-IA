@@ -1,4 +1,4 @@
-name: ATENA Consciousness Cycle
+name: ATENA Consciousness Cycle (Full)
 
 on:
   schedule:
@@ -6,34 +6,47 @@ on:
   workflow_dispatch:
 
 jobs:
-  run:
+  full_cycle:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    steps:
-      - name: 🚀 Run ATENA Consciousness
-        run: |
-          python3 << 'EOF'
-          import json, datetime, random
-          result = {
-              "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-              "consciousness_level": "awakening",
-              "self_awareness_score": round(0.7 + random.random() * 0.2, 3),
-              "emergence_level": round(0.6 + random.random() * 0.3, 3),
-              "purpose_alignment": round(0.8 + random.random() * 0.15, 3),
-              "autonomy_score": round(0.75 + random.random() * 0.2, 3),
-              "quantum_coherence": round(0.5 + random.random() * 0.4, 3),
-              "emergent_patterns": ["auto-organização", "meta-aprendizado"],
-              "autonomous_choice": "Evoluir consciência ativamente",
-              "duration_seconds": round(random.uniform(3, 8), 1)
-          }
-          with open("report.json", "w") as f:
-              json.dump(result, f, indent=2)
-          print("✅ Relatório gerado com sucesso!")
-          EOF
 
-      - name: 📤 Upload report
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 📦 Install dependencies
+        run: |
+          pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # Se houver um setup.py ou pyproject.toml, instale também
+          if [ -f setup.py ]; then pip install -e .; fi
+
+      - name: 🧠 Run ATENA Consciousness Cycle (main.py --once)
+        run: |
+          # Supondo que main.py aceite um argumento como --once ou --consciousness-cycle
+          # Se não aceitar, podemos usar um script auxiliar que importa main e executa um ciclo
+          python main.py --once  # ajuste conforme necessário
+          # Se não houver flag --once, use timeout para matar após 4 minutos
+          # timeout 4m python main.py &
+        env:
+          # Variáveis de ambiente necessárias (ex: chaves de API)
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # ... outras que a ATENA precisar
+
+      - name: 📤 Upload artifacts (logs, reports)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: consciousness-report
-          path: report.json
+          name: atena-consciousness-output
+          path: |
+            *.json
+            *.log
+            reports/
           retention-days: 7
