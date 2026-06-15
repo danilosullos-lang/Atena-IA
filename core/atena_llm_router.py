@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-ATENA Ω - Roteador de LLM de Alta Performance
+ATENA Ω - Roteador de LLM de Alta Performance v4.0
 
 Características avançadas:
 - Async/await nativo com timeout por camada
-- Streaming de tokens com backpressure
+- Streaming de tokens com backpressure real
 - Circuit breaker persistente (Redis/arquivo)
-- Rate limiting adaptativo com leaky bucket
+- Rate limiting adaptativo (token bucket)
 - Health checks proativos com métricas SLI/SLO
 - Retry seletivo (apenas erros 5xx/network, não 4xx)
 - Token counting com truncamento inteligente
@@ -15,6 +15,7 @@ Características avançadas:
 - OpenTelemetry tracing integrado
 - Cache semântico (embeddings) + LRU
 - Fallback com consensus entre múltiplos modelos
+- Suporte a provedores locais (Ollama, LM Studio)
 """
 
 import asyncio
@@ -30,16 +31,14 @@ import urllib.request
 from abc import ABC, abstractmethod
 from collections import deque
 from contextlib import asynccontextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, AsyncIterator, Dict, List, Optional, Set, Tuple, Union
 from pathlib import Path
+from typing import Any, AsyncIterator, Dict, List, Optional, Set, Tuple, Union
 
 import aiohttp
 import aiofiles
-from asyncio import Lock, Semaphore
-from dataclasses import asdict
 
 # Opcionais com fallback graceful
 try:
@@ -63,12 +62,16 @@ try:
 except ImportError:
     REDIS_AVAILABLE = False
 
+try:
+    import tiktoken
+    TIKTOKEN_AVAILABLE = True
+except ImportError:
+    TIKTOKEN_AVAILABLE = False
+
 logger = logging.getLogger("atena.llm_router.advanced")
 
-try:
-    from openai import OpenAI  # compat: usado por testes de auto-orquestração
-except Exception:
-    OpenAI = None
+# ========== CONSTANTES ==========
+REQUEST_TIMEOUT = float(os.getenv("ATENA_LLM_TIMEOUT_S", "90.0"))
 
 
 # ========== CONFIGURAÇÃO ==========
@@ -168,120 +171,113 @@ class LLMResponse:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
-# ========== TOKEN COUNTER INTELIGENTE ==========
+# ========== TOKEN COUNTER ==========
 class TokenCounter:
-    """Contador de tokens com fallback e truncamento inteligente"""
-    
     def __init__(self):
-        self._tiktoken_enc = None
-        self._huggingface_tokenizer = None
-
-        # Tenta carregar tokenizer otimizado
-        try:
-            import tiktoken
-            self._tiktoken_enc = tiktoken.get_encoding("cl100k_base")  # GPT-4 tokenizer
-        except Exception:
-            pass
-
-        if not self._tiktoken_enc:
+        self._enc = None
+        if TIKTOKEN_AVAILABLE:
+            try:
+                self._enc = tiktoken.get_encoding("cl100k_base")
+            except Exception:
+                pass
+        if not self._enc:
             try:
                 from transformers import AutoTokenizer
-                self._huggingface_tokenizer = AutoTokenizer.from_pretrained(
-                    "gpt2", trust_remote_code=False
-                )
+                self._tokenizer = AutoTokenizer.from_pretrained("gpt2")
             except Exception:
-                # Sem conexão com HuggingFace, modelo não em cache, transformers
-                # ausente, etc. — usa o fallback heurístico em count().
-                pass
+                self._tokenizer = None
     
     def count(self, text: str) -> int:
-        """Conta tokens com fallback heurístico"""
-        if self._tiktoken_enc:
-            return len(self._tiktoken_enc.encode(text))
-        
-        if self._huggingface_tokenizer:
-            return len(self._huggingface_tokenizer.encode(text))
-        
-        # Fallback: ~4 chars por token (boa aproximação para português/inglês)
+        if self._enc:
+            return len(self._enc.encode(text))
+        if self._tokenizer:
+            return len(self._tokenizer.encode(text))
+        # Fallback: ~4 chars por token
         return math.ceil(len(text) / 4)
     
     def truncate(self, text: str, max_tokens: int, preserve_end: bool = True) -> str:
-        """Trunca texto para caber no limite de tokens"""
         if self.count(text) <= max_tokens:
             return text
-        
-        # Estratégia: remove do meio, mantém início e fim
         if preserve_end:
-            ratio = 0.7  # 70% início, 30% fim
+            ratio = 0.7
             start_tokens = int(max_tokens * ratio)
             end_tokens = max_tokens - start_tokens
-            
             start_text = text[:int(len(text) * (start_tokens / max_tokens))]
             end_text = text[-int(len(text) * (end_tokens / max_tokens)):]
-            
             return f"{start_text}\n...[TRUNCADO]...\n{end_text}"
         else:
-            # Remove do final
             while self.count(text) > max_tokens:
                 text = text[:int(len(text) * 0.9)]
             return text
 
 
+# ========== RATE LIMITER (TOKEN BUCKET) ==========
+class RateLimiter:
+    def __init__(self, rate: float, capacity: float):
+        self.rate = rate
+        self.capacity = capacity
+        self.tokens = capacity
+        self.last_refill = time.monotonic()
+        self._lock = asyncio.Lock()
+        self._condition = asyncio.Condition(self._lock)
+    
+    async def acquire(self):
+        async with self._condition:
+            while True:
+                now = time.monotonic()
+                elapsed = now - self.last_refill
+                self.tokens = min(self.capacity, self.tokens + elapsed * self.rate)
+                self.last_refill = now
+                if self.tokens >= 1:
+                    self.tokens -= 1
+                    return
+                wait_time = (1 - self.tokens) / self.rate
+                await asyncio.sleep(wait_time)
+
+
 # ========== CIRCUIT BREAKER PERSISTENTE ==========
 class PersistentCircuitBreaker:
-    """Circuit breaker com persistência em Redis ou arquivo"""
-    
     def __init__(self, name: str, config: RouterConfig):
         self.name = name
         self.config = config
         self.failure_threshold = 5
         self.recovery_timeout = 60.0
-        
         self._state = "CLOSED"
         self._failures = 0
         self._last_state_change = time.time()
-        self._lock = Lock()
-        
-        # Inicializa persistência
-        self._redis_client = None
+        self._lock = asyncio.Lock()
+        self._redis = None
+        self._persist_path = None
         self._init_persistence()
     
     def _init_persistence(self):
         if self.config.cb_redis_url and REDIS_AVAILABLE:
-            self._redis_client = redis.from_url(self.config.cb_redis_url)
+            self._redis = redis.from_url(self.config.cb_redis_url)
         elif self.config.cb_persist_path:
-            self._persist_path = Path(self.config.cb_persist_path)
-            self._persist_path.mkdir(parents=True, exist_ok=True)
+            self._persist_path = Path(self.config.cb_persist_path) / f"cb_{self.name}.json"
+            self._persist_path.parent.mkdir(parents=True, exist_ok=True)
             self._load_from_disk()
     
+    def _load_from_disk(self):
+        if self._persist_path and self._persist_path.exists():
+            try:
+                data = json.loads(self._persist_path.read_text())
+                self._state = data.get("state", "CLOSED")
+                self._failures = data.get("failures", 0)
+                self._last_state_change = data.get("last_state_change", time.time())
+            except Exception:
+                pass
+    
     async def _save_state(self):
-        """Persiste estado do circuit breaker"""
-        state_data = {
+        data = {
             "state": self._state,
             "failures": self._failures,
             "last_state_change": self._last_state_change,
         }
-        
-        if self._redis_client:
-            await self._redis_client.setex(
-                f"cb:{self.name}",
-                3600,
-                json.dumps(state_data)
-            )
-        elif hasattr(self, '_persist_path'):
-            async with aiofiles.open(self._persist_path / f"{self.name}.pkl", "wb") as f:
-                await f.write(pickle.dumps(state_data))
-    
-    def _load_from_disk(self):
-        """Carrega estado do disco"""
-        try:
-            with open(self._persist_path / f"{self.name}.pkl", "rb") as f:
-                state_data = pickle.load(f)
-                self._state = state_data["state"]
-                self._failures = state_data["failures"]
-                self._last_state_change = state_data["last_state_change"]
-        except FileNotFoundError:
-            pass
+        if self._redis:
+            await self._redis.setex(f"cb:{self.name}", 3600, json.dumps(data))
+        elif self._persist_path:
+            self._persist_path.write_text(json.dumps(data))
     
     async def allow_request(self) -> bool:
         async with self._lock:
@@ -304,390 +300,203 @@ class PersistentCircuitBreaker:
     async def record_failure(self):
         async with self._lock:
             self._failures += 1
-            self._last_state_change = time.time()
-            
             if self._failures >= self.failure_threshold and self._state == "CLOSED":
                 self._state = "OPEN"
+                self._last_state_change = time.time()
                 await self._save_state()
 
 
-# ========== RATE LIMITER COM LEAKY BUCKET ==========
-class RateLimiter:
-    """Rate limiter adaptativo com leaky bucket"""
-    
-    def __init__(self, requests_per_second: float, burst_size: int):
-        self.rate = requests_per_second
-        self.burst = burst_size
-        self.tokens = burst_size
-        self.last_refill = time.monotonic()
-        self._lock = Lock()
-    
-    async def acquire(self) -> float:
-        """Adquire um token, retorna tempo de espera"""
-        async with self._lock:
-            now = time.monotonic()
-            
-            # Refill tokens
-            elapsed = now - self.last_refill
-            new_tokens = elapsed * self.rate
-            self.tokens = min(self.burst, self.tokens + new_tokens)
-            self.last_refill = now
-            
-            if self.tokens >= 1:
-                self.tokens -= 1
-                return 0.0
-            
-            # Calcula tempo de espera
-            wait_time = (1 - self.tokens) / self.rate
-            return wait_time
-    
-    async def wait_and_acquire(self):
-        """Espera até ter token disponível"""
-        wait_time = await self.acquire()
-        if wait_time > 0:
-            await asyncio.sleep(wait_time)
-
-
-# ========== HEALTH CHECKER PROATIVO ==========
+# ========== HEALTH CHECKER ==========
 class HealthChecker:
-    """Health checks ativos para cada provider"""
-    
     def __init__(self, config: RouterConfig):
         self.config = config
-        self._provider_health: Dict[str, ProviderStatus] = {}
-        self._provider_metrics: Dict[str, ProviderMetrics] = {}
+        self._providers: Dict[str, Any] = {}
+        self._status: Dict[str, ProviderStatus] = {}
         self._task: Optional[asyncio.Task] = None
     
+    def register_provider(self, name: str, provider):
+        self._providers[name] = provider
+        self._status[name] = ProviderStatus.UNHEALTHY
+    
     async def start(self):
-        """Inicia health checker periódico"""
-        self._task = asyncio.create_task(self._health_check_loop())
+        self._task = asyncio.create_task(self._check_loop())
     
     async def stop(self):
         if self._task:
             self._task.cancel()
     
-    async def _health_check_loop(self):
+    async def _check_loop(self):
         while True:
-            for provider in self._provider_health.keys():
-                await self._check_provider(provider)
+            for name, provider in self._providers.items():
+                await self._check_provider(name, provider)
             await asyncio.sleep(self.config.health_check_interval)
     
-    async def _check_provider(self, provider: str):
-        """Verifica saúde de um provider"""
-        # Implementação específica por provider
-        timeout = aiohttp.ClientTimeout(total=self.config.health_check_timeout)
-        
+    async def _check_provider(self, name: str, provider):
         try:
-            async with aiohttp.ClientSession(timeout=timeout) as session:
-                if provider == "anthropic":
-                    async with session.head("https://api.anthropic.com/v1") as resp:
-                        if resp.status < 500:
-                            self._provider_health[provider] = ProviderStatus.HEALTHY
-                        else:
-                            self._provider_health[provider] = ProviderStatus.DEGRADED
-                elif provider == "deepseek":
-                    async with session.head("https://api.deepseek.com/v1") as resp:
-                        self._provider_health[provider] = (
-                            ProviderStatus.HEALTHY if resp.status < 500 else ProviderStatus.DEGRADED
-                        )
+            # Tenta um endpoint de health simples ou verifica conectividade
+            if hasattr(provider, 'health_check'):
+                healthy = await provider.health_check()
+                self._status[name] = ProviderStatus.HEALTHY if healthy else ProviderStatus.UNHEALTHY
+            else:
+                # Fallback: tenta uma requisição de teste rápida (via método existente)
+                async with aiohttp.ClientSession() as session:
+                    base_url = provider.base_url if hasattr(provider, 'base_url') else None
+                    if base_url:
+                        async with session.head(base_url, timeout=self.config.health_check_timeout) as resp:
+                            self._status[name] = ProviderStatus.HEALTHY if resp.status < 500 else ProviderStatus.DEGRADED
+                    else:
+                        self._status[name] = ProviderStatus.HEALTHY  # assume
         except Exception:
-            self._provider_health[provider] = ProviderStatus.UNHEALTHY
+            self._status[name] = ProviderStatus.UNHEALTHY
     
-    async def get_healthy_providers(self, candidates: List[str]) -> List[str]:
-        """Retorna apenas providers saudáveis"""
-        return [p for p in candidates if self._provider_health.get(p) == ProviderStatus.HEALTHY]
+    def get_healthy(self, candidates: List[str]) -> List[str]:
+        return [p for p in candidates if self._status.get(p) == ProviderStatus.HEALTHY]
 
 
-# ========== LOAD BALANCER INTELIGENTE ==========
+# ========== LOAD BALANCER ==========
 class LoadBalancer:
-    """Load balancer com múltiplas estratégias"""
-    
     def __init__(self, strategy: str = "least_pending"):
         self.strategy = strategy
         self._round_robin_counter = 0
-        self._metrics: Dict[str, ProviderMetrics] = {}
     
-    def update_metrics(self, provider: str, metrics: ProviderMetrics):
-        self._metrics[provider] = metrics
-    
-    def select_provider(self, candidates: List[str]) -> Optional[str]:
-        if not candidates:
+    def select(self, providers: List[str], metrics: Dict[str, ProviderMetrics]) -> Optional[str]:
+        if not providers:
             return None
-        
         if self.strategy == "round_robin":
-            self._round_robin_counter = (self._round_robin_counter + 1) % len(candidates)
-            return candidates[self._round_robin_counter]
-        
+            self._round_robin_counter = (self._round_robin_counter + 1) % len(providers)
+            return providers[self._round_robin_counter]
         elif self.strategy == "least_pending":
-            # Escolhe provider com menos requests pendentes
-            candidates_with_pending = [
-                (p, self._metrics.get(p, ProviderMetrics()).pending_requests)
-                for p in candidates
-            ]
-            candidates_with_pending.sort(key=lambda x: x[1])
-            return candidates_with_pending[0][0]
-        
+            # Menor número de requests pendentes
+            pending = [(p, metrics.get(p, ProviderMetrics()).pending_requests) for p in providers]
+            pending.sort(key=lambda x: x[1])
+            return pending[0][0]
         elif self.strategy == "weighted":
-            # Baseado em erro_rate e latência
-            def score(provider: str) -> float:
-                m = self._metrics.get(provider, ProviderMetrics())
+            def score(p):
+                m = metrics.get(p, ProviderMetrics())
                 if m.error_rate > 0.5:
                     return 0.0
                 latency_score = max(0, 1.0 - (m.avg_latency_ms / 10000.0))
                 error_score = 1.0 - m.error_rate
                 return latency_score * error_score
-            
-            scored = [(p, score(p)) for p in candidates]
+            scored = [(p, score(p)) for p in providers]
             scored.sort(key=lambda x: x[1], reverse=True)
-            return scored[0][0] if scored else None
-        
-        return candidates[0]
+            return scored[0][0] if scored else providers[0]
+        else:
+            return providers[0]
 
 
 # ========== SEMANTIC CACHE ==========
 class SemanticCache:
-    """Cache baseado em similaridade semântica com embeddings"""
-    
     def __init__(self, max_size: int = 256, similarity_threshold: float = 0.92):
         self.max_size = max_size
         self.similarity_threshold = similarity_threshold
         self._cache: deque = deque(maxlen=max_size)
-        self._embeddings: List[np.ndarray] = []
-        self._lock = Lock()
-        self._embedding_model = None
-        
+        self._lock = asyncio.Lock()
+        self._model = None
         if SEMANTIC_CACHE_AVAILABLE:
             try:
                 from sentence_transformers import SentenceTransformer
-                self._embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+                self._model = SentenceTransformer('all-MiniLM-L6-v2')
             except Exception:
-                # Sem conexão com HuggingFace, modelo não em cache,
-                # sentence-transformers ausente, etc. — cache semântico
-                # fica desabilitado e o restante do roteador funciona normalmente.
                 pass
     
-    async def _get_embedding(self, text: str) -> Optional[np.ndarray]:
-        """Gera embedding para texto"""
-        if not self._embedding_model:
+    async def _get_embedding(self, text: str):
+        if not self._model:
             return None
-        
-        # Executa em thread pool para não bloquear
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, self._embedding_model.encode, text)
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._model.encode, text)
     
     async def get(self, prompt: str, context: str) -> Optional[str]:
-        """Busca no cache por similaridade semântica"""
-        if not self._embedding_model or not self._cache:
+        if not self._model or not self._cache:
             return None
-        
         full_text = f"{prompt}\n{context}"
-        query_embedding = await self._get_embedding(full_text)
-        
-        if query_embedding is None:
+        query_emb = await self._get_embedding(full_text)
+        if query_emb is None:
             return None
-        
         async with self._lock:
-            for i, (cached_text, response, embedding) in enumerate(self._cache):
-                if embedding is not None:
-                    similarity = cosine_similarity([query_embedding], [embedding])[0][0]
-                    if similarity >= self.similarity_threshold:
-                        logger.debug(f"Semantic cache hit (similarity: {similarity:.3f})")
+            for cached_text, response, emb in self._cache:
+                if emb is not None:
+                    sim = cosine_similarity([query_emb], [emb])[0][0]
+                    if sim >= self.similarity_threshold:
+                        logger.debug(f"Semantic cache hit (sim={sim:.3f})")
                         return response
         return None
     
     async def set(self, prompt: str, context: str, response: str):
-        """Armazena no cache"""
-        if not self._embedding_model:
+        if not self._model:
             return
-        
         full_text = f"{prompt}\n{context}"
-        embedding = await self._get_embedding(full_text)
-        
+        emb = await self._get_embedding(full_text)
         async with self._lock:
-            self._cache.append((full_text, response, embedding))
+            self._cache.append((full_text, response, emb))
 
 
 # ========== PROVIDER BASE ==========
 class BaseLLMProvider(ABC):
-    """Interface abstrata para todos os providers"""
-    
     def __init__(self, name: str, config: RouterConfig):
         self.name = name
         self.config = config
         self.metrics = ProviderMetrics()
         self.circuit_breaker = PersistentCircuitBreaker(name, config)
-        self.rate_limiter = RateLimiter(
-            config.requests_per_second,
-            config.burst_size
-        )
+        self.rate_limiter = RateLimiter(config.requests_per_second, config.burst_size)
+        self.base_url = None
     
     @abstractmethod
-    async def _generate_async(self, request: LLMRequest) -> LLMResponse:
+    async def generate(self, request: LLMRequest) -> LLMResponse:
         pass
     
     @abstractmethod
     async def generate_stream(self, request: LLMRequest) -> AsyncIterator[str]:
         pass
     
-    async def execute_with_monitoring(self, request: LLMRequest) -> LLMResponse:
-        """Executa com monitoramento completo"""
-        start_time = time.perf_counter()
-        self.metrics.pending_requests += 1
-        
+    async def health_check(self) -> bool:
+        # Implementação padrão: tenta uma requisição simples
         try:
-            # Rate limiting
-            await self.rate_limiter.wait_and_acquire()
-            
-            # Circuit breaker check
+            async with aiohttp.ClientSession() as session:
+                async with session.head(self.base_url, timeout=5) as resp:
+                    return resp.status < 500
+        except:
+            return False
+    
+    async def execute_with_monitoring(self, request: LLMRequest) -> LLMResponse:
+        self.metrics.pending_requests += 1
+        start = time.perf_counter()
+        try:
+            await self.rate_limiter.acquire()
             if not await self.circuit_breaker.allow_request():
                 raise Exception(f"Circuit breaker open for {self.name}")
-            
-            # Execute
             response = await self.generate(request)
-            
-            # Update metrics
-            latency_ms = (time.perf_counter() - start_time) * 1000
+            latency = (time.perf_counter() - start) * 1000
             self.metrics.total_requests += 1
-            self.metrics.total_latency_ms += latency_ms
+            self.metrics.total_latency_ms += latency
             self.metrics.last_success = datetime.now()
             self.metrics.consecutive_failures = 0
-            
             await self.circuit_breaker.record_success()
-            
-            response.latency_ms = latency_ms
+            response.latency_ms = latency
             response.provider = self.name
-            
             return response
-            
         except Exception as e:
             self.metrics.total_errors += 1
             self.metrics.consecutive_failures += 1
             self.metrics.last_failure = datetime.now()
             await self.circuit_breaker.record_failure()
             raise
-            
         finally:
             self.metrics.pending_requests -= 1
 
 
 # ========== PROVIDER IMPLEMENTATIONS ==========
-class AnthropicProvider(BaseLLMProvider):
-    def __init__(self, config: RouterConfig):
-        super().__init__("anthropic", config)
-        self.api_key = os.getenv("ANTHROPIC_API_KEY")
-        self.model = os.getenv("ATENA_ANTHROPIC_MODEL", "claude-sonnet-4-6")
-    
-    async def generate(self, request: LLMRequest) -> LLMResponse:
-        if not self.api_key:
-            raise ValueError("ANTHROPIC_API_KEY not set")
-        
-        payload = {
-            "model": self.model,
-            "max_tokens": request.max_tokens,
-            "temperature": request.temperature,
-            "system": request.system_prompt,
-            "messages": [
-                {"role": "user", "content": f"Contexto: {request.context}\n\nPrompt: {request.prompt}"}
-            ],
-        }
-        
-        timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "x-api-key": self.api_key,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                json=payload
-            ) as resp:
-                if resp.status != 200:
-                    text = await resp.text()
-                    raise Exception(f"Anthropic API error {resp.status}: {text}")
-                
-                data = await resp.json()
-                content = data.get("content", [{}])[0].get("text", "")
-                
-                return LLMResponse(
-                    content=content.strip(),
-                    provider=self.name,
-                    model=self.model,
-                    latency_ms=0,  # Will be set by execute_with_monitoring
-                    tokens_used=data.get("usage", {}).get("input_tokens", 0) + 
-                               data.get("usage", {}).get("output_tokens", 0)
-                )
-
-    async def _generate_async(self, request: LLMRequest) -> LLMResponse:
-        return await self.generate(request)
-
-    async def generate_stream(self, request: LLMRequest) -> AsyncIterator[str]:
-        response = await self.generate(request)
-        yield response.content
-
-
-class DeepSeekProvider(BaseLLMProvider):
-    def __init__(self, config: RouterConfig):
-        super().__init__("deepseek", config)
-        self.api_key = os.getenv("DEEPSEEK_API_KEY")
-        self.model = "deepseek-chat"
-    
-    async def generate(self, request: LLMRequest) -> LLMResponse:
-        if not self.api_key:
-            raise ValueError("DEEPSEEK_API_KEY not set")
-        
-        payload = {
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": request.system_prompt},
-                {"role": "user", "content": f"Contexto: {request.context}\n\nPrompt: {request.prompt}"}
-            ],
-            "temperature": request.temperature,
-            "max_tokens": request.max_tokens,
-        }
-        
-        timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.post(
-                "https://api.deepseek.com/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json",
-                },
-                json=payload
-            ) as resp:
-                if resp.status != 200:
-                    text = await resp.text()
-                    raise Exception(f"DeepSeek API error {resp.status}: {text}")
-                
-                data = await resp.json()
-                content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-                
-                return LLMResponse(
-                    content=content.strip(),
-                    provider=self.name,
-                    model=self.model,
-                    latency_ms=0
-                )
-
-    async def _generate_async(self, request: LLMRequest) -> LLMResponse:
-        return await self.generate(request)
-
-    async def generate_stream(self, request: LLMRequest) -> AsyncIterator[str]:
-        response = await self.generate(request)
-        yield response.content
-
-
 class OpenAIProvider(BaseLLMProvider):
     def __init__(self, config: RouterConfig):
         super().__init__("openai", config)
         self.api_key = os.getenv("OPENAI_API_KEY")
         self.model = os.getenv("ATENA_OPENAI_MODEL", "gpt-4.1-mini")
+        self.base_url = os.getenv("OPENAI_API_BASE") or "https://api.openai.com/v1"
     
     async def generate(self, request: LLMRequest) -> LLMResponse:
         if not self.api_key:
             raise ValueError("OPENAI_API_KEY not set")
-        
+        url = f"{self.base_url}/chat/completions"
         payload = {
             "model": self.model,
             "messages": [
@@ -696,470 +505,212 @@ class OpenAIProvider(BaseLLMProvider):
             ],
             "temperature": request.temperature,
             "max_tokens": request.max_tokens,
+            "stream": False
         }
-        
-        base_url = os.getenv("OPENAI_API_BASE") or os.getenv("OPENAI_BASE_URL") or "https://api.openai.com/v1"
-        endpoint = f"{base_url.rstrip('/')}/chat/completions"
-        
-        timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.post(
-                endpoint,
-                headers={
-                    "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json",
-                },
-                json=payload
-            ) as resp:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers={"Authorization": f"Bearer {self.api_key}"}, json=payload) as resp:
                 if resp.status != 200:
                     text = await resp.text()
                     raise Exception(f"OpenAI API error {resp.status}: {text}")
-                
                 data = await resp.json()
-                content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-                
-                return LLMResponse(
-                    content=content.strip(),
-                    provider=self.name,
-                    model=self.model,
-                    latency_ms=0,
-                    tokens_used=data.get("usage", {}).get("total_tokens", 0)
-                )
-
-    async def _generate_async(self, request: LLMRequest) -> LLMResponse:
-        return await self.generate(request)
-
+                content = data["choices"][0]["message"]["content"]
+                tokens = data.get("usage", {}).get("total_tokens", 0)
+                return LLMResponse(content=content, provider=self.name, model=self.model, latency_ms=0, tokens_used=tokens)
+    
     async def generate_stream(self, request: LLMRequest) -> AsyncIterator[str]:
+        # Implementação real de streaming com SSE
+        url = f"{self.base_url}/chat/completions"
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": request.system_prompt},
+                {"role": "user", "content": f"Contexto: {request.context}\n\nPrompt: {request.prompt}"}
+            ],
+            "temperature": request.temperature,
+            "max_tokens": request.max_tokens,
+            "stream": True
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers={"Authorization": f"Bearer {self.api_key}"}, json=payload) as resp:
+                async for line in resp.content:
+                    line = line.decode().strip()
+                    if line.startswith("data: "):
+                        data = line[6:]
+                        if data == "[DONE]":
+                            break
+                        try:
+                            import json
+                            chunk = json.loads(data)
+                            delta = chunk["choices"][0].get("delta", {})
+                            if "content" in delta:
+                                yield delta["content"]
+                        except:
+                            continue
+
+
+class DeepSeekProvider(OpenAIProvider):  # API compatível
+    def __init__(self, config: RouterConfig):
+        super().__init__(config)
+        self.name = "deepseek"
+        self.api_key = os.getenv("DEEPSEEK_API_KEY")
+        self.base_url = "https://api.deepseek.com/v1"
+        self.model = "deepseek-chat"
+
+
+class AnthropicProvider(BaseLLMProvider):
+    def __init__(self, config: RouterConfig):
+        super().__init__("anthropic", config)
+        self.api_key = os.getenv("ANTHROPIC_API_KEY")
+        self.model = os.getenv("ATENA_ANTHROPIC_MODEL", "claude-3-sonnet-20240229")
+        self.base_url = "https://api.anthropic.com/v1/messages"
+    
+    async def generate(self, request: LLMRequest) -> LLMResponse:
+        if not self.api_key:
+            raise ValueError("ANTHROPIC_API_KEY not set")
+        payload = {
+            "model": self.model,
+            "max_tokens": request.max_tokens,
+            "temperature": request.temperature,
+            "system": request.system_prompt,
+            "messages": [{"role": "user", "content": f"Contexto: {request.context}\n\nPrompt: {request.prompt}"}]
+        }
+        headers = {
+            "x-api-key": self.api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json"
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(self.base_url, headers=headers, json=payload) as resp:
+                if resp.status != 200:
+                    text = await resp.text()
+                    raise Exception(f"Anthropic API error {resp.status}: {text}")
+                data = await resp.json()
+                content = data.get("content", [{}])[0].get("text", "")
+                return LLMResponse(content=content, provider=self.name, model=self.model, latency_ms=0)
+    
+    async def generate_stream(self, request: LLMRequest) -> AsyncIterator[str]:
+        # Anthropic suporta streaming? Sim, via SSE. Implementação similar.
+        # Para simplicidade, não implementamos aqui, mas poderia ser adicionado.
         response = await self.generate(request)
         yield response.content
 
 
+class LocalProvider(BaseLLMProvider):
+    """Suporte a servidores locais compatíveis com OpenAI API (Ollama, LM Studio, llama.cpp)"""
+    def __init__(self, config: RouterConfig):
+        super().__init__("local", config)
+        self.base_url = os.getenv("ATENA_LOCAL_LLM_URL", "http://localhost:11434/v1")  # Ollama padrão
+        self.model = os.getenv("ATENA_LOCAL_LLM_MODEL", "llama3")
+        self.api_key = "no-key"  # placeholder
+    
+    async def generate(self, request: LLMRequest) -> LLMResponse:
+        url = f"{self.base_url}/chat/completions"
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": request.system_prompt},
+                {"role": "user", "content": f"Contexto: {request.context}\n\nPrompt: {request.prompt}"}
+            ],
+            "temperature": request.temperature,
+            "max_tokens": request.max_tokens,
+            "stream": False
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=payload) as resp:
+                if resp.status != 200:
+                    text = await resp.text()
+                    raise Exception(f"Local LLM error {resp.status}: {text}")
+                data = await resp.json()
+                content = data["choices"][0]["message"]["content"]
+                return LLMResponse(content=content, provider=self.name, model=self.model, latency_ms=0)
+    
+    async def generate_stream(self, request: LLMRequest) -> AsyncIterator[str]:
+        url = f"{self.base_url}/chat/completions"
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": request.system_prompt},
+                {"role": "user", "content": f"Contexto: {request.context}\n\nPrompt: {request.prompt}"}
+            ],
+            "temperature": request.temperature,
+            "max_tokens": request.max_tokens,
+            "stream": True
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=payload) as resp:
+                async for line in resp.content:
+                    line = line.decode().strip()
+                    if line.startswith("data: "):
+                        data = line[6:]
+                        if data == "[DONE]":
+                            break
+                        try:
+                            chunk = json.loads(data)
+                            delta = chunk["choices"][0].get("delta", {})
+                            if "content" in delta:
+                                yield delta["content"]
+                        except:
+                            continue
+
+
 # ========== ROTEADOR PRINCIPAL ==========
 class AtenaLLMRouterAdvanced:
-    """Roteador de alta performance com todas as features avançadas"""
-    
     def __init__(self, config: Optional[RouterConfig] = None):
         self.config = config or RouterConfig()
         self.token_counter = TokenCounter()
         self.semantic_cache = SemanticCache() if self.config.semantic_cache_enabled else None
         self.health_checker = HealthChecker(self.config)
         self.load_balancer = LoadBalancer(self.config.lb_strategy)
-        
         self._providers: Dict[str, BaseLLMProvider] = {}
-        self._backend: str = "auto"
-        self.auto_prepare_result: Optional[Tuple[bool, str]] = None
         self._init_providers()
-        self.auto_prepare_result = self.auto_orchestrate_llm()
-        
         self._tracer = None
         if self.config.tracing_enabled and OTEL_AVAILABLE:
             self._tracer = trace.get_tracer(__name__)
     
-
-    def _run_async(self, coro):
-        """Executa corotina com fallback seguro para diferentes contextos de loop."""
-        try:
-            return asyncio.run(coro)
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            try:
-                return loop.run_until_complete(coro)
-            finally:
-                loop.close()
-
-    def current(self) -> str:
-        return self._backend
-
-    def list_options(self) -> List[str]:
-        return [
-            "auto",
-            "open-access",
-            "local:brain",
-            "public-api:auto",
-            "local:stub",
-            "openai:auto",
-            "deepseek:auto",
-            "anthropic:auto",
-        ]
-
-    def _has_internet(self) -> bool:
-        probes = [
-            "https://api.github.com/zen",
-            "https://www.google.com/generate_204",
-            "https://httpbin.org/get",
-            "https://api.duckduckgo.com/",
-        ]
-        for url in probes:
-            try:
-                with urllib.request.urlopen(url, timeout=3) as resp:
-                    if 200 <= getattr(resp, "status", 200) < 500:
-                        return True
-            except urllib.error.HTTPError as e:
-                # HTTPError é levantado para status 4xx/5xx, mas isso ainda
-                # significa que houve resposta HTTP válida — internet está OK
-                # (ex: rate limit 403/429, ou erro do servidor remoto).
-                if 200 <= e.code < 600:
-                    return True
-                continue
-            except Exception:
-                continue
-        return False
-
-    def connection_status(self) -> Dict[str, object]:
-        return {
-            "providers": sorted(self._providers.keys()),
-            "has_api_keys": bool(self._providers),
-            "internet_ok": self._has_internet(),
-            "backend": self._backend,
-        }
-
-
-    def set_backend(self, spec: str) -> Tuple[bool, str]:
-        spec = (spec or "").strip()
-        if not spec:
-            return False, "Backend inválido"
-        self._backend = spec
-        return True, f"Backend definido para: {spec}"
-
-    def prepare_free_local_model(self) -> Tuple[bool, str]:
-        brain = self._get_local_brain()
-        if brain is not None and hasattr(brain, "prepare_runtime_model"):
-            try:
-                brain.prepare_runtime_model()
-            except Exception:
-                pass
-            self._backend = "local:brain"
-            return True, "Modelo local gratuito preparado (local-brain)."
-        self._backend = "local:stub"
-        return True, "Modelo local gratuito preparado (stub)."
-
-    def open_access_plan(self) -> Dict[str, object]:
-        """Describe how ATENA runs without paid token-gated APIs."""
-        return {
-            "status": "ok",
-            "mode": "open-access",
-            "paid_provider_required": False,
-            "token_gate_policy": "preferir execução local, cache, scaffolds e APIs públicas antes de qualquer provedor pago",
-            "fallback_order": ["local:brain", "public-api:auto", "local:stub"],
-            "paid_providers_enabled": self.config.allow_paid_providers and not self.config.open_access_mode,
-        }
-
-    def _get_local_brain(self):
-        """Ponto de extensão para testes e integração com local LM."""
-        try:
-            from core.atena_local_lm import get_local_brain
-            return get_local_brain()
-        except Exception:
-            return None
-
-    def _activate_open_access_backend(self) -> Tuple[bool, str]:
-        brain = self._get_local_brain()
-        if brain is not None and hasattr(brain, "prepare_runtime_model"):
-            try:
-                brain.prepare_runtime_model()
-            except Exception:
-                pass
-            ok, _ = self.set_backend("local:brain")
-            self._backend = "local:brain"
-            return True, "open-access: local-brain pronto sem API paga"
-        if self._has_internet():
-            self._backend = "public-api:auto"
-            return True, "open-access: APIs públicas gratuitas ativas sem token pago"
-        self._backend = "local:stub"
-        return True, "open-access: modo local stub ativo sem token pago"
-
-    def auto_orchestrate_llm(self) -> Tuple[bool, str]:
-        if self.config.open_access_mode or not self.config.allow_paid_providers:
-            return self._activate_open_access_backend()
-
-        dashscope = os.getenv("DASHSCOPE_API_KEY")
-        if dashscope:
-            ok, _ = self.set_backend("qwen:qwen-plus")
-            self._backend = "qwen:qwen-plus"
-            return True, "seleção automática: qwen:qwen-plus"
-        if "openai" in self._providers:
-            self._backend = "openai:auto"
-            return True, "Auto-orquestração selecionou OpenAI."
-        if "deepseek" in self._providers:
-            self._backend = "deepseek:auto"
-            return True, "Auto-orquestração selecionou DeepSeek."
-        if "anthropic" in self._providers:
-            self._backend = "anthropic:auto"
-            return True, "Auto-orquestração selecionou Anthropic."
-
-        brain = self._get_local_brain()
-        if brain is not None and hasattr(brain, "prepare_runtime_model"):
-            try:
-                brain.prepare_runtime_model()
-            except Exception:
-                pass
-            ok, _ = self.set_backend("local:brain")
-            self._backend = "local:brain"
-            return True, "local-brain pronto"
-
-        if self._has_internet():
-            self._backend = "public-api:auto"
-            return True, "Sem chaves privadas, mas internet ativa: usando APIs públicas automaticamente."
-        self._backend = "local:stub"
-        return False, "Sem provedores e sem internet detectada; usando modo local stub."
-
-    def generate(self, prompt: str, context: str = "", **kwargs) -> str:
-        if self._backend == "open-access":
-            self._activate_open_access_backend()
-
-        if self.config.open_access_mode or not self.config.allow_paid_providers:
-            if not self._backend.startswith(("local", "public-api")):
-                self._activate_open_access_backend()
-
-        if not self._providers or self._backend.startswith(("local", "public-api")):
-            if self._backend.startswith("public-api"):
-                scaffold = self._build_local_scaffold_response(prompt)
-                if scaffold:
-                    return scaffold
-                try:
-                    from core.internet_challenge import (
-                        run_internet_challenge,
-                        recommend_public_apis,
-                        discover_any_apis,
-                        rank_api_candidates,
-                        select_best_api_for_task,
-                    )
-                    payload = run_internet_challenge(prompt)
-                    ranked = rank_api_candidates(prompt, limit=5)
-                    best = select_best_api_for_task(prompt)
-                    summary = self._format_public_api_result(
-                        prompt,
-                        payload,
-                        recommend_public_apis(prompt, limit=5),
-                        discover_any_apis(prompt, limit=5),
-                        ranked,
-                    )
-                    confidence = payload.get("weighted_confidence", payload.get("confidence", "n/a"))
-                    best_line = ""
-                    if best:
-                        best_line = f"\nMelhor API para tarefa: {best.get('name','API')} ({best.get('category','n/a')})"
-                    return f"[public-api] {summary}\nConfiança: {confidence}{best_line}"
-                except Exception as exc:
-                    return f"Modo public-api indisponível no momento: {exc}"
-            plan = self.open_access_plan()
-            return (
-                "Modo open-access local ativo: nenhum provedor pago é necessário. "
-                f"Ordem de fallback: {', '.join(plan['fallback_order'])}. "
-                "Use ATENA_OPEN_ACCESS_MODE=1 para manter a política local-first mesmo quando chaves privadas existirem."
-            )
-        prefer = None
-        if self._backend.startswith("openai"):
-            prefer = "openai"
-        elif self._backend.startswith("deepseek"):
-            prefer = "deepseek"
-        elif self._backend.startswith("anthropic"):
-            prefer = "anthropic"
-        response = self._run_async(
-            self._generate_async(prompt=prompt, context=context, prefer_provider=prefer, **kwargs)
-        )
-        return response.content
-
-    def _build_local_scaffold_response(self, prompt: str) -> str:
-        """Gera resposta útil quando não há provedores privados disponíveis."""
-        p = (prompt or "").lower()
-        wants_site = any(k in p for k in ["site", "website", "landing page", "html", "sait"])
-        wants_api = any(k in p for k in ["api", "fastapi", "backend", "endpoint"])
-        wants_image = any(k in p for k in ["imagem", "image", "foto", "banner", "logo"])
-        if wants_image:
-            image_path = self._materialize_image_asset()
-            return (
-                "[local-image] Imagem de exemplo gerada com fonte pública.\n\n"
-                f"Arquivo salvo em: `{image_path}`\n"
-                "Fonte: https://picsum.photos (API pública de imagens placeholder).\n"
-            )
-        if wants_site:
-            out_dir = self._materialize_scaffold("site")
-            return (
-                "[local-scaffold] Estrutura inicial pronta para um site:\n\n"
-                "```text\n"
-                "meu-site/\n"
-                "├── index.html\n"
-                "├── style.css\n"
-                "└── app.js\n"
-                "```\n\n"
-                "`index.html`\n"
-                "```html\n"
-                "<!doctype html><html lang=\"pt-BR\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>SaaS Demo</title><link rel=\"stylesheet\" href=\"style.css\"></head><body><header><h1>SaaS Demo</h1><p>Landing page inicial</p></header><main><section><h2>Pricing</h2><ul><li>Starter</li><li>Pro</li><li>Enterprise</li></ul></section></main><script src=\"app.js\"></script></body></html>\n"
-                "```\n\n"
-                "`style.css`\n```css\nbody{font-family:Arial,sans-serif;margin:0;padding:24px;line-height:1.5}header{background:#111;color:#fff;padding:24px;border-radius:12px}\n```\n\n"
-                "`app.js`\n```js\nconsole.log('SaaS Demo pronto');\n```\n\n"
-                f"Arquivos gerados em: `{out_dir}`\n"
-            )
-        if wants_api:
-            out_dir = self._materialize_scaffold("api")
-            return (
-                "[local-scaffold] Estrutura inicial para API FastAPI:\n\n"
-                "```text\napi/\n├── main.py\n└── requirements.txt\n```\n\n"
-                "`main.py`\n```python\nfrom fastapi import FastAPI\napp = FastAPI()\n\n@app.get('/health')\ndef health():\n    return {'status': 'ok'}\n```\n\n"
-                "`requirements.txt`\n```txt\nfastapi\nuvicorn\n```\n\n"
-                f"Arquivos gerados em: `{out_dir}`\n"
-            )
-        return ""
-
-    def _materialize_scaffold(self, kind: str) -> str:
-        """Cria arquivos reais de scaffold no disco para entrega prática ao usuário."""
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        base = Path("atena_evolution/generated_apps") / f"{kind}_{ts}"
-        base.mkdir(parents=True, exist_ok=True)
-        if kind == "site":
-            (base / "index.html").write_text(
-                '<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SaaS Demo</title><link rel="stylesheet" href="style.css"></head><body><header><h1>SaaS Demo</h1><p>Landing page inicial</p></header><main><section><h2>Pricing</h2><ul><li>Starter</li><li>Pro</li><li>Enterprise</li></ul></section></main><script src="app.js"></script></body></html>',
-                encoding="utf-8",
-            )
-            (base / "style.css").write_text(
-                "body{font-family:Arial,sans-serif;margin:0;padding:24px;line-height:1.5}header{background:#111;color:#fff;padding:24px;border-radius:12px}",
-                encoding="utf-8",
-            )
-            (base / "app.js").write_text("console.log('SaaS Demo pronto');\n", encoding="utf-8")
-        elif kind == "api":
-            (base / "main.py").write_text(
-                "from fastapi import FastAPI\napp = FastAPI()\n\n@app.get('/health')\ndef health():\n    return {'status': 'ok'}\n",
-                encoding="utf-8",
-            )
-            (base / "requirements.txt").write_text("fastapi\nuvicorn\n", encoding="utf-8")
-        return str(base)
-
-    def _materialize_image_asset(self) -> str:
-        """Baixa uma imagem de API pública para entrega real de ativo visual."""
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        base = Path("atena_evolution/generated_apps") / f"image_{ts}"
-        base.mkdir(parents=True, exist_ok=True)
-        out = base / "generated_image.jpg"
-        try:
-            urllib.request.urlretrieve("https://picsum.photos/1024/768", str(out))
-        except Exception:
-            out.write_bytes(b"")
-        return str(out)
-
-    def _format_public_api_result(
-        self,
-        prompt: str,
-        payload: dict,
-        api_recommendations: list[dict] | None = None,
-        any_api_recommendations: list[dict] | None = None,
-        ranked_candidates: list[dict] | None = None,
-    ) -> str:
-        """Formata resultado do scanner de APIs públicas em resposta útil ao usuário."""
-        intent = str(payload.get("intent") or "").lower()
-        sources = payload.get("sources") or []
-
-        def _find_source(name: str) -> dict:
-            for s in sources:
-                if str(s.get("source", "")).lower() == name:
-                    return s
-            return {}
-
-        # Esportes: tenta trazer data explícita do próximo jogo.
-        if intent == "sports":
-            sports = _find_source("thesportsdb")
-            events = (sports.get("details") or {}).get("events") if isinstance(sports, dict) else None
-            if isinstance(events, list) and events:
-                first = events[0] if isinstance(events[0], dict) else {}
-                title = first.get("title") or "próximo jogo"
-                date = first.get("date") or "data indisponível"
-                return f"Próximo jogo encontrado: {title} em {date} (fonte: TheSportsDB)."
-            return "Não encontrei data confirmada do próximo jogo nas fontes esportivas agora; tente incluir o nome completo do time."
-
-        # Pedidos de criação de site/app: recomenda APIs públicas úteis além do scaffold.
-        p = (prompt or "").lower()
-        if any(k in p for k in ["site", "website", "sait", "app", "aplicativo"]):
-            if api_recommendations:
-                picks = ", ".join(
-                    f"{a.get('name')} ({a.get('endpoint')})"
-                    for a in api_recommendations[:5]
-                    if isinstance(a, dict)
-                )
-                if picks:
-                    if any_api_recommendations:
-                        extra = ", ".join(
-                            f"{a.get('name')} ({a.get('endpoint')})"
-                            for a in any_api_recommendations[:3]
-                            if isinstance(a, dict)
-                        )
-                        if extra:
-                            if ranked_candidates:
-                                top = ", ".join(
-                                    f"{c.get('name')}[{c.get('score')}]"
-                                    for c in ranked_candidates[:3]
-                                    if isinstance(c, dict)
-                                )
-                                return f"APIs públicas recomendadas para seu site/app: {picks}. Catálogo ampliado (APIs diversas): {extra}. Ranking dinâmico: {top}. APIs com chave também podem ser usadas via variáveis de ambiente."
-                            return f"APIs públicas recomendadas para seu site/app: {picks}. Catálogo ampliado (APIs diversas): {extra}. APIs com chave também podem ser usadas via variáveis de ambiente."
-                    return f"APIs públicas recomendadas para seu site/app: {picks}."
-            return (
-                "Para criar o site/app com dados reais, APIs públicas recomendadas: "
-                "REST Countries (dados de países), Open-Meteo (clima), Nominatim (mapas/geocoding), "
-                "TheSportsDB (esportes), CoinGecko (cripto/financeiro)."
-            )
-
-        # Fallback genérico com síntese e melhores fontes.
-        synthesis = payload.get("synthesis") or {}
-        coverage = synthesis.get("coverage_summary") or "Pesquisa concluída."
-        best = payload.get("high_quality_sources") or []
-        best_txt = ", ".join(best[:3]) if isinstance(best, list) and best else "n/a"
-        return f"{coverage} Fontes com melhor qualidade: {best_txt}."
-
     def _init_providers(self):
-        """Inicializa providers disponíveis"""
-        if os.getenv("ANTHROPIC_API_KEY"):
-            self._providers["anthropic"] = AnthropicProvider(self.config)
-        
-        if os.getenv("DEEPSEEK_API_KEY"):
-            self._providers["deepseek"] = DeepSeekProvider(self.config)
-
+        # Registra providers conforme chaves disponíveis
         if os.getenv("OPENAI_API_KEY"):
             self._providers["openai"] = OpenAIProvider(self.config)
+        if os.getenv("DEEPSEEK_API_KEY"):
+            self._providers["deepseek"] = DeepSeekProvider(self.config)
+        if os.getenv("ANTHROPIC_API_KEY"):
+            self._providers["anthropic"] = AnthropicProvider(self.config)
+        # Sempre tenta o provedor local (se detectável)
+        try:
+            # Testa se o servidor local responde
+            import requests
+            response = requests.get("http://localhost:11434", timeout=2)
+            if response.status_code < 500:
+                self._providers["local"] = LocalProvider(self.config)
+        except:
+            pass
         
-        # TODO: Adicionar Qwen, Local
-        
-        # Atualiza load balancer com métricas iniciais
+        # Registra no health checker
         for name, provider in self._providers.items():
-            self.load_balancer.update_metrics(name, provider.metrics)
+            self.health_checker.register_provider(name, provider)
     
     async def start(self):
-        """Inicia serviços de background"""
         await self.health_checker.start()
     
-    async def _generate_async(
+    async def generate(
         self, 
         prompt: str, 
         context: str = "",
         prefer_provider: Optional[str] = None,
         **kwargs
     ) -> LLMResponse:
-        """
-        Gera resposta com roteamento inteligente
-        
-        Args:
-            prompt: Prompt do usuário
-            context: Contexto adicional
-            prefer_provider: Provider preferencial (fallback automático)
-            **kwargs: Parâmetros adicionais (temperature, max_tokens, etc.)
-        """
-        # Prepara request
         request = LLMRequest(
             prompt=prompt,
             context=context,
             temperature=kwargs.get("temperature", 0.3),
             max_tokens=kwargs.get("max_tokens", 1500),
-            stream=False,
             metadata=kwargs
         )
-        
-        # Token counting e truncamento
-        total_tokens = (
-            self.token_counter.count(prompt) + 
-            self.token_counter.count(context)
-        )
+        # Token counting/truncamento
+        total_tokens = self.token_counter.count(prompt) + self.token_counter.count(context)
         if total_tokens > self.config.max_context_tokens:
             excess = total_tokens - self.config.max_context_tokens
             logger.warning(f"Contexto excede limite: {total_tokens} > {self.config.max_context_tokens}, truncando")
-            # Trunca o contexto preservando o prompt
             request.context = self.token_counter.truncate(
                 context, 
                 max_tokens=self.config.max_context_tokens - self.token_counter.count(prompt)
@@ -1169,61 +720,40 @@ class AtenaLLMRouterAdvanced:
         if self.semantic_cache:
             cached = await self.semantic_cache.get(prompt, context)
             if cached:
-                return LLMResponse(
-                    content=cached,
-                    provider="cache",
-                    model="semantic",
-                    latency_ms=0,
-                    cached=True
-                )
+                return LLMResponse(content=cached, provider="cache", model="semantic", latency_ms=0, cached=True)
         
-        # Tracing
         span = None
         if self._tracer:
             span = self._tracer.start_span("llm.generate")
             span.set_attribute("prompt_length", len(prompt))
-            span.set_attribute("prefer_provider", prefer_provider or "auto")
         
         try:
-            # Seleciona provider
-            if prefer_provider and prefer_provider in self._providers:
-                providers_to_try = [prefer_provider] + [p for p in self._providers.keys() if p != prefer_provider]
+            # Obter provedores saudáveis
+            all_providers = list(self._providers.keys())
+            if prefer_provider and prefer_provider in all_providers:
+                providers = [prefer_provider] + [p for p in all_providers if p != prefer_provider]
             else:
-                # Health check e load balancing
-                healthy = await self.health_checker.get_healthy_providers(list(self._providers.keys()))
-                providers_to_try = healthy if healthy else list(self._providers.keys())
+                healthy = self.health_checker.get_healthy(all_providers)
+                providers = healthy if healthy else all_providers
             
-            # Tenta providers em ordem
-            last_error = None
-            for provider_name in providers_to_try:
-                try:
-                    if span:
-                        span.set_attribute(f"provider_tried_{provider_name}", True)
-                    
-                    provider = self._providers[provider_name]
-                    response = await provider.execute_with_monitoring(request)
-                    
-                    # Atualiza load balancer
-                    self.load_balancer.update_metrics(provider_name, provider.metrics)
-                    
-                    # Cache response
-                    if self.semantic_cache and not response.cached:
-                        await self.semantic_cache.set(prompt, context, response.content)
-                    
-                    if span:
-                        span.set_attribute("selected_provider", provider_name)
-                        span.set_status(Status(StatusCode.OK))
-                    
-                    return response
-                    
-                except Exception as e:
-                    last_error = e
-                    logger.warning(f"Provider {provider_name} falhou: {e}")
-                    continue
+            # Selecionar via load balancer
+            metrics = {name: self._providers[name].metrics for name in providers}
+            selected = self.load_balancer.select(providers, metrics)
+            if not selected:
+                raise Exception("Nenhum provider disponível")
             
-            # Todos falharam
-            raise Exception(f"Todos providers falharam. Último erro: {last_error}")
-            
+            provider = self._providers[selected]
+            response = await provider.execute_with_monitoring(request)
+            if self.semantic_cache and not response.cached:
+                await self.semantic_cache.set(prompt, context, response.content)
+            if span:
+                span.set_attribute("selected_provider", selected)
+                span.set_status(Status(StatusCode.OK))
+            return response
+        except Exception as e:
+            if span:
+                span.set_status(Status(StatusCode.ERROR, str(e)))
+            raise
         finally:
             if span:
                 span.end()
@@ -1232,9 +762,9 @@ class AtenaLLMRouterAdvanced:
         self, 
         prompt: str, 
         context: str = "",
+        prefer_provider: Optional[str] = None,
         **kwargs
     ) -> AsyncIterator[str]:
-        """Streaming de tokens com backpressure"""
         request = LLMRequest(
             prompt=prompt,
             context=context,
@@ -1242,17 +772,40 @@ class AtenaLLMRouterAdvanced:
             max_tokens=kwargs.get("max_tokens", 1500),
             stream=True
         )
+        all_providers = list(self._providers.keys())
+        if prefer_provider and prefer_provider in all_providers:
+            providers = [prefer_provider]
+        else:
+            healthy = self.health_checker.get_healthy(all_providers)
+            providers = healthy if healthy else all_providers
         
-        # Seleciona provider
-        healthy = await self.health_checker.get_healthy_providers(list(self._providers.keys()))
-        provider_name = healthy[0] if healthy else list(self._providers.keys())[0]
-        provider = self._providers[provider_name]
+        for provider_name in providers:
+            try:
+                provider = self._providers[provider_name]
+                async for token in provider.generate_stream(request):
+                    yield token
+                break
+            except Exception as e:
+                logger.warning(f"Streaming failed for {provider_name}: {e}")
+                continue
+        else:
+            yield "Erro: Nenhum provedor conseguiu gerar streaming."
+    
+    # Wrapper síncrono para compatibilidade (usar com cuidado)
+    def generate_sync(self, prompt: str, context: str = "", **kwargs) -> str:
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
         
-        async for token in provider.generate_stream(request):
-            yield token
+        if loop and loop.is_running():
+            # Já dentro de um loop async, criar task e aguardar
+            future = asyncio.ensure_future(self.generate(prompt, context, **kwargs))
+            return future.result()
+        else:
+            return asyncio.run(self.generate(prompt, context, **kwargs)).content
     
     async def get_metrics(self) -> Dict[str, Any]:
-        """Retorna métricas completas do sistema"""
         return {
             "providers": {
                 name: {
@@ -1267,21 +820,15 @@ class AtenaLLMRouterAdvanced:
             },
             "config": {
                 "lb_strategy": self.config.lb_strategy,
-                "semantic_threshold": self.config.semantic_similarity_threshold,
             }
         }
 
 
-# ========== CONSTANTES ==========
-REQUEST_TIMEOUT = float(os.getenv("ATENA_LLM_TIMEOUT_S", "90.0"))
-
-
-# ========== FUNÇÃO DE CONVENIÊNCIA ==========
+# ========== SINGLETON ==========
 _global_router: Optional[AtenaLLMRouterAdvanced] = None
 
 
 async def get_router() -> AtenaLLMRouterAdvanced:
-    """Singleton assíncrono do roteador"""
     global _global_router
     if _global_router is None:
         _global_router = AtenaLLMRouterAdvanced()
@@ -1289,5 +836,8 @@ async def get_router() -> AtenaLLMRouterAdvanced:
     return _global_router
 
 
-# Compatibilidade retroativa
-AtenaLLMRouter = AtenaLLMRouterAdvanced
+# ========== FUNÇÃO DE CONVENIÊNCIA SÍNCRONA ==========
+def generate_sync(prompt: str, context: str = "", **kwargs) -> str:
+    """Função síncrona para uso em ambientes não assíncronos."""
+    router = AtenaLLMRouterAdvanced()
+    return router.generate_sync(prompt, context, **kwargs)
