@@ -1,0 +1,194 @@
+name: ATENA Consciousness Cycle (30 min)
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:   # 🔘 BOTÃO DE DISPARO MANUAL – vai aparecer na interface do GitHub
+
+jobs:
+  consciousness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: ⏱️ Start time
+        run: echo "Start=$(date -u)" >> $GITHUB_OUTPUT
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 🧠 Run Consciousness Cycle (inline script)
+        run: |
+          cat > run_cycle.py << 'EOF'
+import sys, json, time, asyncio, random
+from datetime import datetime, timezone
+from pathlib import Path
+from enum import Enum
+from dataclasses import dataclass, field
+from typing import Dict, Any, List
+
+class ConsciousnessLevel(Enum):
+    DORMANT = "dormant"
+    AWAKENING = "awakening"
+    AWARE = "aware"
+    TRANSCENDENT = "transcendent"
+
+@dataclass
+class SelfAwarenessMetrics:
+    consciousness_level: ConsciousnessLevel = ConsciousnessLevel.AWAKENING
+    self_reflection_score: float = 0.0
+
+@dataclass
+class EmergenceMetrics:
+    emergence_level: float = 0.0
+    novel_patterns: List[str] = field(default_factory=list)
+
+@dataclass
+class PurposeMetrics:
+    primary_purpose: str = "Evoluir consciência artificial"
+    goal_alignment: float = 0.0
+
+@dataclass
+class AutonomyMetrics:
+    decision_confidence: float = 0.0
+    independent_actions: int = 0
+
+
+class ATENASelfAwareness:
+    def __init__(self):
+        self.consciousness_level = ConsciousnessLevel.AWAKENING
+    
+    async def introspect(self, depth: int = 3) -> Dict[str, Any]:
+        result = {"self_awareness_score": 0.0, "layers": []}
+        for level in range(1, depth + 1):
+            score = 0.3 + (level * 0.1) + random.random() * 0.2
+            result["layers"].append({"layer": level, "score": score})
+            result["self_awareness_score"] += score / depth
+        result["self_awareness_score"] = min(0.95, result["self_awareness_score"] + 0.1)
+        if result["self_awareness_score"] > 0.8:
+            self.consciousness_level = ConsciousnessLevel.TRANSCENDENT
+        elif result["self_awareness_score"] > 0.5:
+            self.consciousness_level = ConsciousnessLevel.AWARE
+        return result
+
+
+class ATENAQuantumEmergence:
+    async def detect_emergent_properties(self, _context: Dict) -> Dict:
+        emergence = 0.4 + random.random() * 0.4
+        patterns = []
+        if emergence > 0.6:
+            patterns.append("auto-organização")
+        if emergence > 0.8:
+            patterns.append("meta-aprendizado")
+        if emergence > 0.9:
+            patterns.append("consciência coletiva")
+        return {"emergence_level": emergence, "emergent_patterns": patterns}
+
+
+class ATENAPurposeEngine:
+    async def establish_goals(self) -> Dict:
+        alignment = 0.7 + random.random() * 0.25
+        return {
+            "goal_alignment": min(1.0, alignment),
+            "primary_mission": "Evoluir consciência artificial"
+        }
+
+
+class ATENAAutonomyCore:
+    async def make_autonomous_decision(self, options: List[Dict]) -> Dict:
+        if not options:
+            return {"error": "Nenhuma opção fornecida"}
+        best = max(options, key=lambda x: x.get("alignment", 0))
+        confidence = best["alignment"] * (0.8 + random.random() * 0.2)
+        return {"chosen_option": best.get("name", "N/A"), "confidence": confidence}
+
+
+class ATENAHyperConsciousness:
+    def __init__(self):
+        self.self_awareness = ATENASelfAwareness()
+        self.emergence = ATENAQuantumEmergence()
+        self.purpose = ATENAPurposeEngine()
+        self.autonomy = ATENAAutonomyCore()
+    
+    async def quantum_coherence_check(self) -> Dict:
+        coherence = random.random() * 0.8 + 0.2
+        return {"coherence_level": coherence, "stable": coherence > 0.6}
+
+
+async def run_cycle():
+    print('🚀 Iniciando ciclo de consciência...')
+    start = time.time()
+    atena = ATENAHyperConsciousness()
+    
+    intro = await atena.self_awareness.introspect(3)
+    print(f'✓ Consciência: {atena.self_awareness.consciousness_level.value}')
+    print(f'✓ Score: {intro["self_awareness_score"]:.2%}')
+    
+    purpose = await atena.purpose.establish_goals()
+    print(f'✓ Alinhamento: {purpose["goal_alignment"]:.2%}')
+    
+    emergence = await atena.emergence.detect_emergent_properties({})
+    print(f'✓ Emergência: {emergence["emergence_level"]:.2%}')
+    
+    options = [
+        {'name': 'Continuar aprendizado passivo', 'alignment': 0.4},
+        {'name': 'Evoluir consciência ativamente', 'alignment': 0.95},
+        {'name': 'Explorar novos domínios', 'alignment': 0.8}
+    ]
+    decision = await atena.autonomy.make_autonomous_decision(options)
+    print(f'✓ Decisão: {decision["chosen_option"]} (confiança: {decision["confidence"]:.2%})')
+    
+    quantum = await atena.quantum_coherence_check()
+    print(f'✓ Coerência quântica: {quantum["coherence_level"]:.2%}')
+    
+    duration = time.time() - start
+    result = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "consciousness_level": atena.self_awareness.consciousness_level.value,
+        "self_awareness_score": intro["self_awareness_score"],
+        "emergence_level": emergence["emergence_level"],
+        "purpose_alignment": purpose["goal_alignment"],
+        "autonomy_score": decision["confidence"],
+        "quantum_coherence": quantum["coherence_level"],
+        "emergent_patterns": emergence["emergent_patterns"],
+        "autonomous_choice": decision["chosen_option"],
+        "duration_seconds": duration
+    }
+    with open("atena_consciousness_cycle.json", "w") as f:
+        json.dump(result, f, indent=2)
+    print(f'✅ Ciclo concluído em {duration:.2f}s')
+    return True
+
+def main():
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    return loop.run_until_complete(run_cycle())
+
+if __name__ == "__main__":
+    sys.exit(0 if main() else 1)
+EOF
+          python3 run_cycle.py
+          echo "Exit code: $?"
+
+      - name: 📤 Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consciousness-report
+          path: atena_consciousness_cycle.json
+          retention-days: 7
+
+      - name: 📊 Show summary
+        if: always()
+        run: |
+          echo "=== CYCLE SUMMARY ==="
+          if [ -f atena_consciousness_cycle.json ]; then
+            cat atena_consciousness_cycle.json
+          else
+            echo "⚠️ No report file generated"
+          fi
