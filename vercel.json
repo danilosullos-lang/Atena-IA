@@ -1,6 +1,6 @@
 {
   "functions": {
-    "core/atena_local_dashboard.py": {
+    "core/*.py": {
       "runtime": "vercel-python@3.0.0"
     }
   },
