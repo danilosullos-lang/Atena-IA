@@ -1,13 +1,13 @@
 {
-  "build": {
-    "env": {
-      "PIP_DISABLE_PIP_VERSION_CHECK": "1",
-      "PYTHON_VERSION": "3.10"
-    }
-  },
   "functions": {
-    "api/*.py": {
+    "core/atena_local_dashboard.py": {
       "runtime": "vercel-python@3.0.0"
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "core/atena_local_dashboard.py"
+    }
+  ]
 }
