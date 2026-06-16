@@ -18,9 +18,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "atena-omega"
-# version is intentionally absent here — setuptools-scm writes
-# atena_omega/_version.py and injects the version at build time.
-# Do NOT add a static `version =` field; it would conflict with scm.
 dynamic = ["version"]
 description = "ATENA Omega — Advanced Autonomous AI System with Self-Evolution"
 readme = "README.md"
@@ -58,80 +55,49 @@ classifiers = [
 # Core runtime dependencies
 # ---------------------------------------------------------------------------
 dependencies = [
-    # HTTP / async
     "requests>=2.31.0,<3.0.0",
     "aiohttp>=3.9.0,<4.0.0",
-    "aiofiles>=23.2.1",          # no upper bound: aiofiles follows semver
+    "aiofiles>=23.2.1",
     "httpx>=0.25.0,<1.0.0",
-
-    # Data processing
     "numpy>=1.26.0,<2.0.0",
     "pandas>=2.1.0,<3.0.0",
-    "polars>=0.20.0,<1.0.0",     # polars has frequent breaking minor changes
-
-    # Performance
+    "polars>=0.20.0,<1.0.0",
     "anyio>=4.0.0",
-    # asyncio is Python stdlib — NOT a PyPI package; removed
-    "uvloop>=0.19.0;sys_platform!='win32'",  # unavailable on Windows
-
-    # CLI & UI
+    "uvloop>=0.19.0;sys_platform!='win32'",
     "rich>=13.7.0,<15.0.0",
     "click>=8.1.0,<9.0.0",
     "typer>=0.9.0,<1.0.0",
     "prompt-toolkit>=3.0.0,<4.0.0",
-
-    # Validation & serialization
     "pydantic>=2.5.0,<3.0.0",
     "pydantic-settings>=2.1.0,<3.0.0",
     "msgspec>=0.18.0",
     "orjson>=3.9.0",
-
-    # Config
     "pyyaml>=6.0,<7.0",
-    # tomli is stdlib (tomllib) on Python >=3.11; only needed below
     "tomli>=2.0.0;python_version<'3.11'",
     "python-dotenv>=1.0.0,<2.0.0",
-
-    # Web scraping
     "beautifulsoup4>=4.12.0,<5.0.0",
     "lxml>=4.9.0,<6.0.0",
     "playwright>=1.40.0,<2.0.0",
     "selenium>=4.15.0,<5.0.0",
-
-    # Web framework
-    "fastapi>=0.104.0,<1.0.0",          # allow all compatible minor updates
+    "fastapi>=0.104.0,<1.0.0",
     "uvicorn[standard]>=0.24.0,<1.0.0",
     "websockets>=12.0,<14.0",
-
-    # Caching
     "redis>=5.0.0,<6.0.0",
     "cachetools>=5.3.0,<6.0.0",
     "aiocache>=0.12.0",
-
-    # Security / cryptography
     "cryptography>=41.0.0",
     "pycryptodome>=3.19.0",
     "jwcrypto>=1.5.0",
-
-    # Observability
     "loguru>=0.7.0,<1.0.0",
     "structlog>=24.1.0",
-
-    # Utilities
     "python-multipart>=0.0.6",
     "python-dateutil>=2.8.0,<3.0.0",
     "tenacity>=8.2.0,<10.0.0",
     "more-itertools>=10.0.0",
 ]
 
-# =============================================================================
-# OPTIONAL DEPENDENCY GROUPS
-# =============================================================================
-
 [project.optional-dependencies]
-
 dev = [
-    # Testing (canonical set — not duplicated in [testing])
     "pytest>=7.4.0,<9.0.0",
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.1.0",
@@ -141,34 +107,30 @@ dev = [
     "pytest-mock>=3.12.0",
     "pytest-randomly>=3.15.0",
     "pytest-rerunfailures>=13.0",
-    # Linting / formatting
     "black>=23.12.0,<25.0.0",
     "isort>=5.13.0,<6.0.0",
     "ruff>=0.1.0,<1.0.0",
     "mypy>=1.7.0,<2.0.0",
     "pylint>=3.0.0,<4.0.0",
     "bandit>=1.7.0,<2.0.0",
-    # Workflow
     "pre-commit>=3.5.0,<4.0.0",
     "tox>=4.11.0",
     "nox>=2023.4.22",
     "commitizen>=3.13.0,<4.0.0",
 ]
-
 prod = [
     "gunicorn>=21.2.0",
     "supervisor>=4.2.0",
     "docker>=6.1.0",
     "kubernetes>=28.1.0",
 ]
-
 ml = [
-    "torch>=2.1.0,<3.0.0",          # allow minor updates; torch uses semver
+    "torch>=2.1.0,<3.0.0",
     "torchvision>=0.16.0",
     "transformers>=4.36.0,<5.0.0",
-    "sentence-transformers>=2.2.0",  # 3.x exists; allow upgrade
+    "sentence-transformers>=2.2.0",
     "faiss-cpu>=1.7.4",
-    "chromadb>=0.4.0",               # allow minor updates
+    "chromadb>=0.4.0",
     "langchain>=0.1.0,<1.0.0",
     "langchain-community>=0.0.10",
     "llama-cpp-python>=0.2.0",
@@ -180,13 +142,11 @@ ml = [
     "qdrant-client>=1.7.0",
     "weaviate-client>=3.24.0",
 ]
-
 vectordb = [
     "chromadb>=0.4.0",
     "qdrant-client>=1.7.0",
     "pgvector>=0.2.0",
 ]
-
 web = [
     "streamlit>=1.29.0,<2.0.0",
     "gradio>=4.16.0,<6.0.0",
@@ -194,39 +154,32 @@ web = [
     "dash>=2.15.0",
     "plotly>=5.18.0",
 ]
-
 monitoring = [
-    "prometheus-client>=0.19.0",     # still 0.x; drop premature upper bound
+    "prometheus-client>=0.19.0",
     "opentelemetry-api>=1.21.0",
     "opentelemetry-sdk>=1.21.0",
-    "opentelemetry-instrumentation>=0.43b0",  # latest stable beta series
+    "opentelemetry-instrumentation>=0.43b0",
     "psutil>=5.9.0,<7.0.0",
     "sentry-sdk>=1.39.0,<3.0.0",
     "newrelic>=9.7.0",
     "datadog>=0.48.0",
 ]
-
 distributed = [
     "celery>=5.3.0,<6.0.0",
-    # redis already in core; not duplicated
-    # rabbitmq is NOT a PyPI package; celery supports rabbitmq as broker natively
     "kombu>=5.3.0,<6.0.0",
     "dask>=2024.1.0",
     "ray>=2.8.0",
     "apache-beam>=2.52.0",
 ]
-
 db = [
     "asyncpg>=0.29.0",
     "aiosqlite>=0.19.0",
     "pymongo>=4.5.0,<5.0.0",
     "motor>=3.3.0,<4.0.0",
-    # redis already in core
     "psycopg2-binary>=2.9.0",
     "sqlalchemy>=2.0.0,<3.0.0",
     "alembic>=1.12.0,<2.0.0",
 ]
-
 security = [
     "authlib>=1.2.0",
     "python-jose[cryptography]>=3.3.0",
@@ -234,8 +187,6 @@ security = [
     "bcrypt>=4.1.0",
     "oauthlib>=3.2.0",
 ]
-
-# Canonical test group (no duplication of dev entries)
 testing = [
     "pytest>=7.4.0,<9.0.0",
     "pytest-asyncio>=0.21.0",
@@ -248,7 +199,6 @@ testing = [
     "coverage>=7.4.0",
     "hypothesis>=6.92.0",
 ]
-
 docs = [
     "mkdocs>=1.5.0",
     "mkdocs-material>=9.5.0",
@@ -260,12 +210,7 @@ docs = [
     "sphinx-autodoc-typehints>=1.24.0",
     "pydoctor>=23.9.0",
 ]
-
 all = ["atena-omega[dev,prod,ml,vectordb,web,monitoring,distributed,db,security,testing,docs]"]
-
-# =============================================================================
-# URLS
-# =============================================================================
 
 [project.urls]
 Homepage      = "https://github.com/AtenaAuto/ATENA-"
@@ -274,10 +219,6 @@ Documentation = "https://docs.atena.ai"
 Issues        = "https://github.com/AtenaAuto/ATENA-/issues"
 Changelog     = "https://github.com/AtenaAuto/ATENA-/releases"
 Discord       = "https://discord.gg/atena"
-
-# =============================================================================
-# ENTRY POINTS
-# =============================================================================
 
 [project.scripts]
 atena            = "cli.main:app"
@@ -294,6 +235,12 @@ web    = "plugins.web_scraper:register"
 api    = "plugins.api_gateway:register"
 
 # =============================================================================
+# VERCEL CONFIGURATION
+# =============================================================================
+[tool.vercel]
+entrypoint = "core.atena_local_dashboard:Handler"
+
+# =============================================================================
 # BUILD — setuptools only
 # =============================================================================
 
@@ -305,21 +252,12 @@ zip-safe             = false
 include = ["atena_omega*", "core*", "modules*", "protocols*", "skills*", "plugins*"]
 exclude = [
     "tests*", "docs*", "examples*", "benchmarks*",
-    "evolution*", "atena_evolution*",  # both patterns excluded
+    "evolution*", "atena_evolution*",
 ]
 
 [tool.setuptools.package-data]
-"*" = [
-    "*.yaml", "*.yml", "*.json", "*.md", "*.txt",
-    "*.html", "*.css", "*.js", "*.wasm", "*.proto",
-    # Binary ML artefacts intentionally omitted from the wheel.
-    # Distribute them via a separate data package or object storage.
-]
+"*" = ["*.yaml", "*.yml", "*.json", "*.md", "*.txt", "*.html", "*.css", "*.js", "*.wasm", "*.proto"]
 "atena_omega" = ["py.typed"]
-
-# =============================================================================
-# setuptools-scm — single source of truth for the version
-# =============================================================================
 
 [tool.setuptools_scm]
 write_to      = "atena_omega/_version.py"
@@ -385,23 +323,13 @@ select = [
     "E", "W", "F", "I", "N", "UP", "B", "A", "C4", "SIM",
     "RET", "ARG", "PTH", "RUF", "TCH", "PIE", "FLY", "PERF",
     "G", "LOG", "Q", "RSE", "SLF", "SLOT", "INT", "YTT",
-    # Docstrings: use convention instead of a manual ignore list
 ]
-ignore = [
-    # Conflict with Black
-    "E501",
-    # Context-specific suppressions
-    "B008",   # function calls in default arguments (FastAPI depends)
-    "C901",   # complexity — handled by pylint
-    "SIM108", # ternary — sometimes less readable
-    "RET505", # superfluous else after return
-]
+ignore = ["E501", "B008", "C901", "SIM108", "RET505"]
 preview  = true
 fixable  = ["ALL"]
 unfixable = []
 
 [tool.ruff.lint.pydocstyle]
-# Use a convention to avoid a sprawling manual ignore list for "D" rules.
 convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
@@ -429,8 +357,6 @@ warn_unreachable         = true
 strict_equality          = true
 strict_optional          = true
 follow_imports           = "normal"
-# Global default: ignore missing stubs for third-party libs not in typeshed.
-# Override per-module below for internal code that MUST have stubs.
 ignore_missing_imports   = true
 show_error_codes         = true
 pretty                   = true
@@ -441,11 +367,7 @@ enable_error_code        = [
 ]
 
 [[tool.mypy.overrides]]
-# Third-party libraries without type stubs — suppress selectively.
-module = [
-    "astor.*", "chromadb.*", "faiss.*", "streamlit.*", "gradio.*",
-    "langchain.*", "transformers.*", "torch.*",
-]
+module = ["astor.*", "chromadb.*", "faiss.*", "streamlit.*", "gradio.*", "langchain.*", "transformers.*", "torch.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
@@ -472,8 +394,7 @@ disable = [
     "R0801", "R0902", "R0903", "R0904",
 ]
 enable     = ["missing-module-docstring"]
-good-names = ["i", "j", "k", "ex", "Run", "_", "x", "y", "z",
-              "df", "ax", "id", "db", "fp", "cb", "ctx", "env"]
+good-names = ["i", "j", "k", "ex", "Run", "_", "x", "y", "z", "df", "ax", "id", "db", "fp", "cb", "ctx", "env"]
 extension-pkg-allow-list = ["numpy", "pydantic", "polars"]
 
 # =============================================================================
@@ -505,7 +426,7 @@ asyncio_mode = "auto"
 timeout      = 300
 
 # =============================================================================
-# COVERAGE
+# COVERAGE / BANDIT / COMMITIZEN / CIBUILDWHEEL
 # =============================================================================
 
 [tool.coverage.run]
@@ -520,45 +441,14 @@ concurrency = ["thread", "multiprocessing"]
 branch      = true
 
 [tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if __name__ == .__main__.:",
-    "if TYPE_CHECKING:",
-    "class .*\\bProtocol\\):",
-    "@(abc\\.)?abstractmethod",
-    "pass",
-]
+exclude_lines = ["pragma: no cover", "def __repr__", "raise AssertionError", "raise NotImplementedError", "if __name__ == .__main__.:", "if TYPE_CHECKING:", "class .*\\bProtocol\\):", "@(abc\\.)?abstractmethod", "pass"]
 omit         = ["*/__pycache__/*", "*/tests/*"]
 precision    = 2
 show_missing = true
 fail_under   = 80
 
-[tool.coverage.html]
-directory = "htmlcov"
-title     = "ATENA Omega - Coverage Report"
-# extra_css removed: file does not exist; add back if docs/coverage.css is created
-
-[tool.coverage.xml]
-output = "coverage.xml"
-
-# =============================================================================
-# BANDIT
-# =============================================================================
-
 [tool.bandit]
-exclude_dirs = [
-    "tests", "evolution", "reference_dna", "atena_evolution",
-    "analysis_reports", "docs", "examples",
-]
-# B101 (assert): acceptable in test helpers
-# B601 (paramiko shell): not used
-# B603/B607 (subprocess): only with vetted internal callers
-# B311 and B404 intentionally REMOVED from skips:
-#   B311 (random): an autonomous AI system must not silently use insecure RNG
-#   B404 (subprocess): subprocess imports deserve auditing in this codebase
+exclude_dirs = ["tests", "evolution", "reference_dna", "atena_evolution", "analysis_reports", "docs", "examples"]
 skips      = ["B101", "B601", "B603", "B607"]
 severity   = "HIGH"
 confidence = "HIGH"
@@ -566,42 +456,16 @@ recursive  = true
 format     = "json"
 output     = "bandit_report.json"
 
-# =============================================================================
-# PYRIGHT / PYLANCE
-# =============================================================================
-
 [tool.pyright]
 include = ["atena_omega", "core", "modules", "protocols", "skills", "plugins", "scripts", "cli"]
-exclude = [
-    "**/__pycache__", "evolution", "atena_evolution", "analysis_reports",
-    "tests", "docs", "examples",
-]
-pythonVersion              = "3.10"
-typeCheckingMode           = "strict"
-reportMissingImports       = "error"
-reportMissingTypeStubs     = "warning"
-reportGeneralTypeIssues    = "error"
-reportOptionalSubscript    = "error"
-reportOptionalMemberAccess = "error"
-reportOptionalCall         = "error"
-reportOptionalIterable     = "error"
-reportOptionalContextManager = "error"
-reportUnusedImport         = "warning"
-reportUnusedClass          = "warning"
-reportUnusedFunction       = "warning"
-reportUnusedVariable       = "warning"
-reportDuplicateImport      = "error"
-
-# =============================================================================
-# COMMITIZEN
-# =============================================================================
+exclude = ["**/__pycache__", "evolution", "atena_evolution", "analysis_reports", "tests", "docs", "examples"]
+pythonVersion = "3.10"
+typeCheckingMode = "strict"
 
 [tool.commitizen]
 name    = "cz_conventional_commits"
 version = "3.2.0"
 version_files = [
-    # Pattern format required by commitizen for non-Python files:
-    # "file:regex_pattern" — omit README.md unless a stable pattern exists there
     "pyproject.toml:version = \"\\d+\\.\\d+\\.\\d+\"",
     "atena_omega/__init__.py:__version__ = \"\\d+\\.\\d+\\.\\d+\"",
 ]
@@ -609,23 +473,9 @@ tag_format      = "v$version"
 bump_message    = "chore(release): bump version $current_version -> $new_version"
 change_type_order = ["BREAKING", "feat", "fix", "refactor", "docs", "chore"]
 
-# =============================================================================
-# CIBUILDWHEEL
-# =============================================================================
-
 [tool.cibuildwheel]
-# 32-bit wheels removed: PyTorch, numpy and most ML deps have no 32-bit wheels.
 build    = "cp310-manylinux* cp311-manylinux* cp312-manylinux*"
 archs    = ["auto64"]
 test-command  = "pytest {project}/tests -v -m 'not slow'"
 manylinux-x86_64-image = "manylinux2014"
 build-frontend = "build"
-
-# =============================================================================
-# NOTE: configurations for the following tools belong in their own files
-# and must NOT appear here:
-#
-#   pre-commit   → .pre-commit-config.yaml
-#   mkdocs       → mkdocs.yml
-#   VS Code      → .vscode/settings.json
-# =============================================================================
