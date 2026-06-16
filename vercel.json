@@ -3,11 +3,5 @@
     "core/atena_local_dashboard.py": {
       "runtime": "vercel-python@3.0.0"
     }
-  },
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "core/atena_local_dashboard.py"
-    }
-  ]
+  }
 }
