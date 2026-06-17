@@ -21,7 +21,8 @@ async def run_once(output_json: bool = False, save_db: bool = False, db_path: Pa
     # atualiza métricas
     cycle_counter.inc()
     cycle_duration.observe(result.cycle_duration_seconds)
-    consciousness_gauge.set([0,1,2,3].index(result.consciousness_level.value))
+    levels = ["dormant", "awakening", "aware", "transcendent"]
+    consciousness_gauge.set(levels.index(result.consciousness_level.value))
     self_awareness_gauge.set(result.self_awareness_score)
     emergence_gauge.set(result.emergence_level)
     purpose_gauge.set(result.purpose_alignment)

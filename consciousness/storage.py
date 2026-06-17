@@ -48,7 +48,7 @@ class ConsciousnessStore:
                  json.dumps(result.full_report))
             )
 
-    def get_last_n(self, n: int = 10) -> List[Dict]:
+    def get_last_n(self, n: int = 10) -> list[dict]:
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             rows = conn.execute("SELECT * FROM cycles ORDER BY timestamp DESC LIMIT ?", (n,)).fetchall()
