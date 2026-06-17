@@ -48,7 +48,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from core.atena_llm_router import AtenaLLMRouter
+from core.atena_llm_router import AtenaLLMRouterAdvanced as AtenaLLMRouter
 from core.internet_challenge import run_internet_challenge, recommend_public_apis, discover_any_apis, rank_api_candidates
 from core.atena_module_preloader import preload_all_modules
 from core.atena_terminal_python_script import create_and_run_terminal_python_script

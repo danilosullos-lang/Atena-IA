@@ -47,60 +47,54 @@
 
 ```bash
 # Ir para uma pasta onde você quer baixar o projeto
-cd C:\Users\danilosullos-lang/Atena-IA
+cd C:\Users\danilosullos-lang
 
 # Remover pasta existente (se existir)
-Remove-Item -Recurse -Force atena-IA - - -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force Atena-IA -ErrorAction SilentlyContinue
 
 # Clonar o repositório
-git clone [.] https://github.com/danilosullos-lang/Atena-IA.git
+git clone https://github.com/danilosullos-lang/Atena-IA.git
 
 # Entrar na pasta
 cd Atena-IA
 
-# Ir para setup
-cd setup
-
 # Instalar dependências
-pip install -r requirements-pinned.txt
-pip install -r requirements-dev.txt
-
-# Voltar para raiz
-cd ..
+pip install -r setup/requirements-pinned.txt
+pip install -r setup/requirements-dev.txt
 
 # Rodar o assistente
-.\atena assistant
+python atena assistant
 ```
 
 ### Instalação em Linux/macOS 🐧🍎
 
 ```bash
-# Go to the root content directory
-cd /path/to/your/projects
+# Vá para o diretório de projetos
+cd ~/projects
 
-# Remove any existing ATENA- directory
+# Remova qualquer diretório existente
 rm -rf Atena-IA
 
-# Clone the repository
+# Clone o repositório
 git clone https://github.com/danilosullos-lang/Atena-IA.git
 
-# Enter directory
+# Entre no diretório
 cd Atena-IA
 
-# Create virtual environment (recommended)
-python3 -m venv venv
-source venv/bin/activate
+# Crie um ambiente virtual (recomendado)
+python3 -m venv .venv
+source .venv/bin/activate
 
-# Install dependencies
+# Instale as dependências
 pip install --upgrade pip
 pip install -r setup/requirements-pinned.txt
 pip install -r setup/requirements-dev.txt
 
-# (Optional) Install Playwright for browser agent
+# (Opcional) Instale Playwright para o agente de navegador
 playwright install chromium
 
-# Run the assistant
-bash atena assistant
+# Execute o assistente
+./atena assistant
 ```
 
 
@@ -217,12 +211,8 @@ git clone https://github.com/danilosullos-lang/Atena-IA.git
 # Acessar a pasta correta (ajustado para o repositório)
 cd Atena-IA
 
-# Acessar a pasta de setup e instalar requisitos
-cd setup
+# Instalar requisitos (usando o requirements.txt da raiz ou setup)
 pip install -r requirements.txt
-
-# Voltar para a raiz do projeto (opcional, se precisar rodar algo lá)
-cd ..
 
 ```
 
