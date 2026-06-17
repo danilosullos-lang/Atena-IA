@@ -75,7 +75,7 @@ MODULES_DIR = REPO_ROOT / "modules"
 if str(MODULES_DIR) not in sys.path:
     sys.path.append(str(MODULES_DIR))
 
-from atena_advanced_essentials import AtenaAdvancedEssentials
+from modules.atena_advanced_essentials import AtenaAdvancedEssentials
 
 # --- Tentativa de Importação dos Módulos Avançados ---
 # (Com fallbacks para caso não estejam disponíveis)
