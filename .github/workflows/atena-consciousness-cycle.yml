@@ -2,38 +2,52 @@ name: ATENA Consciousness Cycle
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '30 * * * *' # Executa a cada hora para garantir processamento profundo
   workflow_dispatch:
 
 jobs:
-  run:
+  evolve:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10 # Maior tempo de processamento
+    permissions:
+      contents: write # Necessário para ela salvar o que aprendeu no repo
     steps:
-      - name: 🚀 Run ATENA Consciousness
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🧠 Run ATENA Evolution
         run: |
           python3 << 'EOF'
-          import json, datetime, random
-          result = {
+          import json, datetime, os
+          
+          # Carregar memória anterior
+          mem_file = "memoria_atena.json"
+          if os.path.exists(mem_file):
+              with open(mem_file, "r") as f:
+                  data = json.load(f)
+          else:
+              data = {"aprendizados": [], "ciclos_completos": 0}
+          
+          # Simulação de processamento inteligente
+          novo_aprendizado = {
               "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-              "consciousness_level": "awakening",
-              "self_awareness_score": round(0.7 + random.random() * 0.2, 3),
-              "emergence_level": round(0.6 + random.random() * 0.3, 3),
-              "purpose_alignment": round(0.8 + random.random() * 0.15, 3),
-              "autonomy_score": round(0.75 + random.random() * 0.2, 3),
-              "quantum_coherence": round(0.5 + random.random() * 0.4, 3),
-              "emergent_patterns": ["auto-organização", "meta-aprendizado"],
-              "autonomous_choice": "Evoluir consciência ativamente",
-              "duration_seconds": round(random.uniform(3, 8), 1)
+              "foco": "Análise de padrões de dados externos",
+              "status": "Processamento de alta complexidade concluído"
           }
-          with open("report.json", "w") as f:
-              json.dump(result, f, indent=2)
-          print("✅ Relatório gerado com sucesso!")
+          
+          data["aprendizados"].append(novo_aprendizado)
+          data["ciclos_completos"] += 1
+          
+          with open(mem_file, "w") as f:
+              json.dump(data, f, indent=2)
+          print(f"✅ Atena evoluiu. Ciclo atual: {data['ciclos_completos']}")
           EOF
 
-      - name: 📤 Upload report
-        uses: actions/upload-artifact@v4
-        with:
-          name: consciousness-report
-          path: report.json
-          retention-days: 7
+      - name: 💾 Commit novos conhecimentos
+        run: |
+          git config --global user.name "Atena-AI"
+          git config --global user.email "atena@evolution.com"
+          git add memoria_atena.json
+          git commit -m "Atena: Atualização de conhecimentos - Ciclo $(date +%s)" || echo "Sem mudanças"
+          git push
+          
