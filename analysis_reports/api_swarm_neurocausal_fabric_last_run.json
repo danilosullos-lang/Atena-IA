@@ -1,7 +1,7 @@
 {
   "technology": "Atena API Swarm NeuroCausal Fabric",
   "status": "ok",
-  "generated_at_utc": "2026-06-01T16:59:37.083668+00:00",
+  "generated_at_utc": "2026-06-17T19:20:06.160170+00:00",
   "tasks_planned": 3,
   "approved_plans": 3,
   "average_confidence": 1.0,
@@ -79,34 +79,34 @@
       },
       "alternatives": [
         {
-          "name": "GitHub",
-          "endpoint": "https://api.github.com",
-          "category": "code",
-          "score": 0.9
-        },
-        {
-          "name": "github",
-          "endpoint": "https://api.github.com/search/repositories",
-          "category": "code",
-          "score": 0.9
-        },
-        {
-          "name": "GitLab",
-          "endpoint": "https://gitlab.com/api/v4",
-          "category": "code",
+          "name": "OpenWeather",
+          "endpoint": "https://api.openweathermap.org",
+          "category": "weather",
           "score": 0.86
         },
         {
-          "name": "gitlab",
-          "endpoint": "https://gitlab.com/api/v4/projects",
-          "category": "code",
+          "name": "meteo_br",
+          "endpoint": "https://apitempo.inmet.gov.br/",
+          "category": "weather",
           "score": 0.86
         },
         {
-          "name": "cratesio",
-          "endpoint": "https://crates.io/api/v1/crates",
-          "category": "packages",
-          "score": 0.8
+          "name": "open_meteo",
+          "endpoint": "https://api.open-meteo.com/v1/forecast",
+          "category": "weather",
+          "score": 0.86
+        },
+        {
+          "name": "open_weather",
+          "endpoint": "https://api.openweathermap.org/data/2.5/weather",
+          "category": "weather",
+          "score": 0.86
+        },
+        {
+          "name": "wttr",
+          "endpoint": "https://wttr.in/",
+          "category": "weather",
+          "score": 0.86
         }
       ],
       "causal_trace": {
