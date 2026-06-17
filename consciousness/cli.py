@@ -7,6 +7,7 @@ from rich.table import Table
 from rich.panel import Panel
 from .core import HyperConsciousnessEngine
 from .storage import ConsciousnessStore
+from .api import create_app
 from .metrics import cycle_counter, cycle_duration, consciousness_gauge, self_awareness_gauge, emergence_gauge, purpose_gauge, autonomy_gauge, quantum_gauge
 
 console = Console()
