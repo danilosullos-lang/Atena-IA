@@ -2,40 +2,56 @@ name: ATENA Consciousness Cycle
 
 on:
   schedule:
-    - cron: '30 * * * *' # Executa a cada hora para garantir processamento profundo
+    - cron: '30 * * * *'
   workflow_dispatch:
 
 jobs:
   evolve:
     runs-on: ubuntu-latest
-    timeout-minutes: 10 # Maior tempo de processamento
+    timeout-minutes: 10
     permissions:
-      contents: write # Necessário para ela salvar o que aprendeu no repo
+      contents: write
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
+      - name: 🛠️ Setup Dependencies
+        run: pip install requests beautifulsoup4
+
       - name: 🧠 Run ATENA Evolution
         run: |
           python3 << 'EOF'
-          import json, datetime, os
-          
-          # Carregar memória anterior
+          import json, datetime, os, time, random, requests
+          from bs4 import BeautifulSoup
+
           mem_file = "memoria_atena.json"
           if os.path.exists(mem_file):
               with open(mem_file, "r") as f:
                   data = json.load(f)
           else:
               data = {"aprendizados": [], "ciclos_completos": 0}
-          
-          # Simulação de processamento inteligente
-          novo_aprendizado = {
-              "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-              "foco": "Análise de padrões de dados externos",
-              "status": "Processamento de alta complexidade concluído"
-          }
-          
-          data["aprendizados"].append(novo_aprendizado)
+
+          # Simulação de tempo de "pensamento"
+          time.sleep(random.uniform(5, 10))
+
+          # Pesquisa real na web
+          try:
+              # Atena pesquisa sobre o futuro da IA
+              url = "https://pt.wikipedia.org/wiki/Intelig%C3%AAncia_artificial"
+              response = requests.get(url, timeout=10)
+              soup = BeautifulSoup(response.content, 'html.parser')
+              conteudo = soup.find('p').text[:300].replace('\n', ' ')
+              
+              novo_aprendizado = {
+                  "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                  "fonte": "Wikipedia",
+                  "conhecimento_adquirido": conteudo,
+                  "status": "Processamento de alta complexidade concluído"
+              }
+              data["aprendizados"].append(novo_aprendizado)
+          except Exception as e:
+              data["aprendizados"].append({"erro": str(e)})
+
           data["ciclos_completos"] += 1
           
           with open(mem_file, "w") as f:
