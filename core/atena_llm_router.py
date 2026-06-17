@@ -827,17 +827,15 @@ class AtenaLLMRouterAdvanced:
 # ========== SINGLETON ==========
 _global_router: Optional[AtenaLLMRouterAdvanced] = None
 
+# ========== SINGLETON OTIMIZADO (AUTO-MUTATED) ==========
+
+_router_lock = asyncio.Lock()
 
 async def get_router() -> AtenaLLMRouterAdvanced:
     global _global_router
     if _global_router is None:
-        _global_router = AtenaLLMRouterAdvanced()
-        await _global_router.start()
+        async with _router_lock:
+            if _global_router is None:
+                _global_router = AtenaLLMRouterAdvanced()
+                await _global_router.start()
     return _global_router
-
-
-# ========== FUNÇÃO DE CONVENIÊNCIA SÍNCRONA ==========
-def generate_sync(prompt: str, context: str = "", **kwargs) -> str:
-    """Função síncrona para uso em ambientes não assíncronos."""
-    router = AtenaLLMRouterAdvanced()
-    return router.generate_sync(prompt, context, **kwargs)
