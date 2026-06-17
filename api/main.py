@@ -28,6 +28,7 @@ import re
 
 # Core
 import google.generativeai as genai
+from core.atena_llm_router import AtenaLLMRouterAdvanced as AtenaLLMRouter
 from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, Response
@@ -346,69 +347,34 @@ Diretrizes:
 Horário atual: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}
 """.strip()
 
-# ========== GEMINI CLIENT ==========
+# ========== ATENA ROUTER CLIENT ==========
 
-class GeminiClient:
-    """Cliente otimizado para Gemini API"""
+class AtenaRouterClient:
+    """Cliente integrado com AtenaLLMRouter para multi-LLM e fallback"""
     
     def __init__(self):
-        self.model = None
-        self._init_model()
+        self.router = None
+        self._initialized = False
     
-    def _init_model(self):
-        if GEMINI_API_KEY:
-            try:
-                genai.configure(api_key=GEMINI_API_KEY)
-                self.model = genai.GenerativeModel(
-                    GEMINI_MODEL,
-                    generation_config={
-                        "temperature": GEMINI_TEMPERATURE,
-                        "max_output_tokens": GEMINI_MAX_TOKENS,
-                        "top_p": 0.95,
-                        "top_k": 40
-                    }
-                )
-                logger.info(f"Gemini model initialized: {GEMINI_MODEL}")
-            except Exception as e:
-                logger.error(f"Failed to initialize Gemini: {e}")
-                self.model = None
+    async def ensure_initialized(self):
+        if not self._initialized:
+            self.router = AtenaLLMRouter()
+            await self.router.start()
+            self._initialized = True
+            logger.info("AtenaLLMRouter initialized in API")
     
     def is_available(self) -> bool:
-        return self.model is not None and bool(GEMINI_API_KEY)
+        # No Vercel, o roteador deve estar sempre disponível se as chaves estiverem no ENV
+        return True
     
     async def generate_response(self, message: str, context: str = "") -> Tuple[str, int]:
-        """
-        Gera resposta usando Gemini
-        
-        Returns:
-            Tuple[str, int]: (resposta, tokens_utilizados)
-        """
-        if not self.is_available():
-            raise RuntimeError("Gemini client not available")
-        
+        await self.ensure_initialized()
         try:
-            # Prepara prompt com contexto
-            prompt = context + f"\n\nUsuário: {message}\nATENA:"
-            
-            # Gera resposta (executa em thread pool)
-            response = await asyncio.to_thread(
-                self.model.generate_content,
-                prompt
-            )
-            
-            # Extrai texto e tokens
-            text = response.text.strip() if response.text else "Sem resposta gerada."
-            
-            # Tenta obter contagem de tokens
-            tokens_used = 0
-            if hasattr(response, 'usage_metadata'):
-                tokens_used = response.usage_metadata.total_token_count
-            
-            return text, tokens_used
-            
+            response = await self.router.generate(message, context=context)
+            return response.content, response.usage.get("total_tokens", 0)
         except Exception as e:
-            logger.error(f"Gemini generation error: {e}")
-            raise RuntimeError(f"Falha na geração: {str(e)}")
+            logger.error(f"Router generation error: {e}")
+            raise RuntimeError(f"Falha na geração via roteador: {str(e)}")
 
 # ========== MIDDLEWARES ==========
 
@@ -472,7 +438,7 @@ class MetricsMiddleware:
 # ========== FASTAPI APPLICATION ==========
 
 # Inicializa componentes
-gemini_client = GeminiClient()
+gemini_client = AtenaRouterClient()
 conversation_manager = ConversationManager()
 cache_manager = CacheManager(default_ttl=CACHE_TTL)
 metrics_middleware = MetricsMiddleware()

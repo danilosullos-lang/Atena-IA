@@ -1,13 +1,20 @@
 {
-  "functions": {
-    "core/atena_local_dashboard.py": {
-      "runtime": "vercel-python@3.0.0"
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/main.py",
+      "use": "@vercel/python"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "core/atena_local_dashboard.py"
+      "dest": "api/main.py"
     }
-  ]
+  ],
+  "env": {
+    "ATENA_ENV": "production",
+    "ENABLE_RATE_LIMIT": "true",
+    "ENABLE_CACHE": "true"
+  }
 }
