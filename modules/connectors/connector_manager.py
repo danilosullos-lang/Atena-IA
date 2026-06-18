@@ -10,6 +10,11 @@ from .base_connector import BaseConnector, ConnectorConfig, Message
 from .whatsapp_connector import WhatsAppConnector
 from .discord_connector import DiscordConnector
 from .telegram_connector import TelegramConnector
+from .slack_connector import SlackConnector
+from .teams_connector import TeamsConnector
+from .instagram_connector import InstagramConnector
+from .sms_connector import SMSConnector
+from .email_connector import EmailConnector
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +27,11 @@ class ConnectorManager:
         'whatsapp': WhatsAppConnector,
         'discord': DiscordConnector,
         'telegram': TelegramConnector,
+        'slack': SlackConnector,
+        'teams': TeamsConnector,
+        'instagram': InstagramConnector,
+        'sms': SMSConnector,
+        'email': EmailConnector,
     }
     
     def __init__(self, config_path: str = "/home/ubuntu/Atena-IA/config/connectors.json"):
