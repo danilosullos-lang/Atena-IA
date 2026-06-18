@@ -50,6 +50,7 @@ from fastapi.responses import HTMLResponse, Response, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from api.dashboard_html import get_dashboard_html
+from core.atena_evolution_v5_singularity import SingularityProtocol
 from api.connectors_api import router as connectors_router
 
 # Configuração CORS (Mantida)
