@@ -28,7 +28,10 @@
     },
     {
       "erro": "'NoneType' object has no attribute 'text'"
+    },
+    {
+      "erro": "'NoneType' object has no attribute 'text'"
     }
   ],
-  "ciclos_completos": 9
+  "ciclos_completos": 10
 }
