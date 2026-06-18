@@ -16,6 +16,7 @@ Novos recursos v2.0:
 """
 
 import shlex
+import shutil
 import subprocess
 import threading
 import time
@@ -1180,6 +1181,7 @@ def print_help():
             ("/benchmark", "Benchmark contínuo"),
             ("/device-control <pedido> [--confirm]", "Controle de dispositivo"),
             ("/security-scan [repo|system]", "Scanner de segurança"),
+            ("/vulnerability-scan [repo|system]", "Varredura defensiva de vulnerabilidades com relatório"),
             ("/secret-audit", "Auditoria de segredos (mascarada)"),
             ("/policy", "Mostra política de segurança"),
             ("/plugins", "Lista plugins carregados"),
@@ -1197,7 +1199,7 @@ def print_help():
         
         CONSOLE.print(Panel(table, title="[bold cyan]Comandos Disponíveis[/bold cyan]", border_style="cyan"))
     else:
-        print("\nComandos: /task, /internet, /api-scan, /api-filter, /api-pick, /task-exec, /python-script, /install-deps, /github-evolution-scan, /aegis-mythos, /self-test, /release-governor, /saas-bootstrap, /telemetry-insights, /orchestrate, /memory-suggest, /benchmark, /device-control, /security-scan, /secret-audit, /policy, /plugins, /memory, /plan, /run, /context, /model, /clear, /exit\n")
+        print("\nComandos: /task, /internet, /api-scan, /api-filter, /api-pick, /task-exec, /python-script, /install-deps, /github-evolution-scan, /aegis-mythos, /self-test, /release-governor, /saas-bootstrap, /telemetry-insights, /orchestrate, /memory-suggest, /benchmark, /device-control, /security-scan, /vulnerability-scan, /secret-audit, /policy, /plugins, /memory, /plan, /run, /context, /model, /clear, /exit\n")
 
 
 # =============================================================================
@@ -1681,6 +1683,135 @@ def run_security_scan(scope: str = "repo") -> tuple[str, str]:
     return status, str(summary_path)
 
 
+def _command_available(command: str) -> bool:
+    return shutil.which(command) is not None
+
+
+def _tool_result(
+    name: str,
+    command: str,
+    artifact: Path,
+    *,
+    timeout: int = 240,
+    warning_only: bool = False,
+) -> dict[str, object]:
+    rc, out, err = run_safe_command(command, timeout=timeout, context="vulnerability-scan", tier="tier0")
+    artifact.write_text(
+        (out or "").rstrip() + ("\n" if out else "") + (("\nSTDERR:\n" + err.rstrip() + "\n") if err else ""),
+        encoding="utf-8",
+    )
+    return {
+        "name": name,
+        "command": command,
+        "artifact": str(artifact),
+        "returncode": rc,
+        "ok": rc == 0,
+        "warning_only": warning_only,
+    }
+
+
+def run_vulnerability_scan(scope: str = "repo") -> tuple[str, str]:
+    """Executa varredura defensiva local e gera relatório JSON/Markdown.
+
+    Escopo:
+    - repo: analisa somente o repositório atual e dependências declaradas.
+    - system: inclui checagens locais de configuração do sistema sem exploração ativa.
+    """
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H%M%S")
+    reports_dir = ROOT / "analysis_reports" / f"vulnerability_scan_{timestamp}"
+    reports_dir.mkdir(parents=True, exist_ok=True)
+
+    python_cmd = shlex.quote(sys.executable)
+    checks: list[dict[str, object]] = [
+        _tool_result(
+            "python-bandit-static-analysis",
+            f"{python_cmd} -m bandit -r core modules -f json",
+            reports_dir / "bandit.json",
+            warning_only=True,
+        ),
+        _tool_result(
+            "python-safety-dependencies",
+            f"{python_cmd} -m safety check --full-report",
+            reports_dir / "safety.txt",
+            warning_only=True,
+        ),
+        _tool_result(
+            "atena-secret-scan",
+            f"{python_cmd} core/atena_secret_scan.py --root .",
+            reports_dir / "secret_scan.txt",
+            warning_only=True,
+        ),
+        _tool_result(
+            "code-risk-markers",
+            "rg -n \"TODO|FIXME|HACK|XXX|password|secret|token|eval\\(|exec\\(|subprocess\\.Popen\\(|os\\.system\\(\" core modules protocols",
+            reports_dir / "code_risk_markers.txt",
+            warning_only=True,
+        ),
+    ]
+
+    dashboard_dir = ROOT / "dashboard"
+    if (dashboard_dir / "package.json").exists() and _command_available("pnpm"):
+        checks.append(
+            _tool_result(
+                "dashboard-pnpm-audit",
+                "cd dashboard && pnpm audit --audit-level moderate",
+                reports_dir / "dashboard_pnpm_audit.txt",
+                warning_only=True,
+            )
+        )
+
+    if scope == "system":
+        checks.extend(
+            [
+                _tool_result(
+                    "system-world-writable-files",
+                    "find . -xdev -type f -perm -0002",
+                    reports_dir / "world_writable_files.txt",
+                    warning_only=True,
+                ),
+                _tool_result(
+                    "system-suid-top200",
+                    "find / -xdev -type f -perm -4000 2>/dev/null | head -n 200",
+                    reports_dir / "suid_top200.txt",
+                    warning_only=True,
+                ),
+            ]
+        )
+
+    failed = [item for item in checks if not item["ok"]]
+    status = "findings" if failed else "ok"
+    summary = {
+        "status": status,
+        "scope": scope,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "policy": "defensive_local_scan_only",
+        "checks": checks,
+        "findings_count": len(failed),
+    }
+
+    summary_json = reports_dir / "summary.json"
+    summary_json.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    rows = "\n".join(
+        f"| {item['name']} | {item['returncode']} | {'OK' if item['ok'] else 'ACHADOS/AVISO'} | `{Path(str(item['artifact'])).name}` |"
+        for item in checks
+    )
+    summary_md = reports_dir / "report.md"
+    summary_md.write_text(
+        "# Relatório de Vulnerabilidades ATENA\n\n"
+        f"- Status: **{status}**\n"
+        f"- Escopo: `{scope}`\n"
+        f"- Gerado em: `{summary['generated_at']}`\n"
+        "- Política: varredura defensiva local; não explora terceiros nem executa ataque ativo.\n\n"
+        "| Checagem | Código | Resultado | Artefato |\n"
+        "|---|---:|---|---|\n"
+        f"{rows}\n\n"
+        f"Resumo JSON: `{summary_json}`\n",
+        encoding="utf-8",
+    )
+    return status, str(summary_md)
+
+
 def _mask_secret(value: str) -> dict[str, str]:
     token = (value or "").strip()
     if len(token) <= 8:
@@ -1771,8 +1902,9 @@ def main():
         total = int(preload_result.get("total", 0))
         console_print(f"[ATENA preload] módulos carregados: {loaded_count}/{total}", style="dim")
     
-    if router.auto_prepare_result is not None:
-        ok_auto, msg_auto = router.auto_prepare_result
+    auto_prepare_result = getattr(router, "auto_prepare_result", None)
+    if auto_prepare_result is not None:
+        ok_auto, msg_auto = auto_prepare_result
         if ok_auto:
             console_print(f"[ATENA model] {msg_auto}", style="green")
         else:
@@ -1967,6 +2099,17 @@ def main():
                     status, report_path = run_security_scan(scope=scope)
                 color = "green" if status == "ok" else "yellow"
                 CONSOLE.print(f"[bold {color}]Security scan: {status.upper()}[/bold {color}]")
+                CONSOLE.print(f"Relatório: [cyan]{report_path}[/cyan]")
+                continue
+
+            if user_input.startswith("/vulnerability-scan"):
+                raw = user_input[len("/vulnerability-scan"):].strip().lower()
+                scope = "system" if raw == "system" else "repo"
+                with atena_thinking(f"Executando varredura defensiva de vulnerabilidades ({scope})..."):
+                    status, report_path = run_vulnerability_scan(scope=scope)
+                color = "green" if status == "ok" else "yellow"
+                CONSOLE.print(f"[bold {color}]Vulnerability scan: {status.upper()}[/bold {color}]")
+                CONSOLE.print(f"Relatório: [cyan]{report_path}[/cyan]")
                 continue
 
             if user_input == "/secret-audit":
