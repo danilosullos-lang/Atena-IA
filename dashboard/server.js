@@ -9,11 +9,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Servir arquivos estáticos do build
-app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(path.join(__dirname, 'dist/public')));
 
 // Rota catch-all para SPA
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, 'dist/public', 'index.html'));
 });
 
 app.listen(PORT, () => {

@@ -114,7 +114,7 @@ async def dashboard_redirect():
     return get_dashboard_html()
 
 # Servir arquivos estáticos do dashboard
-dashboard_static_path = "/home/ubuntu/Atena-IA/dashboard/dist/public"
+dashboard_static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dashboard", "dist", "public")
 if os.path.exists(dashboard_static_path):
     app.mount("/dashboard", StaticFiles(directory=dashboard_static_path, html=True), name="dashboard")
 
