@@ -657,6 +657,8 @@ class LocalProvider(BaseLLMProvider):
 class AtenaLLMRouterAdvanced:
     def __init__(self, config: Optional[RouterConfig] = None):
         self.config = config or RouterConfig()
+        self.auto_prepare_result = None
+        self._current_backend = "auto"
         self.token_counter = TokenCounter()
         self.semantic_cache = SemanticCache() if self.config.semantic_cache_enabled else None
         self.health_checker = HealthChecker(self.config)
@@ -688,6 +690,45 @@ class AtenaLLMRouterAdvanced:
         # Registra no health checker
         for name, provider in self._providers.items():
             self.health_checker.register_provider(name, provider)
+
+    def current(self) -> str:
+        if self._current_backend != "auto":
+            return self._current_backend
+        providers = ", ".join(self._providers.keys())
+        return f"auto ({providers})" if providers else "auto (nenhum provider)"
+
+    def list_options(self) -> List[str]:
+        options = [f"{provider}:default" for provider in self._providers.keys()]
+        options.append("auto")
+        return options
+
+    def set_backend(self, spec: str) -> Tuple[bool, str]:
+        backend = (spec or "").strip()
+        if not backend:
+            return False, "Backend vazio."
+        provider = backend.split(":", 1)[0]
+        if provider != "auto" and provider not in self._providers:
+            return False, f"Provider não disponível: {provider}"
+        self._current_backend = backend
+        return True, f"Backend selecionado: {backend}"
+
+    def prepare_free_local_model(self) -> Tuple[bool, str]:
+        if "local" in self._providers:
+            self._current_backend = "local"
+            return True, "Provider local já disponível."
+        return False, "Provider local não disponível em http://localhost:11434."
+
+    def auto_orchestrate_llm(self) -> Tuple[bool, str]:
+        self._current_backend = "auto"
+        providers = ", ".join(self._providers.keys()) or "nenhum"
+        return True, f"Roteamento automático ativado. Providers: {providers}."
+
+    def connection_status(self) -> Dict[str, Any]:
+        return {
+            "backend": self.current(),
+            "providers": list(self._providers.keys()),
+            "internet_ok": False,
+        }
     
     async def start(self):
         await self.health_checker.start()
