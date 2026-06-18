@@ -44,6 +44,8 @@ from concurrent.futures import ThreadPoolExecutor
 import threading
 import uuid
 
+T = TypeVar("T")
+
 # Core dependencies
 import aiohttp
 import aiofiles
