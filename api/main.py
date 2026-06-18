@@ -17,50 +17,53 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Dict, List, Optional, Any, Tuple
-from uuid import uuid4
 
-# Imports do seu sistema original (Mantidos)
-from core.atena_llm_router import AtenaLLMRouterAdvanced as AtenaLLMRouter
-from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, Response
-from fastapi.security import HTTPBearer
-from pydantic import BaseModel, Field, validator
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
-
-# --- [AQUI ENTRARIAM TODOS OS SEUS DEMAIS IMPORTS E CONFIGURAÇÕES ORIGINAIS] ---
-
-# Configuração de logging (Mantida)
+# --- CONFIGURAÇÃO DE LOGGING ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# --- CORREÇÃO: LIFESPAN DEFINIDO ANTES DA CRIAÇÃO DO APP ---
+# --- IMPORTAÇÕES SEGURAS (Evita que o deploy quebre se um módulo faltar) ---
+try:
+    from core.atena_llm_router import AtenaLLMRouterAdvanced as AtenaLLMRouter
+except Exception as e:
+    logger.error(f"Erro ao importar AtenaLLMRouter: {e}")
+    AtenaLLMRouter = None
+
+# --- LIFESPAN DEFINIDO ANTES DA CRIAÇÃO DO APP ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Gerencia ciclo de vida da aplicação"""
     logger.info("🚀 Iniciando ATENA Ω...")
-    # Aqui você pode carregar seus objetos de banco/cache
     yield
     logger.info("🛑 Encerrando ATENA Ω...")
 
-# --- CRIAÇÃO DO APP COM LIFESPAN INJETADO ---
-# Esta é a mudança que resolve o erro "Attribute app not found"
+# --- CRIAÇÃO DO APP (O Uvicorn busca 'app' aqui) ---
+from fastapi import FastAPI
 app = FastAPI(
     title="ATENA Ω API",
     version="10.2.0",
-    lifespan=lifespan 
+    lifespan=lifespan
 )
 
-# --- [AQUI VOCÊ COLA TODO O RESTANTE DO SEU CÓDIGO ORIGINAL] ---
-# Middlewares, Routers, Endpoints, @app.get, @app.post, etc.
+# --- IMPORTAÇÕES RESTANTES ---
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, Response
+from pydantic import BaseModel, Field
 
-# Exemplo de verificação que deve ficar aqui:
+# Configuração CORS (Mantida)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- ENDPOINTS ---
 @app.get("/healthz")
 async def healthz():
     return {"status": "online", "version": "10.2.0"}
 
+# --- EXECUÇÃO ---
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", "8000"))
