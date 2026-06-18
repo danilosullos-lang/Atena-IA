@@ -1,0 +1,38 @@
+{
+  "whatsapp_business": {
+    "type": "whatsapp",
+    "config": {
+      "name": "whatsapp_business",
+      "service_type": "messaging",
+      "api_key": "YOUR_WHATSAPP_API_KEY",
+      "webhook_url": "https://seu-dominio.com/webhooks/whatsapp",
+      "custom_config": {
+        "phone_number_id": "YOUR_PHONE_NUMBER_ID",
+        "business_account_id": "YOUR_BUSINESS_ACCOUNT_ID"
+      },
+      "enabled": false
+    }
+  },
+  "discord_bot": {
+    "type": "discord",
+    "config": {
+      "name": "discord_bot",
+      "service_type": "social",
+      "api_key": "YOUR_DISCORD_BOT_TOKEN",
+      "webhook_url": null,
+      "custom_config": {},
+      "enabled": false
+    }
+  },
+  "telegram_bot": {
+    "type": "telegram",
+    "config": {
+      "name": "telegram_bot",
+      "service_type": "messaging",
+      "api_key": "YOUR_TELEGRAM_BOT_TOKEN",
+      "webhook_url": "https://seu-dominio.com/webhooks/telegram",
+      "custom_config": {},
+      "enabled": false
+    }
+  }
+}

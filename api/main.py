@@ -50,6 +50,7 @@ from fastapi.responses import HTMLResponse, Response, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from api.dashboard_html import get_dashboard_html
+from api.connectors_api import router as connectors_router
 
 # Configuração CORS (Mantida)
 app.add_middleware(
@@ -59,6 +60,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Incluir router de conectores
+app.include_router(connectors_router)
 
 # --- ENDPOINTS ---
 @app.get("/healthz")
