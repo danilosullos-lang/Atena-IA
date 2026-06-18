@@ -67,13 +67,16 @@ from contextlib import contextmanager, redirect_stdout, redirect_stderr
 
 # --- Adicionado para conectar com as novas pastas do seu GitHub ---
 BASE_DIR = Path(__file__).parent
-REPO_ROOT = BASE_DIR.parent
+# REPO_ROOT é a própria pasta do repositório (onde main.py está)
+REPO_ROOT = BASE_DIR
 DNA_DIR = REPO_ROOT / "atena_evolution" / "reference_dna"
 MODULES_DIR = REPO_ROOT / "modules"
 
 # Permite que o Python importe o que estiver dentro da pasta /modules
 if str(MODULES_DIR) not in sys.path:
     sys.path.append(str(MODULES_DIR))
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from modules.atena_advanced_essentials import AtenaAdvancedEssentials
 
