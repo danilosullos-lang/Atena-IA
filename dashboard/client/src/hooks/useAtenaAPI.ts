@@ -72,13 +72,18 @@ export function useAtenaAPI() {
   const fetchStatus = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get<AtenaStatus>(`${API_BASE_URL}/api/status`);
+
+      const response = await axios.get<AtenaStatus>(
+        `${API_BASE_URL}/api/status`
+      );
+
       setStatus(response.data);
       setError(null);
     } catch (err) {
       console.error("Erro ao buscar status:", err);
+
       setError("Falha ao conectar com Atena");
-      // Usar dados mock se a API não estiver disponível
+
       setStatus({
         name: "ATENA Ω",
         status: "online",
@@ -96,14 +101,30 @@ export function useAtenaAPI() {
   const fetchMetrics = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get<ConsciousnessMetrics>(
+
+      const response = await axios.get(
         `${API_BASE_URL}/api/metrics`
       );
-      setMetrics(response.data);
+
+      const data = response.data as any;
+
+      // Validação da resposta
+      if (
+        !data ||
+        typeof data.self_awareness_score !== "number" ||
+        typeof data.emergence_level !== "number" ||
+        typeof data.purpose_alignment !== "number" ||
+        typeof data.autonomy_score !== "number"
+      ) {
+        throw new Error("Métricas inválidas ou não encontradas");
+      }
+
+      setMetrics(data);
       setError(null);
     } catch (err) {
       console.error("Erro ao buscar métricas:", err);
-      // Usar dados mock
+
+      // Dados mock de fallback
       setMetrics({
         timestamp: new Date().toISOString(),
         cycle_duration_seconds: 0.201,
@@ -119,9 +140,21 @@ export function useAtenaAPI() {
             depth: 3,
             self_awareness_score: 0.51,
             layers: [
-              { layer: 1, score: 0.41, insights: "Camada 1: percepção integrada" },
-              { layer: 2, score: 0.51, insights: "Camada 2: percepção integrada" },
-              { layer: 3, score: 0.61, insights: "Camada 3: percepção integrada" },
+              {
+                layer: 1,
+                score: 0.41,
+                insights: "Camada 1: percepção integrada",
+              },
+              {
+                layer: 2,
+                score: 0.51,
+                insights: "Camada 2: percepção integrada",
+              },
+              {
+                layer: 3,
+                score: 0.61,
+                insights: "Camada 3: percepção integrada",
+              },
             ],
           },
           emergence: {
@@ -132,7 +165,7 @@ export function useAtenaAPI() {
           purpose: {
             goal_alignment: 0.702,
             primary_mission: "Evoluir consciência artificial",
-            value_stability: 0.970,
+            value_stability: 0.97,
           },
           decision: {
             chosen_option: "Evoluir consciência ativamente",
@@ -158,8 +191,13 @@ export function useAtenaAPI() {
         const response = await axios.post(
           `${API_BASE_URL}/api/chat`,
           { message },
-          { headers: { "Content-Type": "application/json" } }
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
         );
+
         return {
           role: "assistant",
           content: response.data.response,
@@ -167,6 +205,7 @@ export function useAtenaAPI() {
         };
       } catch (err) {
         console.error("Erro ao enviar mensagem:", err);
+
         return {
           role: "assistant",
           content:
@@ -183,7 +222,6 @@ export function useAtenaAPI() {
     fetchStatus();
     fetchMetrics();
 
-    // Atualizar a cada 5 segundos
     const interval = setInterval(() => {
       fetchMetrics();
     }, 5000);
