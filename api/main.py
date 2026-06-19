@@ -53,6 +53,19 @@ from api.dashboard_html import get_dashboard_html
 from core.atena_evolution_v5_singularity import SingularityProtocol
 from api.connectors_api import router as connectors_router
 
+# --- SCANNER DE APIs (importação segura, igual ao padrão do AtenaLLMRouter) ---
+try:
+    from core.internet_challenge import (
+        recommend_public_apis,
+        discover_any_apis,
+        rank_api_candidates,
+    )
+except Exception as e:
+    logger.error(f"Erro ao importar internet_challenge (scanner de APIs): {e}")
+    recommend_public_apis = None
+    discover_any_apis = None
+    rank_api_candidates = None
+
 # Configuração CORS (Mantida)
 app.add_middleware(
     CORSMiddleware,
@@ -91,6 +104,32 @@ async def get_status():
         "version": "10.2.0",
         "last_evolution": datetime.now().isoformat()
     }
+
+@app.get("/api/scan-apis")
+async def scan_apis(query: str = "", limit: int = 8):
+    """
+    Scanner de APIs da ATENA, exposto no servidor de verdade.
+    - Combina o catálogo interno (sem rede) com descoberta externa
+      (GitHub public-apis, apis.guru), quando GITHUB_TOKEN está configurado.
+    - Sem GITHUB_TOKEN nas env vars do Render, a parte de descoberta no
+      GitHub fica sujeita ao limite de 60 req/h e pode vir vazia.
+    """
+    if rank_api_candidates is None:
+        return {"error": "Scanner de APIs indisponível (falha de import). Veja os logs do servidor."}
+    try:
+        ranked = rank_api_candidates(query, limit=limit)
+        discovered = discover_any_apis(query, limit=limit) if query else []
+        return {
+            "query": query,
+            "ranked_internal": ranked,
+            "discovered_external": discovered,
+            "github_token_configured": bool(
+                os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN")
+            ),
+        }
+    except Exception as e:
+        logger.error(f"Erro no /api/scan-apis: {e}")
+        return {"error": str(e)}
 
 class ChatRequest(BaseModel):
     message: str

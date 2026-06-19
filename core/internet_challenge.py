@@ -499,6 +499,15 @@ def _api_auth_headers_for_url(url: str) -> dict[str, str]:
     O usuário pode fornecer as chaves por variáveis de ambiente.
     """
     host = _normalize_host(urllib.parse.urlparse(url).netloc)
+
+    # GitHub: sem token = 60 req/h por IP. Com token = 5000 req/h.
+    # Aceita GITHUB_TOKEN ou GH_TOKEN (qualquer um já resolve o rate limit).
+    if host == "api.github.com":
+        gh_token = (os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN") or "").strip()
+        if gh_token:
+            return {"Authorization": f"Bearer {gh_token}"}
+        return {}
+
     env_map = {
         "api.openweathermap.org": ("OPENWEATHER_API_KEY", "appid"),
         "api.nasa.gov": ("NASA_API_KEY", "api_key"),
@@ -747,8 +756,8 @@ def discover_any_apis(query: str, limit: int = 10) -> list[dict[str, str]]:
                         if isinstance(first_version, dict):
                             preferred = str(first_version.get("swaggerUrl") or first_version.get("openapiVer") or "")
                 out.append({"name": label, "endpoint": preferred or "n/a", "category": "external_catalog"})
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("discover_any_apis: falha ao consultar apis.guru: %s", exc)
 
     # 2) Public APIs repo index (como fallback de descoberta ampla)
     if len(out) < limit:
@@ -762,8 +771,8 @@ def discover_any_apis(query: str, limit: int = 10) -> list[dict[str, str]]:
                     if q and q not in n.lower():
                         continue
                     out.append({"name": f"public-apis:{n}", "endpoint": str(item.get("download_url", "")), "category": "external_catalog"})
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("discover_any_apis: falha ao consultar GitHub public-apis (possível rate limit sem GITHUB_TOKEN): %s", exc)
 
     # 3) Catálogos adicionais para ampliar cobertura (GitHub/raw/open datasets)
     if len(out) < limit:
