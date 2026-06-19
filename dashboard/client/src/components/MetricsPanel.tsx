@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { TrendingUp, Zap, Brain, Cpu } from "lucide-react";
 
 interface Metric {
   label: string;
@@ -15,6 +14,11 @@ interface MetricsPanelProps {
 }
 
 const MetricCard = ({ metric, index }: { metric: Metric; index: number }) => {
+  const safeValue =
+    typeof metric.value === "number" && !isNaN(metric.value)
+      ? metric.value
+      : 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -31,6 +35,7 @@ const MetricCard = ({ metric, index }: { metric: Metric; index: number }) => {
             <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
               {metric.label}
             </p>
+
             <div className="mt-2 flex items-baseline gap-1">
               <motion.span
                 className="text-2xl font-bold text-foreground"
@@ -42,13 +47,17 @@ const MetricCard = ({ metric, index }: { metric: Metric; index: number }) => {
                   repeat: Infinity,
                 }}
               >
-                {metric.value.toFixed(1)}
+                {safeValue.toFixed(1)}
               </motion.span>
+
               {metric.unit && (
-                <span className="text-xs text-muted-foreground">{metric.unit}</span>
+                <span className="text-xs text-muted-foreground">
+                  {metric.unit}
+                </span>
               )}
             </div>
           </div>
+
           <div className={`p-2 rounded-lg ${metric.color}`}>
             {metric.icon}
           </div>
@@ -59,6 +68,10 @@ const MetricCard = ({ metric, index }: { metric: Metric; index: number }) => {
 };
 
 export default function MetricsPanel({ metrics }: MetricsPanelProps) {
+  if (!Array.isArray(metrics)) {
+    return null;
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
       {metrics.map((metric, index) => (
