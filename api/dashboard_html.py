@@ -59,7 +59,7 @@ def get_dashboard_html() -> str:
         <body>
             <div class="container">
                 <h1>ATENA Ω</h1>
-                <p>Dashboard em construção...</p>
+                <p>ATENA Ω - SISTEMA ONLINE</p>
                 <div class="spinner"></div>
             </div>
         </body>
