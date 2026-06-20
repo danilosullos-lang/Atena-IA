@@ -561,7 +561,7 @@ class AnthropicProvider(BaseLLMProvider):
     def __init__(self, config: RouterConfig):
         super().__init__("anthropic", config)
         self.api_key = os.getenv("ANTHROPIC_API_KEY")
-        self.model = os.getenv("ATENA_ANTHROPIC_MODEL", "claude-3-sonnet-20240229")
+        self.model = os.getenv("ATENA_ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
         self.base_url = "https://api.anthropic.com/v1/messages"
     
     async def generate(self, request: LLMRequest) -> LLMResponse:
@@ -593,6 +593,61 @@ class AnthropicProvider(BaseLLMProvider):
         # Para simplicidade, não implementamos aqui, mas poderia ser adicionado.
         response = await self.generate(request)
         yield response.content
+
+
+class GeminiProvider(BaseLLMProvider):
+    """Google Gemini via Generative Language API (REST, x-goog-api-key)."""
+    def __init__(self, config: RouterConfig):
+        super().__init__("gemini", config)
+        self.api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        self.model = os.getenv("ATENA_GEMINI_MODEL", "gemini-2.5-flash")
+        self.base_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
+
+    async def generate(self, request: LLMRequest) -> LLMResponse:
+        if not self.api_key:
+            raise ValueError("GEMINI_API_KEY not set")
+        payload = {
+            "system_instruction": {"parts": [{"text": request.system_prompt}]},
+            "contents": [
+                {"role": "user", "parts": [{"text": f"Contexto: {request.context}\n\nPrompt: {request.prompt}"}]}
+            ],
+            "generationConfig": {
+                "temperature": request.temperature,
+                "maxOutputTokens": request.max_tokens,
+            },
+        }
+        headers = {"x-goog-api-key": self.api_key, "Content-Type": "application/json"}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(self.base_url, headers=headers, json=payload) as resp:
+                if resp.status != 200:
+                    text = await resp.text()
+                    raise Exception(f"Gemini API error {resp.status}: {text}")
+                data = await resp.json()
+                candidates = data.get("candidates", [])
+                if not candidates:
+                    raise Exception(f"Gemini sem candidates na resposta: {data}")
+                parts = candidates[0].get("content", {}).get("parts", [])
+                content = "".join(p.get("text", "") for p in parts)
+                usage = data.get("usageMetadata", {})
+                tokens = usage.get("totalTokenCount", 0)
+                return LLMResponse(content=content, provider=self.name, model=self.model, latency_ms=0, tokens_used=tokens)
+
+    async def generate_stream(self, request: LLMRequest) -> AsyncIterator[str]:
+        # Gemini suporta streamGenerateContent; por simplicidade, geramos completo e devolvemos de uma vez.
+        response = await self.generate(request)
+        yield response.content
+
+    async def health_check(self) -> bool:
+        # GET na URL base do endpoint (sem :generateContent) com a chave, evita gastar tokens no health check.
+        if not self.api_key:
+            return False
+        list_url = "https://generativelanguage.googleapis.com/v1beta/models"
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(list_url, headers={"x-goog-api-key": self.api_key}, timeout=5) as resp:
+                    return resp.status < 500
+        except Exception:
+            return False
 
 
 class LocalProvider(BaseLLMProvider):
@@ -677,6 +732,8 @@ class AtenaLLMRouterAdvanced:
             self._providers["deepseek"] = DeepSeekProvider(self.config)
         if os.getenv("ANTHROPIC_API_KEY"):
             self._providers["anthropic"] = AnthropicProvider(self.config)
+        if os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"):
+            self._providers["gemini"] = GeminiProvider(self.config)
         # Sempre tenta o provedor local (se detectável)
         try:
             # Testa se o servidor local responde

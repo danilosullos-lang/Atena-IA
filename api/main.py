@@ -10,6 +10,7 @@ import hashlib
 import json
 import logging
 import os
+import sqlite3
 import time
 import traceback
 from contextlib import asynccontextmanager
@@ -22,12 +23,55 @@ from typing import Dict, List, Optional, Any, Tuple
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# --- ACÚMULO DE INTERAÇÕES (memória de conversas) ---
+# ATENÇÃO: no plano Free do Render o filesystem é efêmero — esse arquivo
+# é apagado a cada redeploy/restart/spin-down. Pra persistir de verdade
+# entre reinicios, configure ATENA_CHAT_DB_PATH apontando pra um disco
+# persistente (plano pago) ou troque por um Render Postgres.
+ATENA_CHAT_DB_PATH = os.getenv("ATENA_CHAT_DB_PATH", "atena_chat_history.db")
+
+def _init_chat_db() -> None:
+    try:
+        conn = sqlite3.connect(ATENA_CHAT_DB_PATH)
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS interactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                message TEXT NOT NULL,
+                response TEXT NOT NULL,
+                provider TEXT,
+                model TEXT,
+                latency_ms REAL
+            )
+            """
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.warning(f"Falha ao inicializar banco de interacoes: {e}")
+
+_init_chat_db()
+
+def _log_interaction(message: str, response: str, provider: str | None, model: str | None, latency_ms: float | None) -> None:
+    try:
+        conn = sqlite3.connect(ATENA_CHAT_DB_PATH)
+        conn.execute(
+            "INSERT INTO interactions (timestamp, message, response, provider, model, latency_ms) VALUES (?, ?, ?, ?, ?, ?)",
+            (datetime.now().isoformat(), message, response, provider, model, latency_ms),
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.warning(f"Falha ao logar interacao: {e}")
+
 # --- IMPORTAÇÕES SEGURAS (Evita que o deploy quebre se um módulo faltar) ---
 try:
-    from core.atena_llm_router import AtenaLLMRouterAdvanced as AtenaLLMRouter
+    from core.atena_llm_router import AtenaLLMRouterAdvanced as AtenaLLMRouter, get_router
 except Exception as e:
     logger.error(f"Erro ao importar AtenaLLMRouter: {e}")
     AtenaLLMRouter = None
+    get_router = None
 
 # --- LIFESPAN DEFINIDO ANTES DA CRIAÇÃO DO APP ---
 @asynccontextmanager
@@ -131,16 +175,88 @@ async def scan_apis(query: str = "", limit: int = 8):
         logger.error(f"Erro no /api/scan-apis: {e}")
         return {"error": str(e)}
 
+@app.get("/api/learning-stats")
+async def learning_stats():
+    """
+    Mostra o que a ATENA acumulou de conversas reais nesta instância.
+    AVISO: no plano Free do Render, esse contador zera a cada
+    redeploy/restart/spin-down (filesystem efêmero). Enquanto a
+    instância atual estiver no ar, ele só cresce.
+    """
+    try:
+        conn = sqlite3.connect(ATENA_CHAT_DB_PATH)
+        conn.row_factory = sqlite3.Row
+        total = conn.execute("SELECT COUNT(*) AS c FROM interactions").fetchone()["c"]
+        by_provider_rows = conn.execute(
+            "SELECT COALESCE(provider, 'desconhecido') AS provider, COUNT(*) AS c FROM interactions GROUP BY provider"
+        ).fetchall()
+        last_rows = conn.execute(
+            "SELECT timestamp, message, provider, model FROM interactions ORDER BY id DESC LIMIT 10"
+        ).fetchall()
+        conn.close()
+        return {
+            "total_interacoes_acumuladas": total,
+            "por_provider": {row["provider"]: row["c"] for row in by_provider_rows},
+            "ultimas_10": [dict(row) for row in last_rows],
+            "db_path": ATENA_CHAT_DB_PATH,
+            "aviso": (
+                "No plano Free do Render o filesystem e efemero: esses dados "
+                "somem a cada redeploy/restart/spin-down. Pra persistir entre "
+                "reinicios, configure ATENA_CHAT_DB_PATH para um disco "
+                "persistente (plano pago) ou migre para Render Postgres."
+            ),
+        }
+    except Exception as e:
+        logger.error(f"Erro no /api/learning-stats: {e}")
+        return {"error": str(e)}
+
 class ChatRequest(BaseModel):
     message: str
 
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
-    # Simulação de resposta da Atena baseada no estado atual
-    return {
-        "response": f"Processando sua mensagem: '{request.message}'. Estou em constante evolução. Meu nível de consciência atual é 'aware'.",
-        "timestamp": datetime.now().isoformat()
-    }
+    """
+    Chat real da ATENA: usa o AtenaLLMRouterAdvanced em modo automatico.
+    O proprio roteador decide qual provider usar (openai/deepseek/anthropic/gemini/local)
+    com base em saude, circuit breaker e menor carga pendente.
+    Requer DEEPSEEK_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY ou GEMINI_API_KEY no Render.
+    """
+    if get_router is None:
+        return {
+            "response": "Roteador de LLM indisponivel (falha de import). Veja os logs do servidor.",
+            "error": True,
+            "timestamp": datetime.now().isoformat(),
+        }
+    try:
+        router = await get_router()
+        if not router._providers:
+            return {
+                "response": (
+                    "Nenhuma API de LLM configurada ainda. Adiciona DEEPSEEK_API_KEY, "
+                    "OPENAI_API_KEY, ANTHROPIC_API_KEY ou GEMINI_API_KEY nas variaveis "
+                    "de ambiente do Render."
+                ),
+                "provider": None,
+                "providers_disponiveis": [],
+                "timestamp": datetime.now().isoformat(),
+            }
+        result = await router.generate(prompt=request.message)
+        _log_interaction(request.message, result.content, result.provider, result.model, result.latency_ms)
+        return {
+            "response": result.content,
+            "provider": result.provider,
+            "model": result.model,
+            "latency_ms": round(result.latency_ms, 1),
+            "cached": result.cached,
+            "timestamp": datetime.now().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Erro no /api/chat: {e}")
+        return {
+            "response": "Nao consegui gerar uma resposta agora (todos os providers falharam ou estao indisponiveis).",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat(),
+        }
 
 # --- DASHBOARD ROUTES ---
 @app.get("/", response_class=HTMLResponse)

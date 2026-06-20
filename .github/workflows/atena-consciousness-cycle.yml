@@ -1,8 +1,19 @@
 name: ATENA Consciousness Cycle
 
+# DESATIVADO em 2026-06-19: rodava de hora em hora sem nenhuma conexao
+# com o sistema real (nao roda no Render, ninguem le memoria_atena.json,
+# "Processamento de alta complexidade concluido" era texto fixo, e os
+# ultimos 22/23 ciclos vinham falhando com erro silencioso). Decisao
+# consciente: focar energia no /api/chat real (roteador de LLM) e no
+# /api/learning-stats (acumulo real de conversas) em vez disso.
+#
+# Pra reativar manualmente (ex: depois de corrigir o User-Agent que
+# fazia a Wikipedia bloquear a requisicao), use o botao "Run workflow"
+# na aba Actions do GitHub (workflow_dispatch continua disponivel),
+# ou descomente o bloco "schedule" abaixo.
 on:
-  schedule:
-    - cron: '30 * * * *'
+  # schedule:
+  #   - cron: '30 * * * *'
   workflow_dispatch:
 
 jobs:
