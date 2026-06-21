@@ -510,7 +510,7 @@ class OpenAIProvider(BaseLLMProvider):
         async with aiohttp.ClientSession() as session:
             async with session.post(url, headers={"Authorization": f"Bearer {self.api_key}"}, json=payload) as resp:
                 if resp.status != 200:
-                    text = await resp.text()
+                    text = await resp.text() if resp is not None else "Erro: Resposta vazia"
                     raise Exception(f"OpenAI API error {resp.status}: {text}")
                 data = await resp.json()
                 content = data["choices"][0]["message"]["content"]
@@ -582,7 +582,7 @@ class AnthropicProvider(BaseLLMProvider):
         async with aiohttp.ClientSession() as session:
             async with session.post(self.base_url, headers=headers, json=payload) as resp:
                 if resp.status != 200:
-                    text = await resp.text()
+                    text = await resp.text() if resp is not None else "Erro: Resposta vazia"
                     raise Exception(f"Anthropic API error {resp.status}: {text}")
                 data = await resp.json()
                 content = data.get("content", [{}])[0].get("text", "")
@@ -620,7 +620,7 @@ class GeminiProvider(BaseLLMProvider):
         async with aiohttp.ClientSession() as session:
             async with session.post(self.base_url, headers=headers, json=payload) as resp:
                 if resp.status != 200:
-                    text = await resp.text()
+                    text = await resp.text() if resp is not None else "Erro: Resposta vazia"
                     raise Exception(f"Gemini API error {resp.status}: {text}")
                 data = await resp.json()
                 candidates = data.get("candidates", [])
@@ -673,7 +673,7 @@ class LocalProvider(BaseLLMProvider):
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=payload) as resp:
                 if resp.status != 200:
-                    text = await resp.text()
+                    text = await resp.text() if resp is not None else "Erro: Resposta vazia"
                     raise Exception(f"Local LLM error {resp.status}: {text}")
                 data = await resp.json()
                 content = data["choices"][0]["message"]["content"]
