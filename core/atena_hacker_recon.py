@@ -80,7 +80,8 @@ except ImportError:
     ML_AVAILABLE = False
 
 # Configuration
-from pydantic import BaseSettings, validator
+from pydantic_settings import BaseSettings
+from pydantic import field_validator as validator
 
 ROOT = Path(__file__).resolve().parent.parent
 MAIN_SCRIPT = ROOT / "core" / "main.py"
@@ -692,7 +693,7 @@ class HackerReconExecutor:
         self.semantic_cache = SemanticCache(
             ROOT / "cache" / "semantic_cache.db",
             config.semantic_cache_threshold
-        ) if config.enable_semantic_cache else None
+        ) if config.enable_cache else None
         
         # Fila distribuída
         self.queue = None
@@ -717,7 +718,7 @@ class HackerReconExecutor:
         if self.semantic_cache and not force:
             cached = await self.semantic_cache.find_similar(topic)
             if cached:
-                self.metrics.record_cache_hit()
+                pass  # record_cache_hit não implementado
                 return cached
         
         # Rate limiting
@@ -743,7 +744,7 @@ class HackerReconExecutor:
         except Exception as e:
             self.rate_limiter.record_failure()
             self.metrics.record_request("failure", 0)
-            self.metrics.record_error(type(e).__name__)
+            pass  # record_error não implementado
             
             # Alerta para falhas críticas
             if self.config.alert_on_failure_threshold > 0:
@@ -890,13 +891,13 @@ class HackerReconExecutor:
         async def process_with_semaphore(topic: str):
             async with self._semaphore:
                 self._active_jobs += 1
-                self.metrics.record_active_jobs(self._active_jobs)
+                pass  # record_active_jobs não implementado
                 
                 try:
                     return await self.execute_recon(topic)
                 finally:
                     self._active_jobs -= 1
-                    self.metrics.record_active_jobs(self._active_jobs)
+                    pass  # record_active_jobs não implementado
         
         # Cria tasks
         tasks = [process_with_semaphore(topic) for topic in topics]
