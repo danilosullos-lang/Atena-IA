@@ -71,6 +71,14 @@ slowapi
 discord.py>=2.7.0,<3.0     # usado em modules/connectors/discord_connector.py
 aiosmtplib>=5.0.0,<6.0     # usado em modules/connectors/email_connector.py
 
-# ─── Conectores (usados em modules/connectors) ───────────────────────────────
-discord.py>=2.7.0,<3.0     # usado em modules/connectors/discord_connector.py
-aiosmtplib>=5.0.0,<6.0     # usado em modules/connectors/email_connector.py
+# ─── Faltantes detectados em runtime (imports diretos, sem try/except) ───────
+# Sem estes, core/atena_github_evolution_scan.py, core/atena_memory_vault.py e
+# outros módulos "core" falham no import e derrubam o preload da ATENA.
+structlog>=24.1.0          # logging estruturado (atena_github_evolution_scan, memory_vault)
+prometheus-client>=0.20.0  # métricas (memory_vault, hacker_recon, secret_scan)
+tenacity>=8.2.0             # retry/backoff (github_evolution_scan)
+fake-useragent>=1.5.0       # usado por HackerReconModule (main.py)
+msgpack>=1.0.0              # serialização (atena_memory_vault)
+orjson>=3.9.0                # serialização rápida (atena_memory_vault)
+xxhash>=3.4.0                # hashing rápido (atena_memory_vault)
+zstandard>=0.22.0            # compressão (atena_memory_vault)
