@@ -1,14 +1,15 @@
 from __future__ import annotations
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 ATENA Ω Vercel Dashboard and Chat API - Enterprise Edition
 Version: 10.2.0 - OMNI-PREDATOR Core+
 """
-from __future__ import annotations
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import asyncio
 import hashlib
 import json
