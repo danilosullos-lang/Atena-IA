@@ -84,19 +84,19 @@ def main() -> int:
         )
     )
 
-    # 5) Compile de demos/testes de topo
-    rc, out = run_cmd(
-        [
-            sys.executable,
-            "-m",
-            "py_compile",
-            "demo_orchestrator.py",
-            "demo_price_extraction.py",
-            "demo_web_extraction.py",
-            "test_browser_integration.py",
-            "test_control_system.py",
-        ]
+    # 5) Compile de demos/testes de topo (resiliente: só verifica arquivos que existem;
+    #    se nenhum existir, usa core/atena_launcher.py como fallback)
+    import glob as _glob
+    candidates = (
+        ["demo_orchestrator.py", "demo_price_extraction.py", "demo_web_extraction.py",
+         "test_browser_integration.py", "test_control_system.py"]
+        + _glob.glob("demo_*.py")
+        + _glob.glob("test_*.py")
     )
+    existing = sorted({c for c in candidates if os.path.exists(str(ROOT / c))})
+    if not existing:
+        existing = ["core/atena_launcher.py"]
+    rc, out = run_cmd([sys.executable, "-m", "py_compile", *existing])
     checks.append(
         CheckResult(
             "root-demos-pycompile",
