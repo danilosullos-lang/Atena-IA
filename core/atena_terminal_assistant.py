@@ -375,8 +375,19 @@ class AutoLearner:
                 best_match = pattern
         
         if best_match and best_match["responses"]:
-            # Retorna resposta com maior recompensa observada
-            best_response = max(best_match["responses"], key=lambda x: float(x.get("reward", 0.0)))
+            # Retorna resposta válida com maior recompensa observada
+            def _is_valid(resp: Dict[str, Any]) -> bool:
+                text = resp.get("response")
+                if not isinstance(text, str) or not text.strip():
+                    return False
+                # Proteção contra coroutines/objetos inválidos armazenados como "resposta"
+                if text.startswith("<coroutine") or text.startswith("<function") or text.startswith("<Task"):
+                    return False
+                return True
+            valid_responses = [r for r in best_match["responses"] if _is_valid(r)]
+            if not valid_responses:
+                return None
+            best_response = max(valid_responses, key=lambda x: float(x.get("reward", 0.0)))
             return best_response["response"]
         return None
 
