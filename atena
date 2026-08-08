@@ -772,7 +772,7 @@ main() {
                 mode="perf_diag"
                 shift
                 ;;
-            assistant|manus|codex|claude-code|benchmark|self-test|release-gate|install-deps|github-scan|future-ai-fabric|aegis-mythos|production-center|modules-smoke|go-no-go|agi-uplift|guardian|production-ready|research-lab|future-ai|codex-advanced|genius|digital-organism-audit|orchestrator-mission|invoke|dialog)
+            assistant|manus|codex|claude-code|benchmark|self-test|release-gate|install-deps|github-scan|future-ai-fabric|aegis-mythos|production-center|modules-smoke|go-no-go|agi-uplift|guardian|production-ready|research-lab|future-ai|codex-advanced|genius|digital-organism-audit|orchestrator-mission|invoke|dialog|doctor|metrics|update|perf-diag|scale|monitor)
                 mode="$1"
                 shift
                 ;;
