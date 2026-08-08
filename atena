@@ -772,7 +772,7 @@ main() {
                 mode="perf_diag"
                 shift
                 ;;
-            assistant|manus|codex|claude-code|benchmark|self-test|release-gate|install-deps|github-scan|future-ai-fabric|aegis-mythos|production-center)
+            assistant|manus|codex|claude-code|benchmark|self-test|release-gate|install-deps|github-scan|future-ai-fabric|aegis-mythos|production-center|modules-smoke|go-no-go|agi-uplift|guardian|production-ready|research-lab|future-ai|codex-advanced|genius|digital-organism-audit|orchestrator-mission|invoke|dialog)
                 mode="$1"
                 shift
                 ;;
@@ -876,6 +876,37 @@ main() {
         aegis-mythos)
             log INFO "Programando tecnologia ATENA Aegis Mythos+..."
             exec $PYTHON_CMD -m core.atena_aegis_mythos_challenger "${args[@]}"
+            ;;
+        modules-smoke|go-no-go|agi-uplift|guardian|production-ready|research-lab|future-ai|codex-advanced|genius|digital-organism-audit|orchestrator-mission|invoke|dialog)
+            # Subcomandos de missão/gate — roteados para os scripts reais
+            local script=""
+            if [[ -f "$ROOT_DIR/protocols/atena_${mode}.py" ]]; then
+                script="$ROOT_DIR/protocols/atena_${mode}.py"
+            elif [[ -f "$CORE_DIR/atena_${mode}.py" ]]; then
+                script="$CORE_DIR/atena_${mode}.py"
+            elif [[ -f "$ROOT_DIR/protocols/atena_${mode}_mission.py" ]]; then
+                script="$ROOT_DIR/protocols/atena_${mode}_mission.py"
+            fi
+            # Mapeamentos nome-comando -> nome-real-de-arquivo
+            case "$mode" in
+                go-no-go) [[ -f "$ROOT_DIR/protocols/atena_go_no_go_mission.py" ]] && script="$ROOT_DIR/protocols/atena_go_no_go_mission.py" ;;
+                modules-smoke) [[ -f "$ROOT_DIR/protocols/atena_module_smoke_mission.py" ]] && script="$ROOT_DIR/protocols/atena_module_smoke_mission.py" ;;
+                guardian) [[ -f "$ROOT_DIR/protocols/atena_guardian_mission.py" ]] && script="$ROOT_DIR/protocols/atena_guardian_mission.py" ;;
+                production-ready) [[ -f "$ROOT_DIR/protocols/atena_production_mission.py" ]] && script="$ROOT_DIR/protocols/atena_production_mission.py" ;;
+                research-lab) [[ -f "$ROOT_DIR/protocols/atena_research_lab_mission.py" ]] && script="$ROOT_DIR/protocols/atena_research_lab_mission.py" ;;
+                codex-advanced) [[ -f "$ROOT_DIR/protocols/atena_codex_advanced_mission.py" ]] && script="$ROOT_DIR/protocols/atena_codex_advanced_mission.py" ;;
+                digital-organism-audit) [[ -f "$ROOT_DIR/protocols/atena_digital_organism_audit_mission.py" ]] && script="$ROOT_DIR/protocols/atena_digital_organism_audit_mission.py" ;;
+                future-ai) [[ -f "$ROOT_DIR/protocols/atena_future_ai_mission.py" ]] && script="$ROOT_DIR/protocols/atena_future_ai_mission.py" ;;
+                agi-uplift) [[ -f "$ROOT_DIR/protocols/atena_agi_uplift_mission.py" ]] && script="$ROOT_DIR/protocols/atena_agi_uplift_mission.py" ;;
+                dialog) [[ -f "$ROOT_DIR/protocols/atena_dialogue_session.py" ]] && script="$ROOT_DIR/protocols/atena_dialogue_session.py" ;;
+                invoke) [[ -f "$ROOT_DIR/protocols/atena_invoke.py" ]] && script="$ROOT_DIR/protocols/atena_invoke.py" ;;
+            esac
+            if [[ -n "$script" ]]; then
+                log INFO "Executando missão/gate: $mode ($script)"
+                exec $PYTHON_CMD "$script" "${args[@]}"
+            else
+                error_exit "Subcomando '$mode' não mapeado para nenhum script." 2
+            fi
             ;;
         monitor)
             log INFO "Iniciando com monitoramento..."
