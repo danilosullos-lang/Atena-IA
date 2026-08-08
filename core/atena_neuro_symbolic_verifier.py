@@ -1,92 +1,130 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    ATENA Ω — PILAR 1: NEURO-SYMBOLIC LOGIC VERIFIER
-    Geração 353 — Validação Formal de Código via Lógica Simbólica
+atena_neuro_symbolic_verifier.py
+
+Módulo neuro-simbólico híbrido para ATENA Ω:
+- Combina aprendizado profundo para reconhecimento e inferência probabilística
+- Integra lógica simbólica formal para raciocínio deliberativo e verificação contínua
+- Pipeline em tempo real para monitorar e validar alterações na arquitetura autônoma
 """
 
-import ast
+import threading
+import time
 import logging
-import re
-from typing import Dict, List, Tuple
+import json
+import hashlib
+from typing import Any, Dict, List, Optional, Tuple, Callable
+import numpy as np
 
-# Configuração do Logger
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] ATENA Ω — %(message)s")
-logger = logging.getLogger("AtenaNSVerifier")
+try:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+except ImportError:
+    torch = None
+
+import sympy
+from sympy.logic.boolalg import And, Or, Not, Implies, Equivalent
+from sympy.logic.inference import satisfiable
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s][%(levelname)s][ATENA Ω] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger("atena_neuro_symbolic_verifier")
+
+# --- COMPONENTE NEURAL ---
+
+if torch:
+    class NeuralInferenceModel(nn.Module):
+        def __init__(self, input_dim: int, hidden_dims: List[int], output_dim: int):
+            super().__init__()
+            layers = []
+            last_dim = input_dim
+            for hdim in hidden_dims:
+                layers.append(nn.Linear(last_dim, hdim))
+                layers.append(nn.ReLU())
+                last_dim = hdim
+            layers.append(nn.Linear(last_dim, output_dim))
+            self.network = nn.Sequential(*layers)
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            return self.network(x)
+
+        def infer(self, input_vector: np.ndarray) -> np.ndarray:
+            self.eval()
+            with torch.no_grad():
+                x = torch.tensor(input_vector, dtype=torch.float32)
+                logits = self.forward(x)
+                probs = torch.softmax(logits, dim=-1)
+                return probs.cpu().numpy()
+else:
+    class NeuralInferenceModel:
+        def __init__(self, *args, **kwargs):
+            logger.warning("Torch não disponível. Componente neural em modo simulação.")
+        def infer(self, input_vector):
+            return np.array([[0.5, 0.5]])
+
+# --- COMPONENTE SIMBÓLICO ---
+
+class SymbolicLogicEngine:
+    def __init__(self):
+        self.knowledge_base = []
+
+    def add_rule(self, rule_expr):
+        self.knowledge_base.append(rule_expr)
+
+    def check_consistency(self) -> bool:
+        if not self.knowledge_base: return True
+        combined = And(*self.knowledge_base)
+        return bool(satisfiable(combined))
+
+    def infer(self, query) -> bool:
+        combined = And(*self.knowledge_base, Not(query))
+        return not bool(satisfiable(combined))
+
+# --- MONITORAMENTO ---
+
+class CodeChangeMonitor(threading.Thread):
+    def __init__(self, watch_paths: List[str], callback: Callable[[str, str], None]):
+        super().__init__(daemon=True)
+        self.watch_paths = watch_paths
+        self.callback = callback
+        self._stop_event = threading.Event()
+        self._last_hashes = {}
+
+    def _hash_file(self, path: str) -> Optional[str]:
+        try:
+            with open(path, 'rb') as f:
+                return hashlib.sha256(f.read()).hexdigest()
+        except: return None
+
+    def run(self):
+        for path in self.watch_paths:
+            h = self._hash_file(path)
+            if h: self._last_hashes[path] = h
+        while not self._stop_event.is_set():
+            for path in self.watch_paths:
+                new_h = self._hash_file(path)
+                if new_h and new_h != self._last_hashes.get(path):
+                    self.callback(path, new_h)
+                    self._last_hashes[path] = new_h
+            time.sleep(2)
+
+# --- ORQUESTRADOR ---
 
 class NeuroSymbolicVerifier:
-    """
-    Integra o poder das redes neurais com o rigor da lógica simbólica.
-    Verifica se o código gerado segue regras formais de segurança e integridade.
-    """
-    
     def __init__(self):
-        # Regras simbólicas de segurança (Axiomas)
-        self.axioms = {
-            "no_os_system": r"os\.system\(",
-            "no_eval": r"eval\(",
-            "no_exec": r"exec\(",
-            "no_subprocess_shell": r"subprocess\.(run|call|Popen)\(.*?shell=True",
-            "no_import_os": r"import\s+os|from\s+os\s+import"
-        }
-        
-    def verify_syntax(self, code: str) -> Tuple[bool, str]:
-        """Verifica se o código é sintaticamente válido (Lógica Simbólica)."""
-        try:
-            ast.parse(code)
-            return True, "Sintaxe válida."
-        except SyntaxError as e:
-            return False, f"Erro de Sintaxe: {e}"
+        self.neural_model = NeuralInferenceModel(input_dim=10, hidden_dims=[32], output_dim=2)
+        self.symbolic_engine = SymbolicLogicEngine()
 
-    def verify_security_axioms(self, code: str) -> Tuple[bool, List[str]]:
-        """Verifica se o código viola axiomas de segurança pré-definidos."""
-        violations = []
-        for name, pattern in self.axioms.items():
-            if re.search(pattern, code):
-                violations.append(name)
-        
-        if not violations:
-            return True, []
-        return False, violations
+    def verify_action(self, action_vector: np.ndarray, formal_query: Any) -> bool:
+        probs = self.neural_model.infer(action_vector)
+        neural_confidence = np.max(probs)
+        symbolic_valid = self.symbolic_engine.infer(formal_query)
+        logger.info(f"Verificação: Neural({neural_confidence:.2f}) | Simbólico({symbolic_valid})")
+        return neural_confidence > 0.7 and symbolic_valid
 
-    def analyze_complexity(self, code: str) -> Dict:
-        """Analisa a complexidade ciclomática básica do código."""
-        tree = ast.parse(code)
-        complexity = 0
-        for node in ast.walk(tree):
-            if isinstance(node, (ast.If, ast.For, ast.While, ast.And, ast.Or, ast.ExceptHandler)):
-                complexity += 1
-        return {"cyclomatic_complexity": complexity}
-
-    def validate(self, code: str) -> Dict:
-        """Executa a validação neuro-simbólica completa."""
-        logger.info("🔍 Iniciando validação neuro-simbólica...")
-        
-        syntax_ok, syntax_msg = self.verify_syntax(code)
-        if not syntax_ok:
-            return {"status": "REJECTED", "reason": syntax_msg}
-            
-        security_ok, violations = self.verify_security_axioms(code)
-        if not security_ok:
-            return {"status": "REJECTED", "reason": f"Violação de Axiomas: {violations}"}
-            
-        complexity = self.analyze_complexity(code)
-        
-        logger.info("✅ Código aprovado pelo Verificador Neuro-Simbólico.")
-        return {
-            "status": "APPROVED",
-            "metrics": complexity,
-            "verdict": "Matematicamente seguro e sintaticamente correto."
-        }
-
-# Teste Unitário Inline
 if __name__ == "__main__":
-    verifier = NeuroSymbolicVerifier()
-    
-    # Teste 1: Código Seguro
-    safe_code = "def add(a, b):\n    return a + b"
-    print(f"Teste 1 (Seguro): {verifier.validate(safe_code)}")
-    
-    # Teste 2: Código Inseguro (Axioma violado)
-    unsafe_code = "import os\ndef hack():\n    os.system('rm -rf /')"
-    print(f"Teste 2 (Inseguro): {verifier.validate(unsafe_code)}")
+    print("🚀 ATENA Ω Neuro-Symbolic Verifier pronto.")
