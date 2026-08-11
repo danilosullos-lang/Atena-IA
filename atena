@@ -861,6 +861,10 @@ main() {
             log INFO "Executando release gate..."
             exec $PYTHON_CMD "$CORE_DIR/atena_release_gate.py" "${args[@]}"
             ;;
+        sovereign)
+            log INFO "👑 Iniciando Hub Meta-Cognitivo Soberano..."
+            exec $PYTHON_CMD "$CORE_DIR/atena_sovereign_hub.py" "${args[@]}"
+            ;;
         install-deps)
             log INFO "Planejando/instalando dependências..."
             exec $PYTHON_CMD "$CORE_DIR/atena_dependency_installer.py" "${args[@]}"

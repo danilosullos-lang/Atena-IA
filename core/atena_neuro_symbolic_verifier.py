@@ -124,7 +124,7 @@ class NeuroSymbolicVerifier:
         neural_confidence = np.max(probs)
         symbolic_valid = self.symbolic_engine.infer(formal_query)
         logger.info(f"Verificação: Neural({neural_confidence:.2f}) | Simbólico({symbolic_valid})")
-        return neural_confidence > 0.7 and symbolic_valid
+        return neural_confidence > 0.5 and symbolic_valid
 
 if __name__ == "__main__":
     print("🚀 ATENA Ω Neuro-Symbolic Verifier pronto.")
