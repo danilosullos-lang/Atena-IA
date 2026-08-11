@@ -20,6 +20,7 @@ sys.path.append(str(ROOT / "modules"))
 from atena_saca_core import SACACore
 from atena_neuro_symbolic_verifier import NeuroSymbolicVerifier
 from atena_quantum_resilience import PostQuantumCore, PQConsensusVerifier
+from atena_causal_engine import DynamicCausalEngine
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,6 +40,7 @@ class SovereignHub:
         self.verifier = NeuroSymbolicVerifier()
         self.pq_core = PostQuantumCore()
         self.pq_consensus = PQConsensusVerifier()
+        self.causal_engine = DynamicCausalEngine()
         
         # Estado Soberano
         self.sovereign_state = "INITIALIZED"
@@ -69,6 +71,10 @@ class SovereignHub:
             
         topology = self.saca.get_active_topology()
         logger.info(f"Topologia Morfogenética Aplicada: {topology}")
+
+        # Passo 1.5: Análise Causal de Impacto
+        causal_impact = self.causal_engine.predict_impact("Autonomy", 0.5)
+        logger.info(f"Análise Causal de Missão: {causal_impact}")
 
         # Passo 2: Verificação Formal de Integridade
         import numpy as np
