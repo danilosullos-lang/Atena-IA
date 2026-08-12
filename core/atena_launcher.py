@@ -1078,6 +1078,7 @@ class AtenaLauncher:
             "bootstrap": ROOT / "core" / "atena_env_bootstrap.py",
             "secret-scan": ROOT / "core" / "atena_secret_scan.py",
             "hacker-recon": ROOT / "core" / "atena_hacker_recon.py",
+            "capabilities": ROOT / "core" / "atena_capabilities.py",
         }
         
         # Missions
@@ -1126,6 +1127,8 @@ class AtenaLauncher:
             "like": "assistant",
             "hacker": "hacker-recon",
             "recon": "hacker-recon",
+            "catalog": "capabilities",
+            "capability-catalog": "capabilities",
             "start-lab": "research-lab",
             "lab": "research-lab"
         }
