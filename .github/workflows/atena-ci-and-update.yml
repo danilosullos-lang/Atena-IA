@@ -134,6 +134,10 @@ jobs:
         run: |
           python -m json.tool atena_evolution/llm_learning_memory.json >/dev/null
           find atena_evolution/proposals -type f -name '*.json' -mmin -15 -print -quit | grep .
+          if grep -R '"parse_error"' atena_evolution/llm_learning_memory.json atena_evolution/proposals; then
+            echo "Resposta inválida do modelo detectada; bloqueando publicação."
+            exit 1
+          fi
           git diff --check
 
       - name: Publicar memória e propostas na branch própria

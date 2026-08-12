@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import time
 from datetime import datetime, timezone
@@ -29,30 +30,60 @@ def load_memory() -> list[dict]:
         return []
 
 
+ANSI_RE = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07]*(?:\x07|\x1b\\))")
+REQUIRED_KEYS = {"insights", "risks", "proposed_changes", "next_cycle"}
+
+
+def parse_model_json(raw: str) -> dict:
+    """Normalize Ollama output and reject anything outside the expected schema."""
+    cleaned = ANSI_RE.sub("", raw).replace("```json", "").replace("```JSON", "").replace("```", "").strip()
+    decoder = json.JSONDecoder()
+    start = cleaned.find("{")
+    if start < 0:
+        raise ValueError("A resposta do modelo não contém um objeto JSON")
+    parsed, _ = decoder.raw_decode(cleaned[start:])
+    if not isinstance(parsed, dict) or not REQUIRED_KEYS.issubset(parsed):
+        raise ValueError("A resposta do modelo não atende ao esquema de evolução")
+    if not isinstance(parsed["insights"], list) or not all(isinstance(item, str) for item in parsed["insights"]):
+        raise ValueError("insights deve ser uma lista de textos")
+    if not isinstance(parsed["risks"], list) or not all(isinstance(item, str) for item in parsed["risks"]):
+        raise ValueError("risks deve ser uma lista de textos")
+    if not isinstance(parsed["next_cycle"], list) or not all(isinstance(item, str) for item in parsed["next_cycle"]):
+        raise ValueError("next_cycle deve ser uma lista de textos")
+    if not isinstance(parsed["proposed_changes"], list):
+        raise ValueError("proposed_changes deve ser uma lista")
+    for proposal in parsed["proposed_changes"]:
+        if not isinstance(proposal, dict) or not {"file", "rationale", "tests"}.issubset(proposal):
+            raise ValueError("cada proposta precisa de file, rationale e tests")
+        if not isinstance(proposal["file"], str) or not isinstance(proposal["rationale"], str):
+            raise ValueError("file e rationale devem ser textos")
+        if not isinstance(proposal["tests"], list) or not all(isinstance(item, str) for item in proposal["tests"]):
+            raise ValueError("tests deve ser uma lista de textos")
+    return parsed
+
+
 def ask_local_model(memory: list[dict]) -> dict:
     context = json.dumps(memory[-8:], ensure_ascii=False, indent=2)
     prompt = f"""Você é o módulo local de análise da ATENA. Faça um ciclo de aprendizagem de no máximo cinco minutos.
-Analise apenas o contexto abaixo e produza JSON válido com as chaves: insights (lista de strings),
-risks (lista de strings), proposed_changes (lista de objetos com file, rationale e tests),
-next_cycle (lista de strings). Não escreva código, não peça segredos e não recomende alterações
-fora de atena_evolution/proposals. Diferencie fatos de hipóteses.
+Responda SOMENTE com um objeto JSON, sem Markdown, sem comentários, sem códigos ANSI e sem texto antes ou depois.
+As chaves obrigatórias são: insights (lista de strings), risks (lista de strings), proposed_changes
+(lista de objetos com file, rationale e tests) e next_cycle (lista de strings). Não escreva código,
+não peça segredos e não recomende alterações fora de atena_evolution/proposals. Diferencie fatos de hipóteses.
 Memória recente:
 {context}
 """
     result = subprocess.run(
-        ["ollama", "run", MODEL, prompt],
+        ["ollama", "run", MODEL, "--format", "json", "--nowordwrap"],
         cwd=ROOT,
+        input=prompt,
         text=True,
         capture_output=True,
         timeout=240,
         check=False,
     )
-    raw = result.stdout.strip()
-    try:
-        parsed = json.loads(raw)
-        return parsed if isinstance(parsed, dict) else {"raw": raw}
-    except json.JSONDecodeError:
-        return {"raw": raw, "parse_error": True}
+    if result.returncode != 0:
+        raise RuntimeError(f"Ollama terminou com código {result.returncode}: {result.stderr[-500:]}")
+    return parse_model_json(result.stdout)
 
 
 def main() -> int:
@@ -61,11 +92,12 @@ def main() -> int:
     MEMORY_PATH.parent.mkdir(parents=True, exist_ok=True)
     PROPOSALS_DIR.mkdir(parents=True, exist_ok=True)
     memory = load_memory()
+    observations = ask_local_model(memory)
     cycle = {
         "timestamp": now.isoformat(),
         "model": MODEL,
         "duration_limit_seconds": 300,
-        "observations": ask_local_model(memory),
+        "observations": observations,
     }
     memory.append(cycle)
     MEMORY_PATH.write_text(json.dumps(memory[-200:], ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
