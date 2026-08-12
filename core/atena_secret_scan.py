@@ -459,7 +459,12 @@ class SecretScannerEngine:
         for p in root.rglob("*"):
             if not p.is_file():
                 continue
-            if any(part in DEFAULT_EXCLUDES for part in p.parts):
+            if any(
+                part in DEFAULT_EXCLUDES
+                or part == "site-packages"
+                or part.startswith(".venv")
+                for part in p.parts
+            ):
                 continue
             if not self.config.include_tests and ("tests" in p.parts or p.name.startswith("test_")):
                 continue

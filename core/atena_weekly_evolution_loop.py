@@ -494,3 +494,37 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# Compatibilidade com a API histórica usada por automações e testes.
+def run_loop(root: Path | str) -> Dict[str, Any]:
+    """Executa um ciclo curto e determinístico do loop semanal."""
+    root_path = Path(root)
+    steps = [
+        ["bash", "atena", "doctor"],
+        ["bash", "atena", "self-test"],
+        ["bash", "atena", "production-ready"],
+    ]
+    results = []
+    for command in steps:
+        proc = subprocess.run(
+            command,
+            cwd=str(root_path),
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        results.append({
+            "command": command,
+            "returncode": proc.returncode,
+            "stdout": proc.stdout,
+            "stderr": proc.stderr,
+            "ok": proc.returncode == 0,
+        })
+    steps_ok = sum(1 for item in results if item["ok"])
+    return {
+        "status": "ok" if steps_ok == len(results) else "partial",
+        "steps_ok": steps_ok,
+        "steps_total": len(results),
+        "results": results,
+    }

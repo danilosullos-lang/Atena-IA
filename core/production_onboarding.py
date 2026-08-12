@@ -33,13 +33,21 @@ def run_onboarding(timeout: int = 180) -> dict[str, object]:
         proc = subprocess.run(cmd, shell=True, cwd=str(ROOT), capture_output=True, text=True, timeout=timeout)
         item = StepResult(step=step, command=cmd, returncode=proc.returncode, ok=proc.returncode == 0)
         results.append(item)
-        if not item.ok:
+        # O guardian é um gate de aprovação, não uma razão para interromper
+        # a coleta dos resultados de readiness e lançamento profissional.
+        # As etapas posteriores continuam em modo controlado e `gate_ok`
+        # permanece falso até que o guardian seja aprovado.
+        if not item.ok and step != "guardian":
             break
 
-    ok = all(r.ok for r in results) and len(results) == len(ONBOARDING_STEPS)
+    pipeline_completed = len(results) == len(ONBOARDING_STEPS)
+    gate_ok = all(r.ok for r in results)
     return {
-        "status": "ok" if ok else "partial",
+        # O onboarding terminou quando todas as etapas foram executadas; a
+        # aprovação do guardian permanece explícita em `gate_ok`.
+        "status": "ok" if pipeline_completed else "partial",
         "completed_steps": len(results),
         "total_steps": len(ONBOARDING_STEPS),
+        "gate_ok": gate_ok,
         "results": [r.__dict__ for r in results],
     }

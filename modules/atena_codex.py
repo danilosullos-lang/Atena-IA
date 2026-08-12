@@ -1133,9 +1133,9 @@ class EnvValidator:
                 "value_hint":  (value[:4] + "***") if value and len(value) > 4 else ("***" if value else None),
             })
 
+        required_names = {spec.name for spec in schema if spec.required}
         return {
-            "all_required_ok": all(r["ok"] for r in results if spec.required
-                                   for spec in schema if spec.name == r["name"]),
+            "all_required_ok": all(r["ok"] for r in results if r["name"] in required_names),
             "results": results,
         }
 

@@ -301,7 +301,11 @@ def test_moderation_blocks_disallowed_terms() -> None:
         ".env.example": """APP_ENV=dev
 APP_REGION=us-east-1
 APP_LOG_LEVEL=info
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/atena
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_NAME=atena
+DATABASE_USER=${POSTGRES_USER}
+DATABASE_PASSWORD=${POSTGRES_PASSWORD}
 REDIS_URL=redis://localhost:6379/0
 """,
         "docker-compose.yml": """version: "3.9"

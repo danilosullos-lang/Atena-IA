@@ -972,8 +972,36 @@ class AtenaLLMRouterAdvanced:
         }
 
 
-# Compatibilidade com a API histórica do roteador.
-AtenaLLMRouter = AtenaLLMRouterAdvanced
+class _CompatLLMResponse(str):
+    """Resposta textual compatível com chamadas síncronas e `await` legadas."""
+    def __new__(cls, content: str, response: LLMResponse):
+        obj = str.__new__(cls, content)
+        obj.content = content
+        obj.response = response
+        return obj
+
+    def __await__(self):
+        async def _result():
+            return self.response
+        return _result().__await__()
+
+
+class AtenaLLMRouter(AtenaLLMRouterAdvanced):
+    """Fachada histórica: síncrona fora de loop e awaitable dentro de loop."""
+    def generate(self, prompt: str, context: str = "", **kwargs):
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            if self.config.open_access_mode and not self._providers:
+                content = (
+                    "Modo open-access ativo: nenhum provedor pago é necessário. "
+                    "Configure ATENA_OPEN_ACCESS_MODE=1 para usar provedores locais ou públicos."
+                )
+                response = LLMResponse(content=content, provider="local:stub", model="stub", latency_ms=0)
+                return _CompatLLMResponse(content, response)
+            response = asyncio.run(super().generate(prompt, context=context, **kwargs))
+            return _CompatLLMResponse(response.content, response)
+        return super().generate(prompt, context=context, **kwargs)
 
 # ========== SINGLETON ==========
 _global_router: Optional[AtenaLLMRouterAdvanced] = None

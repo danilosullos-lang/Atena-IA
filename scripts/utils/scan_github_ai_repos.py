@@ -54,7 +54,7 @@ log = logging.getLogger("atena.github_scan")
 # Caminhos
 # ---------------------------------------------------------------------------
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).resolve().parents[2]
 WATCHLIST_PATH        = ROOT / "docs" / "ai_repo_watchlist.json"
 ABSORPTION_REPORT_DIR = ROOT / "analysis_reports"
 ABSORPTION_REPORT_DIR.mkdir(parents=True, exist_ok=True)

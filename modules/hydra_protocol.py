@@ -257,7 +257,7 @@ services:
       - ATENA_ENV=production
       - ATENA_LOG_LEVEL=INFO
       - ATENA_REDIS_URL=redis://redis:6379
-      - ATENA_DB_URL=postgresql://atena:atena123@postgres:5432/atena
+      - ATENA_DB_URL=${ATENA_DB_URL:?configure_database_url_in_environment}
     ports:
       - "8000:8000"
     depends_on:
@@ -290,9 +290,9 @@ services:
   postgres:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_USER=atena
-      - POSTGRES_PASSWORD=atena123
-      - POSTGRES_DB=atena
+      - POSTGRES_USER=${POSTGRES_USER:?configure_postgres_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?configure_postgres_password}
+      - POSTGRES_DB=${POSTGRES_DB:?configure_postgres_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
