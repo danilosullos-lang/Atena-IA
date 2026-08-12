@@ -11,6 +11,8 @@ import os
 import re
 import subprocess
 import time
+import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -32,6 +34,16 @@ def load_memory() -> list[dict]:
 
 ANSI_RE = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07]*(?:\x07|\x1b\\))")
 REQUIRED_KEYS = {"insights", "risks", "proposed_changes", "next_cycle"}
+MODEL_SCHEMA = {
+    "type": "object",
+    "required": ["insights", "risks", "proposed_changes", "next_cycle"],
+    "properties": {
+        "insights": {"type": "array", "items": {"type": "string"}},
+        "risks": {"type": "array", "items": {"type": "string"}},
+        "proposed_changes": {"type": "array", "items": {"type": "object"}},
+        "next_cycle": {"type": "array", "items": {"type": "string"}},
+    },
+}
 
 
 def parse_model_json(raw: str) -> dict:
@@ -72,18 +84,31 @@ não peça segredos e não recomende alterações fora de atena_evolution/propos
 Memória recente:
 {context}
 """
-    result = subprocess.run(
-        ["ollama", "run", MODEL, "--format", "json", "--nowordwrap"],
-        cwd=ROOT,
-        input=prompt,
-        text=True,
-        capture_output=True,
-        timeout=240,
-        check=False,
+    host = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434").rstrip("/")
+    payload = {
+        "model": MODEL,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": False,
+        "format": MODEL_SCHEMA,
+        "options": {"temperature": 0.1},
+    }
+    request = urllib.request.Request(
+        f"{host}/api/chat",
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
     )
-    if result.returncode != 0:
-        raise RuntimeError(f"Ollama terminou com código {result.returncode}: {result.stderr[-500:]}")
-    return parse_model_json(result.stdout)
+    try:
+        with urllib.request.urlopen(request, timeout=240) as response:
+            body = json.loads(response.read().decode("utf-8"))
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"Ollama indisponível em {host}: {exc}") from exc
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("Ollama retornou uma resposta HTTP que não é JSON") from exc
+    content = body.get("message", {}).get("content")
+    if not isinstance(content, str):
+        raise RuntimeError("Resposta do Ollama não contém message.content textual")
+    return parse_model_json(content)
 
 
 def main() -> int:
