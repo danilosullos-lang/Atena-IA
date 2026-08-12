@@ -981,6 +981,8 @@ class AtenaLauncher:
     """Launcher enterprise completo"""
     
     def __init__(self):
+        # Deve existir antes de _load_commands(), que registra os circuit breakers.
+        self.circuit_breakers: Dict[str, CircuitBreaker] = {}
         self.commands = self._load_commands()
         self.session_manager = SessionManager(ROOT / ".sessions")
         self.rate_limiter = AdvancedRateLimiter()
@@ -989,9 +991,7 @@ class AtenaLauncher:
         self.health_checker = HealthChecker()
         self.metrics = MetricsCollector()
         
-        # Circuit breakers
-        self.circuit_breakers: Dict[str, CircuitBreaker] = {}
-        
+                # Circuit breakers já inicializados antes do carregamento dos comandos.
         # Feature flags
         self.feature_flags = self._load_feature_flags()
         
