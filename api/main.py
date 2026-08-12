@@ -66,7 +66,7 @@ app.include_router(connectors_router)
 # --- ENDPOINTS ---
 @app.get("/healthz")
 async def healthz():
-    return {"status": "online", "version": "10.2.0"}
+    return {"status": "healthy", "version": "10.2.0"}
 
 # --- NOVOS ENDPOINTS DE CONSCIÊNCIA (ADICIONADOS) ---
 @app.get("/api/consciousness/state")

@@ -28,6 +28,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 import threading
 import time
 import uuid
@@ -338,7 +339,7 @@ class SecretScannerDB:
 # -----------------------------------------------------------------------------
 class ContextAnalyzer:
     FP_INDICATORS = [
-        (re.compile(r"(example|test|demo|sample|placeholder|changeme|your_|TODO|FIXME)", re.I), 0.1),
+        (re.compile(r"\b(test|demo|sample|placeholder|changeme|your_|TODO|FIXME)\b", re.I), 0.1),
         (re.compile(r"^\s*#"), 0.2),
         (re.compile(r"\.md$|\.rst$|\.txt$", re.I), 0.3),
         (re.compile(r"test_|_test\.py$|tests/", re.I), 0.4),
@@ -368,11 +369,15 @@ class ContextAnalyzer:
 # Secret Patterns Definition
 # -----------------------------------------------------------------------------
 SECRET_PATTERNS: List[Tuple[str, re.Pattern, Severity, str]] = [
-    ("github_classic", re.compile(r"\bghp_[A-Za-z0-9]{36,}\b"), Severity.CRITICAL,
+    ("github_classic", re.compile(r"\bghp_[A-Za-z0-9]{20,}\b"), Severity.CRITICAL,
+     "Revogar token imediatamente e rotacionar"),
+    ("github_pat", re.compile(r"\bgithub_pat_[A-Za-z0-9_\-]{20,}\b"), Severity.CRITICAL,
      "Revogar token imediatamente e rotacionar"),
     ("github_actions", re.compile(r"\bghs_[A-Za-z0-9]{36,}\b"), Severity.HIGH,
      "Remover do código e usar GitHub Secrets"),
     ("openai_project_key", re.compile(r"\bsk-proj-[A-Za-z0-9_\-]{30,}\b"), Severity.CRITICAL,
+     "Revogar chave no dashboard da OpenAI"),
+    ("openai_key", re.compile(r"\bsk-[A-Za-z0-9]{20,}\b"), Severity.CRITICAL,
      "Revogar chave no dashboard da OpenAI"),
     ("aws_access_key", re.compile(r"\b(?:AKIA|ASIA)[0-9A-Z]{16}\b"), Severity.CRITICAL,
      "Revogar access key e rotacionar imediatamente"),
@@ -475,8 +480,10 @@ class SecretScannerEngine:
                 return cached["findings"], cached["lines"]
 
         findings = []
+        lines: List[str] = []
         try:
-            content = await aiofiles.open(file_path, 'r', encoding='utf-8', errors='ignore').read()
+            async with aiofiles.open(file_path, 'r', encoding='utf-8', errors='ignore') as handle:
+                content = await handle.read()
             lines = content.splitlines()
             for idx, line in enumerate(lines, 1):
                 for pattern_name, pattern, severity, recommendation in SECRET_PATTERNS:
@@ -535,6 +542,54 @@ class SecretScannerEngine:
         start = max(0, line_num - context - 1)
         end = min(len(lines), line_num + context)
         return [f"{i+1}: {lines[i].strip()[:100]}" for i in range(start, end)]
+
+# -----------------------------------------------------------------------------
+# Compatibility API
+# -----------------------------------------------------------------------------
+def _iter_candidate_files(root: Union[str, Path], include_tests: bool = False) -> List[Path]:
+    """Return candidate files using the same filters as the async scanner."""
+    config = ScanConfig(root=Path(root), include_tests=include_tests)
+    db_fd, db_name = tempfile.mkstemp(prefix="atena-scan-", suffix=".db")
+    os.close(db_fd)
+    try:
+        engine = SecretScannerEngine(config, HierarchicalCache(), SecretScannerDB(Path(db_name)))
+        return engine._iter_candidate_files()
+    finally:
+        Path(db_name).unlink(missing_ok=True)
+
+
+def scan_repo(
+    root: Union[str, Path] = ".",
+    include_tests: bool = False,
+    max_file_size_mb: int = 5,
+    max_findings: int = 1000,
+) -> List[Dict[str, Any]]:
+    """Synchronously scan a repository and return finding dictionaries."""
+    root_path = Path(root).resolve()
+    db_fd, db_name = tempfile.mkstemp(prefix="atena-scan-", suffix=".db")
+    os.close(db_fd)
+    try:
+        async def _run() -> List[Dict[str, Any]]:
+            config = ScanConfig(
+                root=root_path,
+                include_tests=include_tests,
+                max_file_size_mb=max_file_size_mb,
+                max_findings=max_findings,
+                use_cache=False,
+            )
+            engine = SecretScannerEngine(config, HierarchicalCache(), SecretScannerDB(Path(db_name)))
+            findings: List[Dict[str, Any]] = []
+            for file_path in engine._iter_candidate_files():
+                file_findings, _ = await engine._scan_file(file_path)
+                findings.extend(f.model_dump(mode="json") for f in file_findings)
+                if len(findings) >= max_findings:
+                    break
+            return findings[:max_findings]
+
+        return asyncio.run(_run())
+    finally:
+        Path(db_name).unlink(missing_ok=True)
+
 
 # -----------------------------------------------------------------------------
 # FastAPI Application

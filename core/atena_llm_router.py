@@ -40,6 +40,11 @@ from typing import Any, AsyncIterator, Dict, List, Optional, Set, Tuple, Union
 import aiohttp
 import aiofiles
 
+try:
+    from openai import OpenAI
+except ImportError:
+    OpenAI = None
+
 # Opcionais com fallback graceful
 try:
     from opentelemetry import trace
@@ -775,7 +780,52 @@ class AtenaLLMRouterAdvanced:
             return True, "Provider local já disponível."
         return False, "Provider local não disponível em http://localhost:11434."
 
+    def _get_local_brain(self):
+        """Hook de compatibilidade para o cérebro local opcional."""
+        return None
+
+    def _has_internet(self) -> bool:
+        """Return whether an HTTP response or HTTP error proves connectivity."""
+        try:
+            with urllib.request.urlopen("https://www.google.com/generate_204", timeout=3):
+                return True
+        except urllib.error.HTTPError:
+            return True
+        except (urllib.error.URLError, TimeoutError, OSError):
+            return False
+
+    def open_access_plan(self) -> Dict[str, Any]:
+        paid_enabled = bool(self.config.allow_paid_providers and not self.config.open_access_mode)
+        return {
+            "paid_provider_required": False,
+            "fallback_order": ["local:brain", "public-api:auto", "local:stub"],
+            "paid_providers_enabled": paid_enabled,
+        }
+
     def auto_orchestrate_llm(self) -> Tuple[bool, str]:
+        if self.config.open_access_mode:
+            local_brain = self._get_local_brain()
+            if local_brain is not None:
+                prepared = local_brain.prepare_runtime_model()
+                if prepared[0]:
+                    self._current_backend = "local:brain"
+                    self._backend = "local:brain"
+                    return True, "open-access: local-brain selecionado sem API paga."
+
+        if os.getenv("DASHSCOPE_API_KEY"):
+            ok, detail = self.set_backend("qwen:default")
+            if ok:
+                return True, f"seleção automática: qwen:default; {detail}"
+            return False, detail
+
+        local_brain = self._get_local_brain()
+        if local_brain is not None:
+            prepared = local_brain.prepare_runtime_model()
+            if prepared[0]:
+                self._current_backend = "local"
+                self._backend = "local"
+                return True, f"local-brain pronto: {prepared[1]}"
+
         self._current_backend = "auto"
         providers = ", ".join(self._providers.keys()) or "nenhum"
         return True, f"Roteamento automático ativado. Providers: {providers}."
@@ -921,6 +971,9 @@ class AtenaLLMRouterAdvanced:
             }
         }
 
+
+# Compatibilidade com a API histórica do roteador.
+AtenaLLMRouter = AtenaLLMRouterAdvanced
 
 # ========== SINGLETON ==========
 _global_router: Optional[AtenaLLMRouterAdvanced] = None

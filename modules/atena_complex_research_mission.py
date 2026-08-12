@@ -51,6 +51,9 @@ async def run_research_mission():
             resp = requests.get(search_url, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
             resp.raise_for_status()
             content = resp.text
+            extracted = BeautifulSoup(content, "html.parser").get_text(" ", strip=True)
+            if not extracted or "click here if it doesn't happen automatically" in extracted.lower():
+                content = ""
             logger.info("✅ Fallback HTTP concluído após conteúdo vazio no navegador.")
     except Exception as e:
         logger.error(f"Falha no navegador Playwright: {e}")
@@ -59,6 +62,9 @@ async def run_research_mission():
             resp = requests.get(search_url, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
             resp.raise_for_status()
             content = resp.text
+            extracted = BeautifulSoup(content, "html.parser").get_text(" ", strip=True)
+            if not extracted or "click here if it doesn't happen automatically" in extracted.lower():
+                content = ""
             logger.info("✅ Fallback HTTP concluído com sucesso.")
         except Exception as http_exc:
             logger.error(f"Erro durante a missão: {http_exc}")

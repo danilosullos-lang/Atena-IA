@@ -8,7 +8,7 @@ requires = [
     "wheel>=0.42.0",
     "setuptools-scm>=8.0.0",
     "cython>=3.0.0",
-    "numpy>=1.24.0",
+    "numpy>=1.26.0,<2.0",
 ]
 build-backend = "setuptools.build_meta"
 
