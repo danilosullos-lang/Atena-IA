@@ -131,10 +131,12 @@ jobs:
         run: timeout --signal=TERM --kill-after=15s 300s python scripts/atena_scheduled_cycle.py
 
       - name: Validar memória e proposta do ciclo atual
+        id: validate_learning
         run: |
           python -m json.tool atena_evolution/llm_learning_memory.json >/dev/null
           latest_proposal="$(find atena_evolution/proposals -type f -name '*.json' -mmin -15 -printf '%T@ %p\n' | sort -nr | head -1 | cut -d' ' -f2-)"
           test -n "$latest_proposal"
+          echo "latest_proposal=$latest_proposal" >> "$GITHUB_OUTPUT"
           python - "$latest_proposal" <<'PY'
           import json
           import sys
@@ -163,6 +165,19 @@ jobs:
           fi
           git commit -m "chore(atena): record scheduled learning cycle"
           git push origin HEAD:atena/autoevolution
+
+      - name: Notificar nova aprendizagem no Telegram
+        if: always() && steps.validate_learning.outputs.latest_proposal != ''
+        continue-on-error: true
+        env:
+          ATENA_TELEGRAM_BOT_TOKEN: ${{ secrets.ATENA_TELEGRAM_BOT_TOKEN }}
+          ATENA_TELEGRAM_CHAT_ID: ${{ secrets.ATENA_TELEGRAM_CHAT_ID }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          python scripts/notify_telegram_learning.py \
+            --proposal "${{ steps.validate_learning.outputs.latest_proposal }}"
 
   publish-generated-state:
     name: Publicar estado gerado pela Atena
