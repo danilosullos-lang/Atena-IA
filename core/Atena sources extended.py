@@ -254,13 +254,20 @@ def _get_text(url: str, timeout: int = None, headers: Optional[Dict] = None) -> 
         return resp.read().decode("utf-8", errors="replace")
 
 
-def _timed(fn, source_name: str, *args, **kwargs):
+def _timed(fn, *args, **kwargs):
     """Executa função com medição de tempo e rate limiting.
 
-    Alguns adaptadores passam `source_name` também para a função interna de
-    retry. Ele é metadado do wrapper e não deve ser encaminhado duas vezes.
+    Os adaptadores legados podem passar o nome da fonte por posição e também
+    por palavra-chave. O wrapper normaliza essa chamada antes de invocar a
+    função HTTP interna.
     """
-    kwargs.pop("source_name", None)
+    source_name = kwargs.pop("source_name", None)
+    if source_name is None:
+        if not args:
+            raise TypeError("_timed exige source_name")
+        source_name, *args = args
+    elif args and args[0] == source_name:
+        args = args[1:]
     RateLimiter.wait_if_needed(source_name)
     
     t0 = time.time()
