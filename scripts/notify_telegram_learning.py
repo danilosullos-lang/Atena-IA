@@ -23,6 +23,8 @@ def build_message(proposal: dict, run_url: str | None) -> str:
     risks = observations.get("risks", [])
     changes = observations.get("proposed_changes", [])
     next_cycle = observations.get("next_cycle", [])
+    research_plan = observations.get("research_plan", {})
+    research = proposal.get("research", {})
     model = html.escape(str(proposal.get("model", "modelo local")))
     timestamp = html.escape(str(proposal.get("timestamp", "agora")))
     lines = [
@@ -41,6 +43,16 @@ def build_message(proposal: dict, run_url: str | None) -> str:
             lines.append(f"• <code>{html.escape(clip(str(change.get('file', 'arquivo desconhecido')), 180))}</code>")
     lines.append("\n<b>Próximo ciclo</b>")
     lines.extend(f"• {html.escape(clip(str(item)))}" for item in next_cycle[:3])
+    lines.append("\n<b>Pesquisa realizada</b>")
+    if research_plan.get("topic"):
+        lines.append(f"• Tema: {html.escape(clip(str(research_plan['topic']), 180))}")
+    consulted = research_plan.get("sources_to_consult", []) or [item.get("source") for item in research.get("sources", []) if item.get("ok")]
+    if consulted:
+        lines.append(f"• Fontes: {html.escape(clip(', '.join(map(str, consulted)), 300))}")
+    if research_plan.get("question"):
+        lines.append(f"• Pergunta: {html.escape(clip(str(research_plan['question']), 360))}")
+    if research_plan.get("next_test"):
+        lines.append(f"• Próximo teste: {html.escape(clip(str(research_plan['next_test']), 360))}")
     if run_url:
         lines.append(f"\n<a href=\"{html.escape(run_url, quote=True)}\">Ver execução no GitHub Actions</a>")
     return "\n".join(lines)[:3900]
