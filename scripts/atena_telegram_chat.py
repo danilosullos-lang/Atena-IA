@@ -132,6 +132,32 @@ class AtenaTelegramChat:
             data = await response.read()
         return data, suffix
 
+    @staticmethod
+    def needs_current_web(text: str) -> bool:
+        markers = (
+            "quando", "que dia", "qual dia", "horário", "hora", "próximo jogo",
+            "joga", "jogar", "partida", "placar", "resultado", "hoje", "amanhã",
+            "atualmente", "últimas notícias", "notícia", "cotação", "preço atual",
+        )
+        lowered = text.casefold()
+        teams = ("santos", "palmeiras", "corinthians", "são paulo", "flamengo", "brasil")
+        return any(marker in lowered for marker in markers) and any(team in lowered for team in teams) or any(marker in lowered for marker in ("hoje", "amanhã", "atualmente", "últimas notícias", "preço atual"))
+
+    async def current_web_answer(self, chat_id: int, question: str) -> str:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from core.web_research import build_context, search_web
+
+        evidence = await asyncio.to_thread(search_web, question, 5)
+        context = build_context(question, evidence)
+        answer = await self.ollama(
+            chat_id,
+            "Responda diretamente à pergunta do usuário em português. Não diga que você não tem internet: "
+            "a pesquisa abaixo foi fornecida pelo sistema. Não confunda uma notificação de aprendizagem com a resposta. "
+            "Informe data/horário quando houver fonte suficiente e termine com 'Fontes:' e as URLs usadas.\n\n" + context,
+        )
+        return "ATENA — resposta atual\n\n" + answer
+
     async def ollama(self, chat_id: int, user_text: str) -> str:
         assert self.http is not None
         history = self.sessions.setdefault(str(chat_id), [])
@@ -203,7 +229,7 @@ class AtenaTelegramChat:
         if command == "/start":
             return "Olá. Sou a ponte de conversa da Atena. Envie uma pergunta ou use /help."
         if command == "/help":
-            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset, /voz on|off|status, /pesquisar <tema>, /fila e /ofertas [mínimo%] [limite]. Mensagens comuns são respondidas pelo modelo local."
+            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset, /voz on|off|status, /pesquisar <tema>, /fila e /ofertas [mínimo%] [limite]. Perguntas atuais recebem pesquisa web controlada."
         if command == "/voz":
             option = text.split(maxsplit=1)[1].strip().lower() if len(text.split(maxsplit=1)) > 1 else "status"
             if option == "on":
@@ -296,7 +322,14 @@ class AtenaTelegramChat:
                 return
             answer = await self.command(chat_id, text)
             if answer is None:
-                answer = await self.ollama(chat_id, text)
+                if self.needs_current_web(text):
+                    try:
+                        answer = await self.current_web_answer(chat_id, text)
+                    except Exception as exc:
+                        log.warning("pesquisa web indisponível: %s", exc)
+                        answer = "ATENA — resposta atual\n\nNão consegui confirmar essa informação em fontes públicas agora. Tente novamente em alguns instantes ou use /pesquisar para enfileirar uma investigação no próximo ciclo."
+                else:
+                    answer = await self.ollama(chat_id, text)
             await self.send(chat_id, answer)
             if voice and str(chat_id) in self.voice_enabled:
                 temporary_audio = await asyncio.to_thread(self.audio.synthesize, answer)
