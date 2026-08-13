@@ -12,6 +12,7 @@ def test_agendar_requires_confirmation_and_parses_google_provider():
     assert intent.action == "calendar_create"
     assert intent.provider == "google"
     assert intent.requires_confirmation is True
+    assert intent.parameters["title"] == "reunião da empresa"
     assert intent.parameters["date"] == "2026-08-25"
     assert intent.parameters["time"] == "14:30"
     assert "CONFIRMAR" in confirmation_prompt(intent)

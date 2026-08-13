@@ -16,7 +16,9 @@ import aiohttp
 
 from core.audio_gateway import AudioGateway, AudioGatewayError
 from core.memory_store import MemoryStore
+from core.google_calendar_client import GoogleCalendarClient, GoogleCalendarNotConfigured, format_event
 from core.workspace_actions import (
+    WorkspaceIntent,
     confirmation_prompt,
     is_cancellation,
     is_confirmation,
@@ -240,22 +242,40 @@ class AtenaTelegramChat:
         # Ações de workspace são sempre interpretadas antes do Ollama.
         workspace_intent = parse_workspace_intent(chat_id, text)
         if workspace_intent is not None:
+            if workspace_intent.action == "calendar_list":
+                if workspace_intent.provider == "microsoft":
+                    return "A consulta Outlook ainda precisa do conector Microsoft Graph. O Google Calendar pode ser ativado com OAuth desktop."
+                try:
+                    events = await asyncio.to_thread(GoogleCalendarClient().upcoming, 10)
+                except GoogleCalendarNotConfigured as exc:
+                    return f"Google Calendar ainda não configurado: {exc}"
+                except Exception as exc:
+                    log.exception("falha ao listar eventos do Google Calendar")
+                    return f"Não consegui consultar o Google Calendar: {type(exc).__name__}."
+                if not events:
+                    return "ATENA — agenda\n\nNenhum evento futuro encontrado."
+                return clip("ATENA — agenda\n\n" + "\n".join(f"• {format_event(event)}" for event in events))
             if workspace_intent.requires_confirmation:
                 self.pending_workspace[str(chat_id)] = workspace_intent.to_dict()
                 return confirmation_prompt(workspace_intent)
-            return (
-                f"Intenção recebida: {workspace_intent.action} ({workspace_intent.provider}).\n"
-                "A consulta foi validada, mas o conector da conta ainda precisa ser autorizado para executar a leitura."
-            )
         pending = self.pending_workspace.get(str(chat_id))
         if pending:
             pending_id = str(pending.get("id", ""))
             if is_confirmation(text, pending_id):
                 self.pending_workspace.pop(str(chat_id), None)
-                return (
-                    "Confirmação registrada. A ação está autorizada, mas ainda não será executada porque "
-                    "o conector Google/Microsoft e o OAuth da conta precisam ser configurados."
-                )
+                intent = WorkspaceIntent(**pending)
+                if intent.action == "calendar_create":
+                    if intent.provider == "microsoft":
+                        return "Ação confirmada, mas o conector Outlook ainda não está configurado. Nenhum evento foi criado."
+                    try:
+                        event = await asyncio.to_thread(GoogleCalendarClient().create_event, intent.parameters)
+                    except GoogleCalendarNotConfigured as exc:
+                        return f"Confirmação recebida, mas o Google Calendar ainda não está configurado: {exc}"
+                    except Exception as exc:
+                        log.exception("falha ao criar evento no Google Calendar")
+                        return f"Confirmação recebida, mas não consegui criar o evento: {type(exc).__name__}."
+                    return f"ATENA — evento criado\n\n{format_event(event)}\n{event.get('htmlLink', '')}".strip()
+                return "Confirmação registrada. O adaptador desta ação ainda precisa ser configurado; nenhuma alteração foi feita."
             if is_cancellation(text, pending_id):
                 self.pending_workspace.pop(str(chat_id), None)
                 return "Ação cancelada; nenhuma planilha ou evento foi alterado."
