@@ -149,6 +149,7 @@ def collect_research(topic: str, question: str) -> dict:
         if spec is None or spec.loader is None:
             raise RuntimeError("não foi possível carregar o módulo de fontes")
         module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
         spec.loader.exec_module(module)
         fetched = module.fetch_all_relevant(query, max_sources=4, timeout_per=6)
         for item in fetched:
