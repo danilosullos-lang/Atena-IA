@@ -62,7 +62,7 @@ MODEL_SCHEMA = {
     "type": "object",
     "required": ["insights", "risks", "proposed_changes", "next_cycle"],
     "properties": {
-        "insights": {"type": "array", "items": {"type": "string"}},
+        "insights": {"type": "array", "items": {"type": "object", "required": ["text", "evidence_refs", "type", "confidence"], "properties": {"text": {"type": "string"}, "evidence_refs": {"type": "array", "items": {"type": "string"}}, "type": {"type": "string"}, "confidence": {"type": "number", "minimum": 0, "maximum": 1}}}},
         "risks": {"type": "array", "items": {"type": "string"}},
         "proposed_changes": {"type": "array", "items": {"type": "object"}},
         "next_cycle": {"type": "array", "items": {"type": "string"}},
@@ -80,8 +80,22 @@ def parse_model_json(raw: str) -> dict:
     parsed, _ = decoder.raw_decode(cleaned[start:])
     if not isinstance(parsed, dict) or not REQUIRED_KEYS.issubset(parsed):
         raise ValueError("A resposta do modelo não atende ao esquema de evolução")
-    if not isinstance(parsed["insights"], list) or not all(isinstance(item, str) for item in parsed["insights"]):
-        raise ValueError("insights deve ser uma lista de textos")
+    if not isinstance(parsed["insights"], list):
+        raise ValueError("insights deve ser uma lista")
+    normalized_insights = []
+    for item in parsed["insights"]:
+        # Compatibilidade com memórias antigas; novos retornos devem ser objetos.
+        if isinstance(item, str):
+            normalized_insights.append({"text": item, "evidence_refs": [], "type": "observation", "confidence": 0.0})
+            continue
+        if not isinstance(item, dict) or not {"text", "evidence_refs", "type", "confidence"}.issubset(item):
+            raise ValueError("cada insight precisa de text, evidence_refs, type e confidence")
+        if not isinstance(item["text"], str) or not isinstance(item["evidence_refs"], list) or not all(isinstance(ref, str) for ref in item["evidence_refs"]):
+            raise ValueError("text e evidence_refs têm tipos inválidos")
+        if not isinstance(item["confidence"], (int, float)) or not 0 <= item["confidence"] <= 1:
+            raise ValueError("confidence do insight deve estar entre 0 e 1")
+        normalized_insights.append(item)
+    parsed["insights"] = normalized_insights
     if not isinstance(parsed["risks"], list) or not all(isinstance(item, str) for item in parsed["risks"]):
         raise ValueError("risks deve ser uma lista de textos")
     if not isinstance(parsed["next_cycle"], list) or not all(isinstance(item, str) for item in parsed["next_cycle"]):
@@ -131,6 +145,18 @@ def write_sqlite_cycle(cycle: dict) -> str:
     return memory_id
 
 
+def link_cycle_evidence(cycle_id: str, observations: dict, source_ids: set[str]) -> str:
+    """Liga evidence_refs válidos ao episódio do ciclo e promove conservadoramente."""
+    refs: set[str] = set()
+    for insight in observations.get("insights", []):
+        if isinstance(insight, dict):
+            refs.update(str(ref) for ref in insight.get("evidence_refs", []) if str(ref) in source_ids)
+    with MemoryStore(SQLITE_PATH) as store:
+        for ref in sorted(refs):
+            store.link_evidence(cycle_id, ref, "supports", weight=0.7)
+        return store.promote_from_evidence(cycle_id, min_sources=2, confirm_sources=3)
+
+
 def choose_research_topic(memory: list[dict]) -> tuple[str, str]:
     previous = [item.get("research", {}).get("topic") for item in memory if isinstance(item, dict)]
     for topic, question in RESEARCH_TOPICS:
@@ -172,6 +198,48 @@ def collect_research(topic: str, question: str) -> dict:
     return result
 
 
+def persist_research_sources(research: dict) -> list[str]:
+    """Grava fontes bem-sucedidas como episódios independentes e injeta seus IDs."""
+    persisted: list[str] = []
+    with MemoryStore(SQLITE_PATH) as store:
+        for source in research.get("sources", []):
+            if not isinstance(source, dict) or not source.get("ok"):
+                continue
+            source_name = str(source.get("source", "external"))
+            output = str(source.get("details", ""))[:4000]
+            if not output:
+                continue
+            episode = build_episode(
+                record_type="observation", task_id=f"research:{research.get('topic', 'unknown')}",
+                domain=str(source.get("category", "external_research")), output=output,
+                source_type="external_source", source_id=f"source:{source_name}",
+                source_url=source.get("source_url") or source.get("url"), system_version=SYSTEM_VERSION,
+                status="unverified", confidence=0.0,
+            )
+            ref = store.append(episode)
+            source["evidence_ref"] = ref
+            persisted.append(ref)
+        for feed in research.get("rss_sources", []):
+            if not isinstance(feed, dict) or not feed.get("ok"):
+                continue
+            for item in feed.get("items", []):
+                if not isinstance(item, dict):
+                    continue
+                output = json.dumps({"title": item.get("title"), "summary": item.get("summary"), "published_at": item.get("published_at"), "link": item.get("link")}, ensure_ascii=False, sort_keys=True)
+                episode = build_episode(
+                    record_type="observation", task_id=f"research:{research.get('topic', 'unknown')}",
+                    domain=str(item.get("category", feed.get("category", "rss"))), output=output[:4000],
+                    source_type="external_source", source_id=f"rss:{item.get('content_hash') or item.get('link') or feed.get('source')}",
+                    source_url=item.get("link") or item.get("source_url"), system_version=SYSTEM_VERSION,
+                    status="unverified", confidence=0.0,
+                )
+                ref = store.append(episode)
+                item["evidence_ref"] = ref
+                persisted.append(ref)
+        store.verify_integrity()
+    return persisted
+
+
 def content_fingerprint(observations: dict) -> str:
     compact = {
         "insights": observations.get("insights", []),
@@ -182,13 +250,17 @@ def content_fingerprint(observations: dict) -> str:
     return hashlib.sha256(json.dumps(compact, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
 
 
+def insight_text(item: object) -> str:
+    return str(item.get("text", "")) if isinstance(item, dict) else str(item)
+
+
 def deduplicate_observations(observations: dict, memory: list[dict]) -> dict:
-    """Remove repetições literais e força uma indicação explícita de novidade."""
+    """Remove repetições literais preservando referências epistemológicas."""
     old_items = []
     old_files = set()
     for cycle in memory[-20:]:
         old = cycle.get("observations", {}) if isinstance(cycle, dict) else {}
-        old_items.extend(old.get("insights", []))
+        old_items.extend(insight_text(item) for item in old.get("insights", []))
         old_items.extend(old.get("risks", []))
         old_items.extend(old.get("next_cycle", []))
         for change in old.get("proposed_changes", []):
@@ -199,7 +271,8 @@ def deduplicate_observations(observations: dict, memory: list[dict]) -> dict:
         unique = []
         seen = set()
         for item in observations.get(key, []):
-            normalized = " ".join(str(item).lower().split())
+            text = insight_text(item)
+            normalized = " ".join(text.lower().split())
             if normalized and normalized not in seen and normalized not in old_normalized:
                 unique.append(item)
                 seen.add(normalized)
@@ -224,9 +297,11 @@ def ask_local_model(memory: list[dict], research: dict, topic: str, question: st
     sqlite_context = sqlite_context or "(nenhum contexto SQLite recuperado)"
     prompt = f"""Você é o módulo local de análise da ATENA. Faça um ciclo de aprendizagem de no máximo cinco minutos.
 Responda SOMENTE com um objeto JSON, sem Markdown, sem comentários, sem códigos ANSI e sem texto antes ou depois.
-As chaves obrigatórias são: insights (lista de strings), risks (lista de strings), proposed_changes
-(lista de objetos com file, rationale e tests) e next_cycle (lista de strings). Não escreva código,
-    não peça segredos e não recomende alterações fora de atena_evolution/proposals. Diferencie fatos de hipóteses.
+As chaves obrigatórias são: insights (lista de objetos), risks (lista de strings), proposed_changes
+(lista de objetos com file, rationale e tests) e next_cycle (lista de strings). Cada insight DEVE ter exatamente
+text (texto), evidence_refs (lista de IDs ou source_ids usados), type (fact, hypothesis, observation ou limitation)
+e confidence (número entre 0 e 1). Não escreva código, não peça segredos e não recomende alterações fora de
+atena_evolution/proposals. Diferencie fatos de hipóteses.
 
 REGRAS DE DIVERSIDADE:
 - Não repita literalmente insights, riscos, propostas ou próximos passos presentes na memória.
@@ -234,6 +309,9 @@ REGRAS DE DIVERSIDADE:
 - Analise o tema deste ciclo: {topic}.
 - Responda como a pesquisa deve continuar no próximo ciclo, incluindo fontes, pergunta, evidência esperada e teste de confirmação.
 - Não trate resultado de uma única fonte como fato confirmado.
+- Toda afirmação factual deve citar pelo menos um evidence_ref existente nos dados coletados ou na memória SQLite.
+- Se não houver evidência suficiente, use type=limitation ou type=hypothesis, evidence_refs=[], confidence=0.0 e explique a lacuna.
+- Nunca invente IDs, URLs ou fontes; referências ausentes invalidam a promoção.
 
 Pergunta de investigação: {question}
 Dados coletados das fontes públicas autorizadas:
@@ -291,6 +369,11 @@ def main() -> int:
     research = collect_research(topic, question)
     research["requested_by"] = "telegram" if intent else "rotation"
     research["intent_id"] = intent.get("id") if intent else None
+    source_episode_ids: set[str] = set()
+    try:
+        source_episode_ids = set(persist_research_sources(research))
+    except Exception as exc:
+        print(f"persistência de fontes falhou: {exc}", file=sys.stderr)
     sqlite_context = ""
     try:
         sqlite_context = format_context(retrieve_context(SQLITE_PATH, f"{topic} {question}", limit=12))
@@ -299,9 +382,10 @@ def main() -> int:
     observations = ask_local_model(memory, research, topic, question, sqlite_context)
     observations = deduplicate_observations(observations, memory)
     if not any(observations.get(key) for key in ("insights", "risks", "proposed_changes", "next_cycle")):
-        observations["insights"] = [
-            f"Nenhuma conclusão nova foi confirmada sobre {topic}; a lacuna de evidência será investigada antes de consolidar uma memória."
-        ]
+        observations["insights"] = [{
+            "text": f"Nenhuma conclusão nova foi confirmada sobre {topic}; a lacuna de evidência será investigada antes de consolidar uma memória.",
+            "evidence_refs": [], "type": "limitation", "confidence": 0.0,
+        }]
     observations["research_plan"] = {
         "topic": topic,
         "question": question,
@@ -325,11 +409,14 @@ def main() -> int:
 
     sqlite_status = "ok"
     sqlite_memory_id = None
+    promoted_status = "unverified"
     try:
         sqlite_memory_id = write_sqlite_cycle(cycle)
+        if sqlite_memory_id and source_episode_ids:
+            promoted_status = link_cycle_evidence(sqlite_memory_id, observations, source_episode_ids)
         if intent:
             with MemoryStore(SQLITE_PATH) as store:
-                store.complete_research(intent["id"], cycle["timestamp"], {"topic": topic, "sqlite_memory_id": sqlite_memory_id, "status": "completed"})
+                store.complete_research(intent["id"], cycle["timestamp"], {"topic": topic, "sqlite_memory_id": sqlite_memory_id, "promoted_status": promoted_status, "source_episode_count": len(source_episode_ids), "status": "completed"})
     except Exception as exc:
         sqlite_status = f"error:{type(exc).__name__}"
         print(f"SQLite dual-write falhou: {exc}", file=sys.stderr)
@@ -350,6 +437,8 @@ def main() -> int:
         "sqlite": str(SQLITE_PATH),
         "sqlite_status": sqlite_status,
         "sqlite_memory_id": sqlite_memory_id,
+        "source_episode_count": len(source_episode_ids),
+        "promoted_status": promoted_status,
     }, ensure_ascii=False))
     return 0
 

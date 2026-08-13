@@ -192,6 +192,7 @@ def build_episode(
     source_type: str,
     source_id: str,
     system_version: str,
+    source_url: str | None = None,
     model: str | None = None,
     confidence: float = 0.0,
     status: str = "unverified",
@@ -208,6 +209,7 @@ def build_episode(
         "provenance": {
             "source_type": source_type,
             "source_id": source_id,
+            "source_url": source_url,
             "model": model,
             "system_version": system_version,
             "parent_memory_ids": [],

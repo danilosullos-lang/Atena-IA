@@ -359,16 +359,19 @@ class MemoryStore:
 
     def promote_from_evidence(self, episode_id: str, *, min_sources: int = 2, confirm_sources: int = 3) -> str:
         summary = self.evidence_summary(episode_id)
+        support = float(summary["supported_weight"])
+        contradiction = float(summary["contradicted_weight"])
+        confidence = round(max(0.0, min(1.0, support / (support + contradiction))) if support + contradiction > 0 else 0.0, 4)
         if summary["contradicting_links"]:
             status = "contested"
-        elif summary["independent_sources"] >= confirm_sources:
+        elif summary["independent_sources"] >= confirm_sources and confidence >= 0.8:
             status = "confirmed"
-        elif summary["independent_sources"] >= min_sources:
+        elif summary["independent_sources"] >= min_sources and confidence >= 0.6:
             status = "supported"
         else:
             status = "unverified"
         with self.connection:
-            self.connection.execute("UPDATE episodes SET status=? WHERE id=?", (status, episode_id))
+            self.connection.execute("UPDATE episodes SET status=?, confidence=? WHERE id=?", (status, confidence, episode_id))
         return status
 
     def export_json(self, path: str | Path, limit: int | None = None) -> int:
