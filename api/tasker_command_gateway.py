@@ -49,6 +49,32 @@ class TaskerCommand(BaseModel):
     nonce: str | None = Field(default=None, min_length=8, max_length=160)
 
 
+class TaskerDispatch(BaseModel):
+    command_id: str = Field(min_length=8, max_length=120)
+    device_id: str = Field(min_length=1, max_length=120)
+    action: str = Field(min_length=1, max_length=80)
+    target: str = Field(min_length=1, max_length=80)
+    parameters: dict[str, Any] = Field(default_factory=dict)
+
+
+class TaskerResult(BaseModel):
+    command_id: str = Field(min_length=8, max_length=120)
+    device_id: str = Field(min_length=1, max_length=120)
+    ok: bool
+    result: dict[str, Any] = Field(default_factory=dict)
+
+
+ALLOWED_TASK_ACTIONS = {
+    "android_open_app",
+    "android_media_play",
+    "android_media_pause",
+    "android_media_next",
+    "android_media_previous",
+    "spotify_search_open",
+    "android_status",
+}
+
+
 def _secret() -> bytes:
     value = os.getenv("ATENA_TASKER_HMAC_SECRET", "")
     if len(value) < 32:
@@ -62,6 +88,20 @@ def _db() -> sqlite3.Connection:
     connection.execute("PRAGMA journal_mode=WAL")
     connection.execute(
         "CREATE TABLE IF NOT EXISTS used_nonces (nonce TEXT PRIMARY KEY, used_at INTEGER NOT NULL)"
+    )
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS task_queue (
+            command_id TEXT PRIMARY KEY,
+            device_id TEXT NOT NULL,
+            action TEXT NOT NULL,
+            target TEXT NOT NULL,
+            parameters_json TEXT NOT NULL,
+            status TEXT NOT NULL,
+            created_at INTEGER NOT NULL,
+            claimed_at INTEGER,
+            completed_at INTEGER,
+            result_json TEXT
+        )"""
     )
     connection.commit()
     return connection
@@ -151,3 +191,116 @@ def sign_tasker_payload(payload: dict[str, Any], secret: str, timestamp: int, no
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     message = f"{timestamp}.{nonce}.".encode("utf-8") + body
     return hmac.new(secret.encode("utf-8"), message, hashlib.sha256).hexdigest()
+
+
+@app.post("/v1/tasker/dispatch")
+async def dispatch_tasker_intent(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    x_atena_timestamp: str | None = Header(default=None),
+    x_atena_nonce: str | None = Header(default=None),
+    x_atena_signature: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Enfileira uma intenção já classificada pela Atena para o Tasker."""
+    raw_body = await request.body()
+    _verify_signature(raw_body, x_atena_timestamp or "", x_atena_nonce or "", x_atena_signature or "")
+    try:
+        payload = TaskerDispatch.model_validate_json(raw_body)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="payload de intenção inválido") from exc
+    if payload.action not in ALLOWED_TASK_ACTIONS:
+        raise HTTPException(status_code=403, detail="ação Android fora da allowlist")
+    now = int(time.time())
+    connection = _db()
+    try:
+        _clean_nonces(connection, now)
+        try:
+            connection.execute("INSERT INTO used_nonces(nonce, used_at) VALUES (?, ?)", (x_atena_nonce, now))
+        except sqlite3.IntegrityError as exc:
+            raise HTTPException(status_code=409, detail="nonce já utilizado") from exc
+        connection.execute(
+            """INSERT OR IGNORE INTO task_queue
+            (command_id, device_id, action, target, parameters_json, status, created_at)
+            VALUES (?, ?, ?, ?, ?, 'queued', ?)""",
+            (payload.command_id, payload.device_id, payload.action, payload.target, json.dumps(payload.parameters, ensure_ascii=False), now),
+        )
+        connection.commit()
+    finally:
+        connection.close()
+    background_tasks.add_task(_audit_command, payload.action, payload.device_id, True, json.dumps(payload.parameters, ensure_ascii=False))
+    return {"accepted": True, "command_id": payload.command_id, "status": "queued", "device_id": payload.device_id}
+
+
+@app.post("/v1/tasker/next")
+async def claim_next_task(
+    request: Request,
+    x_atena_timestamp: str | None = Header(default=None),
+    x_atena_nonce: str | None = Header(default=None),
+    x_atena_signature: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Retira uma única tarefa pendente para o dispositivo autenticado."""
+    raw_body = await request.body()
+    _verify_signature(raw_body, x_atena_timestamp or "", x_atena_nonce or "", x_atena_signature or "")
+    try:
+        payload = json.loads(raw_body or b"{}")
+        device_id = str(payload.get("device_id", "")).strip()
+    except (json.JSONDecodeError, AttributeError) as exc:
+        raise HTTPException(status_code=400, detail="payload JSON inválido") from exc
+    if not device_id:
+        raise HTTPException(status_code=400, detail="device_id obrigatório")
+    now = int(time.time())
+    connection = _db()
+    try:
+        _clean_nonces(connection, now)
+        try:
+            connection.execute("INSERT INTO used_nonces(nonce, used_at) VALUES (?, ?)", (x_atena_nonce, now))
+        except sqlite3.IntegrityError as exc:
+            raise HTTPException(status_code=409, detail="nonce já utilizado") from exc
+        row = connection.execute(
+            "SELECT command_id, action, target, parameters_json FROM task_queue WHERE device_id=? AND status='queued' ORDER BY created_at LIMIT 1",
+            (device_id,),
+        ).fetchone()
+        if row is None:
+            connection.commit()
+            return {"task": None, "device_id": device_id}
+        connection.execute("UPDATE task_queue SET status='claimed', claimed_at=? WHERE command_id=?", (now, row[0]))
+        connection.commit()
+        return {"task": {"command_id": row[0], "action": row[1], "target": row[2], "parameters": json.loads(row[3])}, "device_id": device_id}
+    finally:
+        connection.close()
+
+
+@app.post("/v1/tasker/result")
+async def complete_task(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    x_atena_timestamp: str | None = Header(default=None),
+    x_atena_nonce: str | None = Header(default=None),
+    x_atena_signature: str | None = Header(default=None),
+) -> dict[str, Any]:
+    raw_body = await request.body()
+    _verify_signature(raw_body, x_atena_timestamp or "", x_atena_nonce or "", x_atena_signature or "")
+    try:
+        payload = TaskerResult.model_validate_json(raw_body)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="resultado inválido") from exc
+    now = int(time.time())
+    connection = _db()
+    try:
+        _clean_nonces(connection, now)
+        try:
+            connection.execute("INSERT INTO used_nonces(nonce, used_at) VALUES (?, ?)", (x_atena_nonce, now))
+        except sqlite3.IntegrityError as exc:
+            raise HTTPException(status_code=409, detail="nonce já utilizado") from exc
+        status = "completed" if payload.ok else "failed"
+        updated = connection.execute(
+            "UPDATE task_queue SET status=?, completed_at=?, result_json=? WHERE command_id=? AND device_id=?",
+            (status, now, json.dumps(payload.result, ensure_ascii=False), payload.command_id, payload.device_id),
+        ).rowcount
+        connection.commit()
+    finally:
+        connection.close()
+    if not updated:
+        raise HTTPException(status_code=404, detail="tarefa não encontrada")
+    background_tasks.add_task(_audit_command, payload.command_id, payload.device_id, payload.ok, json.dumps(payload.result, ensure_ascii=False))
+    return {"accepted": True, "command_id": payload.command_id, "status": status}

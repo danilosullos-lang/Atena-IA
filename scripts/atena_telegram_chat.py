@@ -18,6 +18,8 @@ from core.audio_gateway import AudioGateway, AudioGatewayError
 from core.memory_store import MemoryStore
 from core.google_calendar_client import GoogleCalendarClient, GoogleCalendarNotConfigured, format_event
 from core.x_news_research import XNewsResearch, XNotConfigured
+from core.tasker_client import TaskerClient, TaskerDispatchError, TaskerNotConfigured
+from core.universal_task_router import TaskIntent, confirmation_prompt as task_confirmation_prompt, parse_task_intent
 from core.workspace_actions import (
     WorkspaceIntent,
     confirmation_prompt,
@@ -94,6 +96,8 @@ class AtenaTelegramChat:
         self.sessions = load_sessions()
         self.voice_enabled = load_voice_settings()
         self.pending_workspace: dict[str, Any] = {}
+        self.pending_device: dict[str, Any] = {}
+        self.tasker = TaskerClient()
         self.audio = AudioGateway()
         self.offset = 0
         self.http: aiohttp.ClientSession | None = None
@@ -239,7 +243,7 @@ class AtenaTelegramChat:
         if command == "/start":
             return "Olá. Sou a ponte de conversa da Atena. Envie uma pergunta ou use /help."
         if command == "/help":
-            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset, /voz on|off|status, /pesquisar <tema>, /x <notícia>, /fila, /ofertas [mínimo%] [limite], /agenda, /agendar <evento>, /criar planilha <título>. Ações de escrita exigem confirmação."
+            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset, /voz on|off|status, /pesquisar <tema>, /x <notícia>, /fila, /ofertas [mínimo%] [limite], /agenda, /agendar <evento>, /criar planilha <título>. Também aceito: abrir Spotify, tocar <música> de <artista>, pausar mídia, próxima música, status do celular. Ações sensíveis exigem confirmação."
         # Ações de workspace são sempre interpretadas antes do Ollama.
         workspace_intent = parse_workspace_intent(chat_id, text)
         if workspace_intent is not None:
@@ -280,6 +284,41 @@ class AtenaTelegramChat:
             if is_cancellation(text, pending_id):
                 self.pending_workspace.pop(str(chat_id), None)
                 return "Ação cancelada; nenhuma planilha ou evento foi alterado."
+        pending_device = self.pending_device.get(str(chat_id))
+        if pending_device:
+            pending_id = str(pending_device.get("id", ""))
+            normalized = " ".join(text.strip().split()).casefold()
+            if normalized == f"confirmar {pending_id}".casefold():
+                self.pending_device.pop(str(chat_id), None)
+                return "Ação sensível recebida, mas este tipo ainda não possui executor autorizado no Android. Nenhuma alteração foi feita."
+            if normalized == f"cancelar {pending_id}".casefold():
+                self.pending_device.pop(str(chat_id), None)
+                return "Ação Android cancelada; nenhum aplicativo ou arquivo foi alterado."
+
+        task_intent = parse_task_intent(text)
+        if task_intent is not None:
+            if task_intent.requires_confirmation:
+                self.pending_device[str(chat_id)] = {
+                    "id": task_intent.id,
+                    "action": task_intent.action,
+                    "target": task_intent.target,
+                    "parameters": task_intent.parameters,
+                }
+                return task_confirmation_prompt(task_intent)
+            try:
+                result = await self.tasker.dispatch(
+                    action=task_intent.action,
+                    target=task_intent.target,
+                    parameters=task_intent.parameters,
+                    command_id=task_intent.id,
+                )
+            except TaskerNotConfigured as exc:
+                return f"Roteador Android ainda não configurado: {exc}."
+            except TaskerDispatchError as exc:
+                log.exception("falha ao despachar tarefa Android")
+                return f"Não consegui entregar a tarefa ao Tasker: {exc}"
+            return f"Tarefa Android enfileirada: {task_intent.action}\nID: {result.get('command_id', task_intent.id)}"
+
         if command == "/voz":
             option = text.split(maxsplit=1)[1].strip().lower() if len(text.split(maxsplit=1)) > 1 else "status"
             if option == "on":
