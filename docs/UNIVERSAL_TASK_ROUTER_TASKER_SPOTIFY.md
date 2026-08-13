@@ -175,3 +175,52 @@ Para testar o gateway, configure um segredo de desenvolvimento de pelo menos 32 
 ## Spotify e licenciamento
 
 O roteador abre uma busca ou controla a reprodução no aplicativo; ele não contorna autenticação, assinatura, DRM ou limitações do Spotify. Downloads de músicas só devem ser realizados quando o próprio serviço ou o artista oferecerem uma opção autorizada.
+
+
+## Confirmação de ações sensíveis
+
+Chamadas e mensagens seguem um fluxo de duas etapas:
+
+```text
+pedido no Telegram
+    ↓
+Atena cria task_id e mostra destinatário/texto
+    ↓
+usuário responde exatamente: CONFIRMAR task_id
+    ↓
+Atena registra /v1/tasker/approve
+    ↓
+aprovação fica válida por até 120 segundos
+    ↓
+Atena despacha /v1/tasker/dispatch com approval_id
+    ↓
+gateway valida hash, dispositivo, ação e expiração
+    ↓
+Tasker executa e chama /v1/tasker/result
+```
+
+Exemplo de solicitação:
+
+```text
+Atena, enviar mensagem para Danilo: Cheguei em casa
+```
+
+A Atena deve responder com um resumo equivalente a:
+
+```text
+Esta ação no Android exige confirmação: android_send_message.
+Detalhes: {'recipient': 'Danilo', 'text': 'Cheguei em casa'}
+Responda CONFIRMAR task-... ou CANCELAR task-....
+```
+
+A confirmação é vinculada ao chat que solicitou, ao `device_id`, à ação, aos parâmetros e ao hash canônico da intenção. Alterar o destinatário, o texto, o dispositivo ou a ação invalida a aprovação. O gateway também impede reutilização: depois do despacho, o registro passa para `consumed`.
+
+No Tasker, chamadas e mensagens só devem ser executadas quando a tarefa recebida já estiver em estado `claimed` pelo gateway. O Tasker não deve criar sua própria confirmação baseada apenas em uma variável local, pois a aprovação oficial precisa vir do gateway assinado.
+
+Para máxima segurança, configure também:
+
+```bash
+export ATENA_TASKER_APPROVAL_TTL_SECONDS=120
+```
+
+O intervalo aceito pelo gateway é de 30 a 300 segundos. Em um telefone compartilhado, use um `device_id` separado por aparelho e mantenha o chat permitido em uma lista restrita.

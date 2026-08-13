@@ -51,6 +51,7 @@ class TaskerCommand(BaseModel):
 
 class TaskerDispatch(BaseModel):
     command_id: str = Field(min_length=8, max_length=120)
+    approval_id: str | None = Field(default=None, min_length=8, max_length=120)
     device_id: str = Field(min_length=1, max_length=120)
     action: str = Field(min_length=1, max_length=80)
     target: str = Field(min_length=1, max_length=80)
@@ -72,7 +73,11 @@ ALLOWED_TASK_ACTIONS = {
     "android_media_previous",
     "spotify_search_open",
     "android_status",
+    "android_call_contact",
+    "android_send_message",
 }
+SENSITIVE_TASK_ACTIONS = {"android_call_contact", "android_send_message", "android_sensitive_action"}
+APPROVAL_TTL_SECONDS = int(os.getenv("ATENA_TASKER_APPROVAL_TTL_SECONDS", "120"))
 
 
 def _secret() -> bytes:
@@ -88,6 +93,19 @@ def _db() -> sqlite3.Connection:
     connection.execute("PRAGMA journal_mode=WAL")
     connection.execute(
         "CREATE TABLE IF NOT EXISTS used_nonces (nonce TEXT PRIMARY KEY, used_at INTEGER NOT NULL)"
+    )
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS task_approvals (
+            approval_id TEXT PRIMARY KEY,
+            requester_chat_id TEXT NOT NULL,
+            device_id TEXT NOT NULL,
+            action TEXT NOT NULL,
+            intent_hash TEXT NOT NULL,
+            status TEXT NOT NULL,
+            created_at INTEGER NOT NULL,
+            expires_at INTEGER NOT NULL,
+            consumed_at INTEGER
+        )"""
     )
     connection.execute(
         """CREATE TABLE IF NOT EXISTS task_queue (
@@ -211,6 +229,13 @@ async def dispatch_tasker_intent(
     if payload.action not in ALLOWED_TASK_ACTIONS:
         raise HTTPException(status_code=403, detail="ação Android fora da allowlist")
     now = int(time.time())
+    intent_hash = _intent_hash(payload.action, payload.target, payload.parameters, payload.device_id)
+    if payload.action in SENSITIVE_TASK_ACTIONS:
+        if not payload.approval_id:
+            raise HTTPException(status_code=428, detail="aprovação explícita obrigatória")
+        approval = _consume_approval(payload.approval_id, payload.device_id, payload.action, intent_hash, now)
+        if approval is None:
+            raise HTTPException(status_code=403, detail="aprovação ausente, expirada ou incompatível")
     connection = _db()
     try:
         _clean_nonces(connection, now)
@@ -304,3 +329,81 @@ async def complete_task(
         raise HTTPException(status_code=404, detail="tarefa não encontrada")
     background_tasks.add_task(_audit_command, payload.command_id, payload.device_id, payload.ok, json.dumps(payload.result, ensure_ascii=False))
     return {"accepted": True, "command_id": payload.command_id, "status": status}
+
+
+class TaskerApproval(BaseModel):
+    approval_id: str = Field(min_length=8, max_length=120)
+    requester_chat_id: str = Field(min_length=1, max_length=120)
+    device_id: str = Field(min_length=1, max_length=120)
+    action: str = Field(min_length=1, max_length=80)
+    target: str = Field(min_length=1, max_length=80)
+    parameters: dict[str, Any] = Field(default_factory=dict)
+    expires_in: int = Field(default=120, ge=30, le=300)
+
+
+def _intent_hash(action: str, target: str, parameters: dict[str, Any], device_id: str) -> str:
+    canonical = json.dumps(
+        {"action": action, "device_id": device_id, "parameters": parameters, "target": target},
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _consume_approval(approval_id: str, device_id: str, action: str, intent_hash: str, now: int) -> bool:
+    connection = _db()
+    try:
+        row = connection.execute(
+            "SELECT status, device_id, action, intent_hash, expires_at FROM task_approvals WHERE approval_id=?",
+            (approval_id,),
+        ).fetchone()
+        if not row or row[0] != "approved" or row[1] != device_id or row[2] != action or row[3] != intent_hash or int(row[4]) < now:
+            return False
+        updated = connection.execute(
+            "UPDATE task_approvals SET status='consumed', consumed_at=? WHERE approval_id=? AND status='approved'",
+            (now, approval_id),
+        ).rowcount
+        connection.commit()
+        return bool(updated)
+    finally:
+        connection.close()
+
+
+@app.post("/v1/tasker/approve")
+async def approve_tasker_intent(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    x_atena_timestamp: str | None = Header(default=None),
+    x_atena_nonce: str | None = Header(default=None),
+    x_atena_signature: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Registra uma aprovação emitida após confirmação explícita no Telegram."""
+    raw_body = await request.body()
+    _verify_signature(raw_body, x_atena_timestamp or "", x_atena_nonce or "", x_atena_signature or "")
+    try:
+        payload = TaskerApproval.model_validate_json(raw_body)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="aprovação inválida") from exc
+    if payload.action not in SENSITIVE_TASK_ACTIONS or payload.action not in ALLOWED_TASK_ACTIONS:
+        raise HTTPException(status_code=403, detail="ação não pode ser aprovada")
+    now = int(time.time())
+    expires_at = now + min(payload.expires_in, APPROVAL_TTL_SECONDS)
+    connection = _db()
+    try:
+        _clean_nonces(connection, now)
+        try:
+            connection.execute("INSERT INTO used_nonces(nonce, used_at) VALUES (?, ?)", (x_atena_nonce, now))
+        except sqlite3.IntegrityError as exc:
+            raise HTTPException(status_code=409, detail="nonce já utilizado") from exc
+        connection.execute(
+            """INSERT OR REPLACE INTO task_approvals
+            (approval_id, requester_chat_id, device_id, action, intent_hash, status, created_at, expires_at)
+            VALUES (?, ?, ?, ?, ?, 'approved', ?, ?)""",
+            (payload.approval_id, payload.requester_chat_id, payload.device_id, payload.action, _intent_hash(payload.action, payload.target, payload.parameters, payload.device_id), now, expires_at),
+        )
+        connection.commit()
+    finally:
+        connection.close()
+    background_tasks.add_task(_audit_command, payload.action, payload.device_id, True, f"approval_id={payload.approval_id}; expires_at={expires_at}")
+    return {"accepted": True, "approval_id": payload.approval_id, "status": "approved", "expires_at": expires_at}

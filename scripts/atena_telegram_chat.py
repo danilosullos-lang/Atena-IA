@@ -290,7 +290,28 @@ class AtenaTelegramChat:
             normalized = " ".join(text.strip().split()).casefold()
             if normalized == f"confirmar {pending_id}".casefold():
                 self.pending_device.pop(str(chat_id), None)
-                return "Ação sensível recebida, mas este tipo ainda não possui executor autorizado no Android. Nenhuma alteração foi feita."
+                try:
+                    await self.tasker.approve(
+                        approval_id=pending_id,
+                        requester_chat_id=str(chat_id),
+                        action=str(pending_device["action"]),
+                        target=str(pending_device["target"]),
+                        parameters=dict(pending_device.get("parameters", {})),
+                        expires_in=120,
+                    )
+                    result = await self.tasker.dispatch(
+                        action=str(pending_device["action"]),
+                        target=str(pending_device["target"]),
+                        parameters=dict(pending_device.get("parameters", {})),
+                        command_id=pending_id,
+                        approval_id=pending_id,
+                    )
+                except TaskerNotConfigured as exc:
+                    return f"Confirmação recebida, mas o gateway Android ainda não está configurado: {exc}."
+                except TaskerDispatchError as exc:
+                    log.exception("falha ao aprovar/despachar ação sensível")
+                    return f"Ação não executada: {exc}"
+                return f"Ação sensível confirmada e enfileirada no Tasker. ID: {result.get('command_id', pending_id)}"
             if normalized == f"cancelar {pending_id}".casefold():
                 self.pending_device.pop(str(chat_id), None)
                 return "Ação Android cancelada; nenhum aplicativo ou arquivo foi alterado."

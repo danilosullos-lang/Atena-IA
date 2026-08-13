@@ -100,9 +100,17 @@ def parse_task_intent(text: str) -> TaskIntent | None:
     if lowered in {"status do celular", "status android", "consultar bateria", "bateria do celular"}:
         return _new("android_status", "android", {"fields": ["battery", "network", "foreground_app"]})
 
-    # Ações sensíveis ficam classificadas para confirmação, mas a execução
-    # continua bloqueada até existir um executor específico e autorizado.
-    if re.search(r"\b(enviar mensagem|fazer ligação|apagar arquivo|instalar aplicativo|comprar|baixar)\b", lowered):
+    call = re.match(r"(?:ligar|fazer ligação para|fazer ligacao para)\s+(.+)$", compact, re.I)
+    if call:
+        return _new("android_call_contact", "android", {"contact": call.group(1).strip()}, risk="high")
+
+    message = re.match(r"(?:enviar mensagem para|mande mensagem para)\s+(.+?)\s*:\s*(.+)$", compact, re.I)
+    if message:
+        return _new("android_send_message", "android", {"recipient": message.group(1).strip(), "text": message.group(2).strip()}, risk="high")
+
+    # Outras ações sensíveis ficam classificadas para confirmação, mas não
+    # podem ser executadas até existir um executor específico e autorizado.
+    if re.search(r"\b(apagar arquivo|instalar aplicativo|comprar|baixar)\b", lowered):
         return _new("android_sensitive_action", "android", {"request": compact}, risk="high")
     return None
 
