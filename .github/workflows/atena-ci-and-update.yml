@@ -159,6 +159,8 @@ jobs:
           ATENA_GOOGLE_API_KEY: ${{ secrets.ATENA_GOOGLE_API_KEY }}
           ATENA_GOOGLE_CSE_ID: ${{ secrets.ATENA_GOOGLE_CSE_ID }}
           ATENA_SQLITE_REQUIRED: "1"
+          ATENA_CYCLE_ROLE: autonomous-evolution-with-demand-intents
+          ATENA_AUTONOMOUS_SOURCES_ONLY: "1"
         run: |
           set -euo pipefail
           git fetch origin main --depth=1
@@ -184,6 +186,8 @@ jobs:
           }
           trap cleanup EXIT TERM INT
 
+          echo "Modo do job: $ATENA_CYCLE_ROLE"
+          echo "Fontes autônomas por padrão; fontes interativas somente via intenção Telegram."
           timeout --signal=TERM --kill-after=15s 300s python scripts/atena_scheduled_cycle.py
 
       - name: Validar memória e proposta do ciclo atual

@@ -184,14 +184,20 @@ def choose_research_topic(memory: list[dict]) -> tuple[str, str]:
     return RESEARCH_TOPICS[index]
 
 
-def collect_research(topic: str, question: str) -> dict:
-    """Consulta fontes públicas e RSS configurados, com limite e degradação segura."""
+def collect_research(topic: str, question: str, mode: str = "autonomous") -> dict:
+    """Coleta evidências; fontes estendidas só são usadas em consultas explícitas."""
+    if mode not in {"autonomous", "interactive"}:
+        raise ValueError(f"modo de pesquisa inválido: {mode}")
     query = f"ATENA {topic}: {question}"
-    result = {"topic": topic, "question": question, "query": query, "sources": [], "rss_sources": [], "errors": []}
+    result = {"topic": topic, "question": question, "query": query, "mode": mode, "sources": [], "rss_sources": [], "errors": []}
     try:
-        result["rss_sources"] = fetch_configured_sources(query, max_sources=4, limit_per_source=5)
+        result["rss_sources"] = fetch_configured_sources(query, max_sources=4, limit_per_source=5, mode=mode)
     except Exception as exc:
         result["errors"].append(f"RSS {type(exc).__name__}: {exc}")
+    # O catálogo estendido não possui o mesmo contrato de modo; por isso,
+    # ele nunca é chamado durante a rotação autônoma.
+    if mode != "interactive":
+        return result
     if not SOURCE_MODULE_PATH.exists():
         result["errors"].append("módulo de fontes ausente")
         return result
@@ -384,9 +390,11 @@ def main() -> int:
         question = str(intent.get("question") or f"Pesquisar fontes e evidências sobre {topic}.")
     else:
         topic, question = choose_research_topic(memory)
-    research = collect_research(topic, question)
+    research_mode = "interactive" if intent else "autonomous"
+    research = collect_research(topic, question, mode=research_mode)
     research["requested_by"] = "telegram" if intent else "rotation"
     research["intent_id"] = intent.get("id") if intent else None
+    research["mode"] = research_mode
     source_episode_ids: set[str] = set()
     try:
         source_episode_ids = set(persist_research_sources(research))
