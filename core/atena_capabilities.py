@@ -16,7 +16,7 @@ from core.capability_registry import catalog_dicts
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Catálogo de capacidades da Atena")
-    parser.add_argument("--area", choices=["core", "modules", "scripts", "examples", "api", "dashboard", "consciousness", "plugins"])
+    parser.add_argument("--area", choices=["root", "core", "modules", "scripts", "examples", "api", "dashboard", "consciousness", "plugins", "skills", "setup"])
     parser.add_argument("--runnable", action="store_true", help="mostrar somente módulos com ponto de entrada")
     args = parser.parse_args(argv)
     items = catalog_dicts()

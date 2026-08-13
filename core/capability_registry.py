@@ -15,7 +15,8 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
-SEARCH_ROOTS = ("core", "modules", "scripts", "examples", "api", "dashboard", "consciousness", "plugins")
+SEARCH_ROOTS = ("core", "modules", "scripts", "examples", "api", "dashboard", "consciousness", "plugins", "skills", "setup")
+ROOT_FILE_SKIP = {"conftest.py"}
 SKIP_PARTS = {"__pycache__", ".git", ".venv", ".venv_fix", "tests"}
 ENTRYPOINT_NAMES = {"main", "run", "cli", "register", "create_app"}
 
@@ -51,7 +52,7 @@ def _metadata(path: Path) -> Capability:
                     if isinstance(target, ast.Name) and target.id == "ATENA_CAPABILITY":
                         declared = True
     rel = path.relative_to(ROOT).as_posix()
-    area = rel.split("/", 1)[0]
+    area = rel.split("/", 1)[0] if "/" in rel else "root"
     importable = path.stem.isidentifier() and tree is not None
     status = "declared" if declared else ("runnable" if functions else "catalogued")
     return Capability(path.stem, rel, area, importable, tuple(sorted(functions)), declared, status)
@@ -59,13 +60,25 @@ def _metadata(path: Path) -> Capability:
 
 def discover_capabilities() -> list[Capability]:
     result: list[Capability] = []
+    seen: set[Path] = set()
+
+    # Inclui scripts Python na raiz, exceto arquivos de configuração de testes.
+    for path in sorted(ROOT.glob("*.py")):
+        if path.name in ROOT_FILE_SKIP or path.name == "__init__.py":
+            continue
+        seen.add(path.resolve())
+        result.append(_metadata(path))
+
     for root_name in SEARCH_ROOTS:
         root = ROOT / root_name
         if not root.exists():
             continue
         for path in sorted(root.rglob("*.py")):
+            if path.resolve() in seen:
+                continue
             if any(part in SKIP_PARTS for part in path.parts) or path.name == "__init__.py":
                 continue
+            seen.add(path.resolve())
             result.append(_metadata(path))
     return result
 
