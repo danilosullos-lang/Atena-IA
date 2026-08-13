@@ -36,3 +36,14 @@ def test_parse_without_evidence_forces_limitation_and_zero_confidence():
 def test_legacy_string_insight_is_limitation():
     value = parse_model_json(json.dumps({"insights": ["texto legado"], "risks": [], "proposed_changes": [], "next_cycle": []}))
     assert value["insights"] == [{"text": "texto legado", "evidence_refs": [], "type": "limitation", "confidence": 0.0}]
+
+
+def test_malformed_proposed_change_is_discarded_without_aborting_cycle():
+    value = parse_model_json(json.dumps({
+        "insights": [],
+        "risks": [],
+        "proposed_changes": [{"file": "scripts/example.py"}, {"file": "ok.py", "rationale": "motivo", "tests": ["pytest"]}],
+        "next_cycle": [],
+    }))
+    assert value["proposed_changes"] == [{"file": "ok.py", "rationale": "motivo", "tests": ["pytest"]}]
+    assert any("descartadas" in item for item in value["risks"])
