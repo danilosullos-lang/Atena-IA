@@ -133,7 +133,7 @@ jobs:
       - name: Validar memória e proposta do ciclo atual
         run: |
           python -m json.tool atena_evolution/llm_learning_memory.json >/dev/null
-          latest_proposal="$(find atena_evolution/proposals -type f -name '*.json' -mmin -15 -printf '%T@ %p\\n' | sort -nr | head -1 | cut -d' ' -f2-)"
+          latest_proposal="$(find atena_evolution/proposals -type f -name '*.json' -mmin -15 -printf '%T@ %p\n' | sort -nr | head -1 | cut -d' ' -f2-)"
           test -n "$latest_proposal"
           python - "$latest_proposal" <<'PY'
           import json
