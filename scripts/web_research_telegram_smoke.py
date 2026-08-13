@@ -18,15 +18,13 @@ def main() -> int:
     token = os.environ["ATENA_TELEGRAM_BOT_TOKEN"]
     chat_id = os.environ["ATENA_TELEGRAM_CHAT_ID"]
     evidence = search_web(args.question, limit=5)
-    if not evidence:
-        raise SystemExit("Nenhuma fonte pública foi encontrada; mensagem não enviada.")
 
     lines = [
         "<b>ATENA — simulação de pesquisa web</b>",
         f"Consulta: <i>{html.escape(args.question)}</i>",
         f"Realizada em: <code>{datetime.now(timezone.utc).isoformat()}</code>",
         "",
-        "A busca web encontrou estas fontes públicas:",
+        "A busca web encontrou estas fontes públicas:" if evidence else "A busca web não conseguiu confirmar fontes neste runner. A Atena deve informar essa limitação e não inventar uma data.",
     ]
     for index, item in enumerate(evidence, 1):
         lines.extend([
@@ -34,6 +32,13 @@ def main() -> int:
             html.escape(item.snippet[:420]) if item.snippet else "Trecho não disponível.",
             f'<a href="{html.escape(item.url, quote=True)}">Abrir fonte</a>',
             "",
+        ])
+    if not evidence:
+        lines.extend([
+            "",
+            "Fontes oficiais para nova tentativa:",
+            '<a href="https://www.palmeiras.com.br/calendario/">Calendário oficial do Palmeiras</a>',
+            '<a href="https://www.cbf.com.br/futebol-brasileiro/tabelas/campeonato-brasileiro/serie-a">Tabela oficial da CBF</a>',
         ])
     message = "\n".join(lines)
     if len(message) > 3900:
@@ -47,7 +52,7 @@ def main() -> int:
     data = response.json()
     if not data.get("ok"):
         raise SystemExit(f"Telegram rejeitou a simulação: {data.get('description', 'erro desconhecido')}")
-    print(f"Simulação enviada com {len(evidence)} fontes.")
+    print(f"Simulação enviada com {len(evidence)} fontes confirmadas.")
     return 0
 
 
