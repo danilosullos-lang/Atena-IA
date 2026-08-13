@@ -191,12 +191,22 @@ class AtenaTelegramChat:
             await self.send(chat_id, f"Não consegui processar agora: {type(exc).__name__}. Verifique o log da Atena.")
 
     async def run(self, once: bool = False, poll_timeout: int = 25) -> None:
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=poll_timeout + 15)) as session:
+        # O long polling pode demorar ligeiramente além do timeout declarado pelo Telegram.
+        # Um timeout transitório não deve encerrar a ponte e interromper as mensagens.
+        client_timeout = aiohttp.ClientTimeout(total=poll_timeout + 60, connect=15, sock_read=poll_timeout + 45)
+        async with aiohttp.ClientSession(timeout=client_timeout) as session:
             self.http = session
             await self.api("getMe")
             log.info("ponte Telegram iniciada; modelo=%s", self.model)
             while True:
-                updates = await self.api("getUpdates", {"offset": self.offset, "timeout": poll_timeout, "allowed_updates": ["message"]})
+                try:
+                    updates = await self.api("getUpdates", {"offset": self.offset, "timeout": poll_timeout, "allowed_updates": ["message"]})
+                except TelegramError as exc:
+                    log.warning("polling Telegram temporariamente indisponível; tentando novamente: %s", exc)
+                    if once:
+                        raise
+                    await asyncio.sleep(5)
+                    continue
                 for update in updates or []:
                     self.offset = max(self.offset, int(update["update_id"]) + 1)
                     await self.handle_update(update)
