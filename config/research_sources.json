@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "name": "ArXiv Quantum Physics",
+      "type": "rss",
+      "url": "https://export.arxiv.org/rss/quant-ph",
+      "category": "quantum_technology",
+      "weight": 0.9,
+      "enabled": true,
+      "keywords": ["quantum", "quantum computing", "qubit", "quantum technology"]
+    },
+    {
+      "name": "MIT Technology Review",
+      "type": "rss",
+      "url": "https://www.technologyreview.com/feed/",
+      "category": "technology",
+      "weight": 0.75,
+      "enabled": true,
+      "keywords": ["technology", "science", "ai", "quantum"]
+    }
+  ]
+}

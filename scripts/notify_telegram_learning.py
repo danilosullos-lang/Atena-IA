@@ -26,6 +26,7 @@ def build_message(proposal: dict, run_url: str | None) -> str:
     research_plan = observations.get("research_plan", {})
     research = proposal.get("research", {})
     model = html.escape(str(proposal.get("model", "modelo local")))
+    requested_by = research.get("requested_by", "rotation")
     timestamp = html.escape(str(proposal.get("timestamp", "agora")))
     lines = [
         "<b>ATENA — nova aprendizagem</b>",
@@ -44,9 +45,12 @@ def build_message(proposal: dict, run_url: str | None) -> str:
     lines.append("\n<b>Próximo ciclo</b>")
     lines.extend(f"• {html.escape(clip(str(item)))}" for item in next_cycle[:3])
     lines.append("\n<b>Pesquisa realizada</b>")
+    lines.append(f"• Origem: {html.escape(str(requested_by))}")
     if research_plan.get("topic"):
         lines.append(f"• Tema: {html.escape(clip(str(research_plan['topic']), 180))}")
     consulted = research_plan.get("sources_to_consult", []) or [item.get("source") for item in research.get("sources", []) if item.get("ok")]
+    rss_consulted = [item.get("source") for item in research.get("rss_sources", []) if item.get("ok")]
+    consulted = list(dict.fromkeys([*consulted, *rss_consulted]))
     if consulted:
         lines.append(f"• Fontes: {html.escape(clip(', '.join(map(str, consulted)), 300))}")
     if research_plan.get("question"):

@@ -21,6 +21,7 @@ from pathlib import Path
 
 from core.episodic_memory import build_episode
 from core.memory_store import MemoryStore
+from core.research_sources import fetch_configured_sources
 
 ROOT = Path(__file__).resolve().parents[1]
 MEMORY_PATH = ROOT / "atena_evolution" / "llm_learning_memory.json"
@@ -138,9 +139,13 @@ def choose_research_topic(memory: list[dict]) -> tuple[str, str]:
 
 
 def collect_research(topic: str, question: str) -> dict:
-    """Consulta fontes públicas já implementadas, com limite e degradação segura."""
+    """Consulta fontes públicas e RSS configurados, com limite e degradação segura."""
     query = f"ATENA {topic}: {question}"
-    result = {"topic": topic, "question": question, "query": query, "sources": [], "errors": []}
+    result = {"topic": topic, "question": question, "query": query, "sources": [], "rss_sources": [], "errors": []}
+    try:
+        result["rss_sources"] = fetch_configured_sources(query, max_sources=4, limit_per_source=5)
+    except Exception as exc:
+        result["errors"].append(f"RSS {type(exc).__name__}: {exc}")
     if not SOURCE_MODULE_PATH.exists():
         result["errors"].append("módulo de fontes ausente")
         return result
@@ -266,8 +271,20 @@ def main() -> int:
     MEMORY_PATH.parent.mkdir(parents=True, exist_ok=True)
     PROPOSALS_DIR.mkdir(parents=True, exist_ok=True)
     memory = load_memory()
-    topic, question = choose_research_topic(memory)
+    intent = None
+    try:
+        with MemoryStore(SQLITE_PATH) as store:
+            intent = store.claim_next_research()
+    except Exception as exc:
+        print(f"fila de pesquisa indisponível: {exc}", file=sys.stderr)
+    if intent:
+        topic = str(intent["topic"])
+        question = str(intent.get("question") or f"Pesquisar fontes e evidências sobre {topic}.")
+    else:
+        topic, question = choose_research_topic(memory)
     research = collect_research(topic, question)
+    research["requested_by"] = "telegram" if intent else "rotation"
+    research["intent_id"] = intent.get("id") if intent else None
     observations = ask_local_model(memory, research, topic, question)
     observations = deduplicate_observations(observations, memory)
     if not any(observations.get(key) for key in ("insights", "risks", "proposed_changes", "next_cycle")):
@@ -298,9 +315,18 @@ def main() -> int:
     sqlite_memory_id = None
     try:
         sqlite_memory_id = write_sqlite_cycle(cycle)
+        if intent:
+            with MemoryStore(SQLITE_PATH) as store:
+                store.complete_research(intent["id"], cycle["timestamp"], {"topic": topic, "sqlite_memory_id": sqlite_memory_id, "status": "completed"})
     except Exception as exc:
         sqlite_status = f"error:{type(exc).__name__}"
         print(f"SQLite dual-write falhou: {exc}", file=sys.stderr)
+        if intent:
+            try:
+                with MemoryStore(SQLITE_PATH) as store:
+                    store.complete_research(intent["id"], cycle["timestamp"], {"topic": topic, "error": str(exc)}, failed=True)
+            except Exception:
+                pass
         if SQLITE_REQUIRED:
             raise
 

@@ -12,7 +12,10 @@ from typing import Any
 
 import aiohttp
 
+from core.memory_store import MemoryStore
+
 ROOT = Path(os.getenv("ATENA_ROOT", Path(__file__).resolve().parents[1]))
+MEMORY_DB = Path(os.getenv("ATENA_MEMORY_DB", str(ROOT / "atena_evolution" / "memory.sqlite3")))
 TELEGRAM_API = "https://api.telegram.org/bot{token}/{method}"
 OLLAMA_CHAT = os.getenv("ATENA_OLLAMA_CHAT_URL", "http://127.0.0.1:11434/api/chat")
 MODEL = os.getenv("ATENA_LOCAL_MODEL", "qwen2.5:3b-instruct")
@@ -123,7 +126,20 @@ class AtenaTelegramChat:
         if command == "/start":
             return "Olá. Sou a ponte de conversa da Atena. Envie uma pergunta ou use /help."
         if command == "/help":
-            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset e /help. Mensagens comuns são respondidas pelo modelo local."
+            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset, /pesquisar <tema> e /fila. Mensagens comuns são respondidas pelo modelo local."
+        if command == "/pesquisar":
+            topic = text.split(maxsplit=1)[1].strip() if len(text.split(maxsplit=1)) > 1 else ""
+            if not topic:
+                return "Uso: /pesquisar <tema>. Exemplo: /pesquisar tecnologia quântica"
+            with MemoryStore(MEMORY_DB) as store:
+                intent_id = store.enqueue_research(chat_id, topic, f"Pesquisar fontes e evidências sobre {topic}.")
+            return f"Pesquisa enfileirada para o próximo ciclo: {topic}\nID: {intent_id}"
+        if command == "/fila":
+            with MemoryStore(MEMORY_DB) as store:
+                intents = [item for item in store.pending_research() if str(item.get("chat_id")) == str(chat_id)]
+            if not intents:
+                return "Não há pesquisas pendentes para este chat."
+            return clip("Pesquisas pendentes:\n" + "\n".join(f"• {item['topic']} ({item['status']})" for item in intents[:10]))
         if command == "/modelo":
             return f"Modelo local ativo: {self.model}\nBackend: Ollama em {OLLAMA_CHAT}"
         if command == "/reset":

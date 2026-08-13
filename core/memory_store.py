@@ -56,6 +56,21 @@ CREATE TABLE IF NOT EXISTS evidence_links (
     weight REAL NOT NULL DEFAULT 1.0 CHECK (weight >= 0 AND weight <= 1),
     PRIMARY KEY (episode_id, evidence_episode_id, relation)
 );
+CREATE TABLE IF NOT EXISTS research_intents (
+    id TEXT PRIMARY KEY,
+    chat_id TEXT NOT NULL,
+    command TEXT NOT NULL,
+    topic TEXT NOT NULL,
+    question TEXT,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed', 'cancelled')),
+    created_at TEXT NOT NULL,
+    claimed_at TEXT,
+    completed_at TEXT,
+    cycle_id TEXT,
+    result_json TEXT,
+    UNIQUE(chat_id, topic, status)
+);
+CREATE INDEX IF NOT EXISTS idx_research_intents_queue ON research_intents(status, created_at);
 CREATE TABLE IF NOT EXISTS source_health (
     source_id TEXT PRIMARY KEY,
     category TEXT,
@@ -243,6 +258,60 @@ class MemoryStore:
             if not row or row[0] != record["content_hash"]:
                 raise EpisodicMemoryError(f"hash divergente no banco: {record['memory_id']}")
         return last_hash
+
+    def enqueue_research(self, chat_id: int | str, topic: str, question: str | None = None) -> str:
+        import uuid
+        from datetime import datetime, timezone
+        topic = " ".join(str(topic).split()).strip()
+        if not topic or len(topic) > 240:
+            raise ValueError("tema de pesquisa vazio ou longo demais")
+        intent_id = f"intent-{uuid.uuid4().hex[:16]}"
+        now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        with self.connection:
+            existing = self.connection.execute(
+                "SELECT id FROM research_intents WHERE chat_id=? AND topic=? AND status IN ('pending','processing')",
+                (str(chat_id), topic),
+            ).fetchone()
+            if existing:
+                return str(existing[0])
+            self.connection.execute(
+                """INSERT INTO research_intents(id, chat_id, command, topic, question, status, created_at)
+                   VALUES (?, ?, 'research', ?, ?, 'pending', ?)""",
+                (intent_id, str(chat_id), topic, question, now),
+            )
+        return intent_id
+
+    def claim_next_research(self) -> dict[str, Any] | None:
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        with self.connection:
+            row = self.connection.execute(
+                "SELECT * FROM research_intents WHERE status='pending' ORDER BY created_at ASC LIMIT 1"
+            ).fetchone()
+            if not row:
+                return None
+            self.connection.execute(
+                "UPDATE research_intents SET status='processing', claimed_at=? WHERE id=? AND status='pending'",
+                (now, row["id"]),
+            )
+        return dict(self.connection.execute("SELECT * FROM research_intents WHERE id=?", (row["id"],)).fetchone())
+
+    def complete_research(self, intent_id: str, cycle_id: str, result: dict[str, Any], failed: bool = False) -> None:
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        status = "failed" if failed else "completed"
+        with self.connection:
+            self.connection.execute(
+                "UPDATE research_intents SET status=?, completed_at=?, cycle_id=?, result_json=? WHERE id=?",
+                (status, now, cycle_id, json.dumps(result, ensure_ascii=False, sort_keys=True), intent_id),
+            )
+
+    def pending_research(self, limit: int = 10) -> list[dict[str, Any]]:
+        rows = self.connection.execute(
+            "SELECT * FROM research_intents WHERE status IN ('pending','processing') ORDER BY created_at LIMIT ?",
+            (max(1, min(int(limit), 100)),),
+        ).fetchall()
+        return [dict(row) for row in rows]
 
     def link_evidence(self, episode_id: str, evidence_episode_id: str, relation: str, weight: float = 1.0) -> None:
         if not 0 <= weight <= 1:
