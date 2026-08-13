@@ -166,6 +166,13 @@ jobs:
           git commit -m "chore(atena): record scheduled learning cycle"
           git push origin HEAD:atena/autoevolution
 
+      - name: Disponibilizar notificador aprovado
+        if: always() && steps.validate_learning.outputs.latest_proposal != ''
+        run: |
+          git fetch origin main --depth=1
+          git show origin/main:scripts/notify_telegram_learning.py > /tmp/notify_telegram_learning.py
+          python -m py_compile /tmp/notify_telegram_learning.py
+
       - name: Notificar nova aprendizagem no Telegram
         if: always() && steps.validate_learning.outputs.latest_proposal != ''
         continue-on-error: true
@@ -176,7 +183,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
-          python scripts/notify_telegram_learning.py \
+          python /tmp/notify_telegram_learning.py \
             --proposal "${{ steps.validate_learning.outputs.latest_proposal }}"
 
   publish-generated-state:
