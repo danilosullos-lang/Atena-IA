@@ -1,0 +1,192 @@
+{
+  "timestamp": "2026-08-13T07:06:34.557718+00:00",
+  "model": "qwen2.5:3b-instruct",
+  "duration_limit_seconds": 300,
+  "research": {
+    "topic": "fontes externas",
+    "question": "Quais fontes públicas autorizadas podem preencher as lacunas atuais?",
+    "query": "ATENA fontes externas: Quais fontes públicas autorizadas podem preencher as lacunas atuais?",
+    "sources": [
+      {
+        "source": "google_books",
+        "category": "culture",
+        "ok": false,
+        "details": "{\"error\": \"_timed() got multiple values for argument 'source_name'\"}"
+      },
+      {
+        "source": "huggingface",
+        "category": "ai_ml",
+        "ok": false,
+        "details": "{\"error\": \"_timed() got multiple values for argument 'source_name'\"}"
+      },
+      {
+        "source": "openlibrary_ext",
+        "category": "culture",
+        "ok": false,
+        "details": "{\"error\": \"_timed() got multiple values for argument 'source_name'\"}"
+      },
+      {
+        "source": "quotable",
+        "category": "misc",
+        "ok": false,
+        "details": "{\"error\": \"_timed() got multiple values for argument 'source_name'\"}"
+      }
+    ],
+    "rss_sources": [
+      {
+        "source": "ArXiv Quantum Physics",
+        "category": "quantum_technology",
+        "ok": true,
+        "items": [
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Spectrally local geometric response at the onset of many-body quantum chaos",
+            "link": "https://arxiv.org/abs/2608.11309",
+            "published_at": "Thu, 13 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.11309v1 Announce Type: new Abstract: We introduce the spectral density of geometric response, a measure of eigenstate sensitivity across an energy spectrum. Applied to many-body quantum systems, it reveals an exponentially sensitive integrability-to-chaos crossover, where eigenbasis deformations first accumulate in localized spectral regions before spreading throughout the spectrum. Physically motivated random-matrix ensembles reproduce this behaviour, whereas Gaussian ensembles do not, indicating universal features of the route to chaos that are absent from featureless random-matrix models.",
+            "content_hash": "sha256:7684eecd453c163ce6c0253844a1026a17a30734120c02be8e462601594fceb4",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260813070634-5497acdc25f8"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Spin-coherent quantum designs",
+            "link": "https://arxiv.org/abs/2608.11310",
+            "published_at": "Thu, 13 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.11310v1 Announce Type: new Abstract: Coherent states bridge the gap between quantum and classical physics, but their overcomplete and nonorthogonal nature makes it difficult to identify the minimal discrete set needed to reconstruct quantum information. Finite spin-coherent tomography and discrete coherent-state operator bases are known, but here we address the more specific rank-resolved problem of preserving the canonical contravariant-symbol representation. We show that the canonical finite coherent-state formula reconstructs every operator in the rank-$S$ sector exactly if and only if the sampling points form a spherical $(2J+S)$-design. We call the associated configurations spin-coherent quantum designs. We further give a fully explicit positive-weight Gauss-Legendre construction that avoids the need for an equal-weight spherical design. Together, these results establish a unified framework for reading out physical observables from a handful of measurement samples, playing for spin systems the role that the so-called von Neumann lattice plays for canonical coherent states. Finally, we derive practical protocols for estimating moments of spin operators from these constructions, with direct applications to polarimetry, magnetometry, and quantum state tomography.",
+            "content_hash": "sha256:e5b65c065905671f3096d18c7d617d8ae672f1e1ea3bc7f72e4f45d5207f5a48",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260813070634-d25f00e4f467"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Teleportation through time-varying channels: threshold geometry and a complete-positivity bound on non-Markovian backflow",
+            "link": "https://arxiv.org/abs/2608.11314",
+            "published_at": "Thu, 13 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.11314v1 Announce Type: new Abstract: A Bell pair distributed through a link that combines amplitude damping with dephasing at time-dependent rates has dynamics that separate into a fixed part and a moving one. The negativity, fully entangled fraction, discord, and average teleportation fidelity depend on time only through the accumulated damping parameters $p(t)$ and $q(t)$. Every threshold is therefore a curve fixed in the unit square, and the rates select nothing but a trajectory across it. The Horodecki fidelity formula $\\bar{F} = \\frac{1}{2} + \\frac{1}{6}\\mathrm{Tr}|T|$ covers one- and two-sided exposure alike: the condition $\\det T \\leq 0$ under which it takes this form holds throughout the unit square for both. Under symmetric two-sided noise the entanglement vanishes when $p+q\\geq1$, where the exact relation $\\bar{F}^{2s}=\\frac{2}{3}+\\frac{1}{3}\\mathcal{N}_{2s}$ ties disentanglement and the loss of quantum advantage to the same instant. One-sided exposure admits no finite-time sudden death for any rate profile, and the discord stays strictly positive throughout the open square, so the distributed state can be separable, useless for teleportation, and still nonclassical. For harmonically modulated rates, complete positivity caps the backflow at one modulation period of static decay, $\\Delta\\Gamma_{k}\\leq2\\pi\\gamma_{k,0}/\\Omega$, equivalently at a modulation depth $\\xi_{k}\\leq4.6033$ independent of $\\Omega$. Inside that window the trajectory reverses, producing finite intervals of restored quantum advantage and entanglement sudden birth.",
+            "content_hash": "sha256:b30e529b8b637424b05d735f185881b1d111cb20c058cd399f2eaadf3d83ee86",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260813070634-0f9cb9509ec3"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Modelling quantum measurement dynamics: from decoherence to redundancy with site-hopping indistinguishable particles",
+            "link": "https://arxiv.org/abs/2608.11319",
+            "published_at": "Thu, 13 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.11319v1 Announce Type: new Abstract: In recent years, new theoretical insights into decoherence and quantum measurements have emerged through the study of many-body dynamics in isolated quantum systems. It is now understood that the parameters and energy scales in system-environment interactions decisively affect how readily information spreads from a quantum system into its surroundings during a decoherence event. A popular choice for studying these effects is the framework of quantum Darwinism (QD), but so far few works have applied this to realistic many-body models. Inspired by experimentally-accessible setups, in this work we introduce a simple, flexible, numerically exact many-body model of a system broadcasting information into an environment: a 1D lattice of sites with hopping particles. We show that different choices of parameters lead to the recovery of known scenarios featuring different decoherence and QD effects, such as equilibration, revivals of coherence, and redundancy. In constructing this model we resolve the crucial issue of indistinguishability: we explain how to calculate the entropy of a fraction of the environment when said environment is composed of indistinguishable fermions or bosons (or lattice sites containing them). We then show that particle statistics can make a notable difference to the QD properties of the setup, with fermionic environments sometimes achieving redundancy much more readily than bosonic or site-based ones. Our work opens the door to much closer alignment between theoretical models and experimental tests of the dynamics of quantum measurements and the quantum-to-classical transition.",
+            "content_hash": "sha256:6ba98d328d3c8b4556fd55ebaa8065a9f0b7b035103ea2f03e0129bc7289a2ff",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260813070634-584e3c7d4187"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Robust Quantum Machine Learning for Collider Event Selection under Detector Variability",
+            "link": "https://arxiv.org/abs/2608.11330",
+            "published_at": "Thu, 13 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.11330v1 Announce Type: new Abstract: Robust machine-learning methods are becoming increasingly important for high-energy physics data analysis as experiments enter the era of higher luminosity and future higher-energy colliders. Detector degradation, changing running conditions and calibration drift can shift data distributions, causing models trained on clean reference samples to degrade after deployment. We investigate whether parameterised quantum models provide a useful inductive bias for robust collider-event selection in two complementary settings. In the unsupervised study, quantum autoencoders trained on background events are compared with classical and variational autoencoders for anomaly detection. In the supervised study, quantum classifiers with data reuploading are trained to distinguish a supersymmetric signal from background and are compared with linear and multilayer-perceptron classifiers. All models are trained under reference conditions and subsequently evaluated under controlled feature-level smearing while their parameters and preprocessing transformations are held fixed. On clean inputs, the quantum autoencoders achieve competitive anomaly-detection performance, including in the low-false-positive-rate regime relevant for triggering, while the deeper data-reuploading classifier attains discrimination comparable to the non-linear classical baseline. Under smearing, the quantum models generally exhibit smaller shifts in their output scores and retain their discrimination more effectively than the expressive classical baselines. These results suggest that parameterised quantum models can provide a useful robustness inductive bias for collider-event selection and motivate further studies with realistic detector systematics, finite-shot statistics and quantum-device noise.",
+            "content_hash": "sha256:82e6b58e185212e1cbb9fc1d4fc275e25d55b8a09a3fcbeaea4797e75fb5f29b",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260813070634-8f40cd57aa4e"
+          }
+        ],
+        "response_time_ms": 216.28
+      },
+      {
+        "source": "MIT Technology Review",
+        "category": "technology",
+        "ok": true,
+        "items": [
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "Scientists just created female clones of male mice",
+            "link": "https://www.technologyreview.com/2026/08/12/1141768/scientists-just-created-female-clones-of-male-mice/",
+            "published_at": "Wed, 12 Aug 2026 18:59:48 +0000",
+            "summary": "Scientists have deliberately turned male mouse embryos into females for the first time. A team based in Japan used a CRISPR-based approach to remove the Y chromosome from male cells and create female clones of male mice.&#160; “No one has done this before,” says Monika Ward, a reproductive biologist at the University of Hawaii, who&#8230;",
+            "content_hash": "sha256:6234e376b90fb39fabb69a413c30c528c76b5c5ec32bd9228b600e21c70edb8d",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260813070634-b8534e273fb1"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "Scaling AI agents with trustworthy data",
+            "link": "https://www.technologyreview.com/2026/08/12/1141032/scaling-ai-agents-with-trustworthy-data/",
+            "published_at": "Wed, 12 Aug 2026 16:51:57 +0000",
+            "summary": "Business and technology leaders need no convincing that the time of agentic AI is here. Organizations are rapidly adopting agents, and few executives doubt the technology’s potential to transform work. But many organizations find that realizing the desired return on investment (ROI) from AI hinges on having the right foundation, with inadequate infrastructure and data&#8230;",
+            "content_hash": "sha256:96f0a5d1ff6d842e786bf48c66b8d3bbea512a2ae66ca9e05ea01b993c64f654",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260813070634-ec3757164dea"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "The Download: our 35 young innovators and the “censorship-industrial complex”",
+            "link": "https://www.technologyreview.com/2026/08/12/1141714/the-download-innovators-under-35-censorship-industrial-complex/",
+            "published_at": "Wed, 12 Aug 2026 12:10:00 +0000",
+            "summary": "This is today&#8217;s edition of The Download, our weekday newsletter that provides a daily dose of what&#8217;s going on in the world of technology. How we picked 35 of the world’s top young scientists and engineers On September 8, MIT Technology Review will reveal its 2026 list of Innovators Under 35, recognizing 35 young people&#8230;",
+            "content_hash": "sha256:7a48c2cd785728bf588d691bd20815fb1db9e3fe299ee35a1dc3a89533aba151",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260813070634-377283bd84f3"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "How we picked 35 of the world’s top young scientists and engineers",
+            "link": "https://www.technologyreview.com/2026/08/12/1141605/2026-innovators-under-35-top-young-scientists-engineers/",
+            "published_at": "Wed, 12 Aug 2026 09:08:40 +0000",
+            "summary": "Next month, on September 8, MIT Technology Review will reveal its 2026 list of Innovators Under 35, recognizing 35 young people from around the world who are doing groundbreaking scientific work and building clever technical fixes for sticky problems.&#160; By finding the top young innovators globally and learning what they’re focused on in their work,&#8230;",
+            "content_hash": "sha256:96ffa8016bbdc2bb9baeed3ff9a051b2912d42f10804acfc9273ff105d7492ca",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260813070634-526618aea7ba"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "How the “censorship-industrial complex” is changing the internet and US policy",
+            "link": "https://www.technologyreview.com/2026/08/11/1141635/how-the-censorship-industrial-complex-is-changing-the-internet-and-us-policy/",
+            "published_at": "Tue, 11 Aug 2026 17:58:57 +0000",
+            "summary": "I first heard the term “censorship-industrial complex” on April 15, 2025.&#160; That’s when I got the tip that a small office in the U.S. State Department, which focused on monitoring and countering foreign disinformation from the likes of Russia, Iran, and China, was facing imminent shutdown—the next day.&#160; And the reason? R/FIMI, as the office&#8230;",
+            "content_hash": "sha256:e77c2c19b0e15ea5a0d51c4bf8fdaf7d50982ed6f9d4a414071b2fcad3557f76",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260813070634-1979e18c71d2"
+          }
+        ],
+        "response_time_ms": 155.76
+      }
+    ],
+    "errors": [],
+    "requested_by": "rotation",
+    "intent_id": null
+  },
+  "observations": {
+    "insights": [
+      {
+        "text": "Nenhuma conclusão nova foi confirmada sobre fontes externas; a lacuna de evidência será investigada antes de consolidar uma memória.",
+        "evidence_refs": [],
+        "type": "limitation",
+        "confidence": 0.0
+      }
+    ],
+    "risks": [],
+    "proposed_changes": [],
+    "next_cycle": [],
+    "research_plan": {
+      "topic": "fontes externas",
+      "question": "Quais fontes públicas autorizadas podem preencher as lacunas atuais?",
+      "sources_to_consult": [],
+      "evidence_expected": "comparar pelo menos duas evidências independentes antes de consolidar um fato",
+      "next_test": "verificar uma instância inédita relacionada a fontes externas",
+      "retrieval": {
+        "source": "sqlite",
+        "episode_limit": 12,
+        "context_chars": 8300
+      }
+    }
+  }
+}
