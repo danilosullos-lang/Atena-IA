@@ -17,6 +17,7 @@ import aiohttp
 from core.audio_gateway import AudioGateway, AudioGatewayError
 from core.memory_store import MemoryStore
 from core.google_calendar_client import GoogleCalendarClient, GoogleCalendarNotConfigured, format_event
+from core.x_news_research import XNewsResearch, XNotConfigured
 from core.workspace_actions import (
     WorkspaceIntent,
     confirmation_prompt,
@@ -238,7 +239,7 @@ class AtenaTelegramChat:
         if command == "/start":
             return "Olá. Sou a ponte de conversa da Atena. Envie uma pergunta ou use /help."
         if command == "/help":
-            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset, /voz on|off|status, /pesquisar <tema>, /fila, /ofertas [mínimo%] [limite], /agenda, /agendar <evento>, /criar planilha <título>. Ações de escrita exigem confirmação."
+            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset, /voz on|off|status, /pesquisar <tema>, /x <notícia>, /fila, /ofertas [mínimo%] [limite], /agenda, /agendar <evento>, /criar planilha <título>. Ações de escrita exigem confirmação."
         # Ações de workspace são sempre interpretadas antes do Ollama.
         workspace_intent = parse_workspace_intent(chat_id, text)
         if workspace_intent is not None:
@@ -302,6 +303,24 @@ class AtenaTelegramChat:
             if not 0 <= minimum_discount <= 100 or not 1 <= limit <= 20:
                 return "Use desconto entre 0 e 100 e quantidade entre 1 e 20."
             return await self.best_store_deals(minimum_discount, limit)
+        if command in {"/x", "/noticiasx"}:
+            query = text.split(maxsplit=1)[1].strip() if len(text.split(maxsplit=1)) > 1 else ""
+            if not query:
+                return "Uso: /x <tema>. Exemplo: /x últimas notícias sobre inteligência artificial"
+            try:
+                posts = await asyncio.to_thread(XNewsResearch().search, query, 10)
+            except XNotConfigured as exc:
+                return f"Pesquisa no X indisponível: {exc}"
+            except Exception as exc:
+                log.exception("falha na pesquisa do X")
+                return f"Não consegui consultar o X agora: {type(exc).__name__}."
+            if not posts:
+                return "ATENA — X\n\nNenhum post recente encontrado para essa consulta."
+            lines = ["ATENA — notícias recentes no X", ""]
+            for post in posts[:10]:
+                snippet = " ".join(post.text.split())[:240]
+                lines.append(f"• {snippet}\n  {post.url}")
+            return clip("\n".join(lines))
         if command == "/pesquisar":
             topic = text.split(maxsplit=1)[1].strip() if len(text.split(maxsplit=1)) > 1 else ""
             if not topic:
