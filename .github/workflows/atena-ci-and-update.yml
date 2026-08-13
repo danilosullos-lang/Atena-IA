@@ -123,12 +123,35 @@ jobs:
           for i in $(seq 1 30); do ollama list >/dev/null 2>&1 && break; sleep 1; done
           ollama pull qwen2.5:3b-instruct
 
-      - name: Executar ciclo de cinco minutos
+      - name: Executar ciclo e atender Telegram por cinco minutos
         env:
           ATENA_LOCAL_MODEL: qwen2.5:3b-instruct
           ATENA_ROOT: ${{ github.workspace }}
           PYTHONPATH: ${{ github.workspace }}
-        run: timeout --signal=TERM --kill-after=15s 300s python scripts/atena_scheduled_cycle.py
+          ATENA_TELEGRAM_BOT_TOKEN: ${{ secrets.ATENA_TELEGRAM_BOT_TOKEN }}
+          ATENA_TELEGRAM_CHAT_ID: ${{ secrets.ATENA_TELEGRAM_CHAT_ID }}
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=1
+          git show origin/main:scripts/atena_telegram_chat.py > /tmp/atena_telegram_chat.py
+          python -m py_compile /tmp/atena_telegram_chat.py
+
+          python /tmp/atena_telegram_chat.py --poll-timeout 20 > /tmp/atena_telegram_chat.log 2>&1 &
+          TELEGRAM_PID=$!
+
+          cleanup() {
+            if kill -0 "$TELEGRAM_PID" 2>/dev/null; then
+              kill -TERM "$TELEGRAM_PID" 2>/dev/null || true
+              sleep 2
+              kill -KILL "$TELEGRAM_PID" 2>/dev/null || true
+            fi
+            wait "$TELEGRAM_PID" 2>/dev/null || true
+            echo "=== LOG TELEGRAM (janela de cinco minutos) ==="
+            cat /tmp/atena_telegram_chat.log || true
+          }
+          trap cleanup EXIT TERM INT
+
+          timeout --signal=TERM --kill-after=15s 300s python scripts/atena_scheduled_cycle.py
 
       - name: Validar memória e proposta do ciclo atual
         id: validate_learning

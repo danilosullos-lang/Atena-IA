@@ -33,7 +33,7 @@ Para fazer somente uma leitura de updates e encerrar, use:
 python3 scripts/atena_telegram_chat.py --once
 ```
 
-O processo precisa permanecer ativo para responder rapidamente. O GitHub Actions continua adequado para os ciclos periódicos e notificações, mas não é um lugar apropriado para manter polling 24 horas: o runner é temporário e a execução termina quando o job acaba.
+O processo precisa permanecer ativo para responder rapidamente. O GitHub Actions continua adequado para os ciclos periódicos e notificações. O workflow da Atena agora também inicia esta ponte durante a janela de cinco minutos do ciclo, atende mensagens autorizadas nesse intervalo e encerra o listener ao terminar. Fora dessa janela, o runner é temporário e não mantém polling 24 horas; para atendimento contínuo, é necessário um processo persistente separado.
 
 ## Comandos disponíveis
 
