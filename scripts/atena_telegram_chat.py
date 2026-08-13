@@ -7,11 +7,13 @@ import asyncio
 import json
 import logging
 import os
+import tempfile
 from pathlib import Path
 from typing import Any
 
 import aiohttp
 
+from core.audio_gateway import AudioGateway, AudioGatewayError
 from core.memory_store import MemoryStore
 
 ROOT = Path(os.getenv("ATENA_ROOT", Path(__file__).resolve().parents[1]))
@@ -20,6 +22,7 @@ TELEGRAM_API = "https://api.telegram.org/bot{token}/{method}"
 OLLAMA_CHAT = os.getenv("ATENA_OLLAMA_CHAT_URL", "http://127.0.0.1:11434/api/chat")
 MODEL = os.getenv("ATENA_LOCAL_MODEL", "qwen2.5:3b-instruct")
 SESSION_PATH = Path(os.getenv("ATENA_TELEGRAM_SESSION_PATH", str(ROOT / "data" / "telegram_sessions.json")))
+VOICE_SETTINGS_PATH = Path(os.getenv("ATENA_TELEGRAM_VOICE_SETTINGS_PATH", str(ROOT / "data" / "telegram_voice_settings.json")))
 MAX_HISTORY = 12
 MAX_MESSAGE = 3900
 
@@ -60,12 +63,27 @@ def save_sessions(sessions: dict[str, list[dict[str, str]]]) -> None:
     SESSION_PATH.write_text(json.dumps(sessions, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def load_voice_settings() -> set[str]:
+    try:
+        data = json.loads(VOICE_SETTINGS_PATH.read_text(encoding="utf-8"))
+        return {str(item) for item in data if str(item).strip()} if isinstance(data, list) else set()
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return set()
+
+
+def save_voice_settings(enabled: set[str]) -> None:
+    VOICE_SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    VOICE_SETTINGS_PATH.write_text(json.dumps(sorted(enabled), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
 class AtenaTelegramChat:
     def __init__(self, token: str, chat_allowlist: str, model: str = MODEL) -> None:
         self.token = token
         self.chat_allowlist = chat_allowlist
         self.model = model
         self.sessions = load_sessions()
+        self.voice_enabled = load_voice_settings()
+        self.audio = AudioGateway()
         self.offset = 0
         self.http: aiohttp.ClientSession | None = None
 
@@ -88,6 +106,30 @@ class AtenaTelegramChat:
 
     async def send(self, chat_id: int, text: str) -> None:
         await self.api("sendMessage", {"chat_id": chat_id, "text": clip(text), "disable_web_page_preview": True})
+
+    async def send_voice(self, chat_id: int, audio_path: Path) -> None:
+        assert self.http is not None
+        url = TELEGRAM_API.format(token=self.token, method="sendVoice")
+        data = aiohttp.FormData()
+        data.add_field("chat_id", str(chat_id))
+        data.add_field("voice", audio_path.read_bytes(), filename="atena.wav", content_type="audio/wav")
+        async with self.http.post(url, data=data, timeout=aiohttp.ClientTimeout(total=60)) as response:
+            body = await response.json(content_type=None)
+            if response.status != 200 or not body.get("ok"):
+                raise TelegramError(f"Telegram sendVoice: {body.get('description', response.status)}")
+
+    async def download_file(self, file_id: str, suffix: str = ".ogg") -> tuple[bytes, str]:
+        assert self.http is not None
+        metadata = await self.api("getFile", {"file_id": file_id})
+        file_path = str((metadata or {}).get("file_path", ""))
+        if not file_path:
+            raise TelegramError("Telegram não retornou o caminho do áudio")
+        url = f"https://api.telegram.org/file/bot{self.token}/{file_path}"
+        async with self.http.get(url, timeout=aiohttp.ClientTimeout(total=60)) as response:
+            if response.status != 200:
+                raise TelegramError(f"download de áudio HTTP {response.status}")
+            data = await response.read()
+        return data, suffix
 
     async def ollama(self, chat_id: int, user_text: str) -> str:
         assert self.http is not None
@@ -126,7 +168,20 @@ class AtenaTelegramChat:
         if command == "/start":
             return "Olá. Sou a ponte de conversa da Atena. Envie uma pergunta ou use /help."
         if command == "/help":
-            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset, /pesquisar <tema> e /fila. Mensagens comuns são respondidas pelo modelo local."
+            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset, /voz on|off|status, /pesquisar <tema> e /fila. Mensagens comuns são respondidas pelo modelo local."
+        if command == "/voz":
+            option = text.split(maxsplit=1)[1].strip().lower() if len(text.split(maxsplit=1)) > 1 else "status"
+            if option == "on":
+                self.voice_enabled.add(str(chat_id))
+                save_voice_settings(self.voice_enabled)
+                return "Modo de voz ativado. Envie uma mensagem de voz para conversar com a Atena."
+            if option == "off":
+                self.voice_enabled.discard(str(chat_id))
+                save_voice_settings(self.voice_enabled)
+                return "Modo de voz desativado. Continuarei respondendo por texto."
+            if option == "status":
+                return "Modo de voz: " + ("ativado" if str(chat_id) in self.voice_enabled else "desativado")
+            return "Uso: /voz on, /voz off ou /voz status."
         if command == "/pesquisar":
             topic = text.split(maxsplit=1)[1].strip() if len(text.split(maxsplit=1)) > 1 else ""
             if not topic:
@@ -170,25 +225,45 @@ class AtenaTelegramChat:
 
     async def handle_update(self, update: dict[str, Any]) -> None:
         message = update.get("message") or update.get("edited_message")
-        if not message or not isinstance(message.get("text"), str):
+        if not message:
             return
         chat = message.get("chat", {})
         chat_id = int(chat.get("id"))
         if not allowed_chat(chat_id, self.chat_allowlist):
             log.warning("mensagem ignorada de chat não autorizado: %s", chat_id)
             return
-        text = message["text"].strip()
-        if not text:
-            return
+        text = str(message.get("text", "")).strip()
+        voice = message.get("voice") or message.get("audio")
+        temporary_audio: Path | None = None
         try:
+            if voice and not text:
+                if str(chat_id) not in self.voice_enabled:
+                    await self.send(chat_id, "Modo de voz desativado. Envie /voz on para ativá-lo.")
+                    return
+                file_id = str(voice.get("file_id", ""))
+                if not file_id:
+                    raise AudioGatewayError("mensagem de voz sem file_id")
+                audio_bytes, suffix = await self.download_file(file_id)
+                transcript = await asyncio.to_thread(self.audio.transcribe_bytes, audio_bytes, suffix)
+                text = transcript["text"]
+                await self.send(chat_id, f"Transcrição: {clip(text, 900)}")
+            if not text:
+                return
             answer = await self.command(chat_id, text)
             if answer is None:
-                await self.send(chat_id, await self.ollama(chat_id, text))
-            else:
-                await self.send(chat_id, answer)
+                answer = await self.ollama(chat_id, text)
+            await self.send(chat_id, answer)
+            if voice and str(chat_id) in self.voice_enabled:
+                temporary_audio = await asyncio.to_thread(self.audio.synthesize, answer)
+                await self.send_voice(chat_id, temporary_audio)
+        except (AudioGatewayError, TelegramError) as exc:
+            log.warning("falha controlada no áudio/Telegram: %s", exc)
+            await self.send(chat_id, f"Não consegui processar o áudio agora: {exc}")
         except Exception as exc:
             log.exception("falha ao processar mensagem")
             await self.send(chat_id, f"Não consegui processar agora: {type(exc).__name__}. Verifique o log da Atena.")
+        finally:
+            AudioGateway.remove_file(temporary_audio)
 
     async def run(self, once: bool = False, poll_timeout: int = 25) -> None:
         # O long polling pode demorar ligeiramente além do timeout declarado pelo Telegram.
