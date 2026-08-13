@@ -88,6 +88,7 @@ jobs:
     timeout-minutes: 7
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - name: Checkout da branch de autoevolução
         uses: actions/checkout@v4
@@ -215,6 +216,30 @@ jobs:
           fi
           git commit -m "chore(atena): record scheduled learning cycle"
           git push origin HEAD:atena/autoevolution
+
+      - name: Abrir Pull Request da autoevolução
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=1
+          if git diff --quiet origin/main...HEAD; then
+            echo "Nenhuma diferença entre atena/autoevolution e main; PR não necessário."
+            exit 0
+          fi
+          existing_pr="$(gh pr list --repo "$GITHUB_REPOSITORY" --base main --head atena/autoevolution --state open --json url --jq '.[0].url // empty')"
+          if [ -n "$existing_pr" ]; then
+            echo "Pull Request já aberto: $existing_pr"
+            exit 0
+          fi
+          gh pr create \
+            --repo "$GITHUB_REPOSITORY" \
+            --base main \
+            --head atena/autoevolution \
+            --title "chore(atena): proposta de autoevolução" \
+            --body "## Proposta automática da Atena\n\nEsta PR contém alterações geradas no ciclo de autoevolução.\n\n- Branch de origem: \\`atena/autoevolution\\`\n- Execução: $GITHUB_RUN_URL\n- Validações: testes, compilação, memória e consolidação SQLite\n- Merge automático: desabilitado; revisar o diff e os resultados antes de aprovar."
 
       - name: Disponibilizar notificador aprovado
         if: always() && steps.validate_learning.outputs.latest_proposal != ''
