@@ -18,6 +18,51 @@
       "weight": 0.75,
       "enabled": true,
       "keywords": ["technology", "science", "ai", "quantum"]
+    },
+    {
+      "name": "Santos FC Oficial",
+      "type": "rss",
+      "url": "https://www.santosfc.com.br/feed/",
+      "category": "santos",
+      "weight": 0.95,
+      "enabled": true,
+      "keywords": ["santos", "santos fc", "peixe", "futebol"]
+    },
+    {
+      "name": "Palmeiras Oficial",
+      "type": "rss",
+      "url": "https://www.palmeiras.com.br/feed/",
+      "category": "palmeiras",
+      "weight": 0.95,
+      "enabled": true,
+      "keywords": ["palmeiras", "verdão", "futebol"]
+    },
+    {
+      "name": "Google News Santos Palmeiras",
+      "type": "rss",
+      "url": "https://news.google.com/rss/search?q=Santos+Palmeiras&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+      "category": "santos_palmeiras",
+      "weight": 0.7,
+      "enabled": true,
+      "keywords": ["santos", "palmeiras", "jogo", "notícia"]
+    },
+    {
+      "name": "BBC Brasil",
+      "type": "rss",
+      "url": "https://feeds.bbci.co.uk/portuguese/rss.xml",
+      "category": "general_news",
+      "weight": 0.7,
+      "enabled": true,
+      "keywords": ["brasil", "mundo", "política", "ciência", "tecnologia"]
+    },
+    {
+      "name": "Agência Brasil",
+      "type": "rss",
+      "url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+      "category": "general_news",
+      "weight": 0.8,
+      "enabled": true,
+      "keywords": ["brasil", "política", "economia", "saúde", "notícias"]
     }
   ]
 }
