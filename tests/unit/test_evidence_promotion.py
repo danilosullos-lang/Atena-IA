@@ -23,3 +23,16 @@ def test_promote_supported_episode_updates_confidence(tmp_path):
         row = store.connection.execute("SELECT status, confidence FROM episodes WHERE id=?", (claim,)).fetchone()
         assert row[0] == "supported"
         assert row[1] > 0.0
+
+
+def test_parse_without_evidence_forces_limitation_and_zero_confidence():
+    value = parse_model_json(json.dumps({"insights": [{"text": "alegação sem fonte", "evidence_refs": ["  ", ""], "type": "fact", "confidence": 0.95}], "risks": [], "proposed_changes": [], "next_cycle": []}))
+    insight = value["insights"][0]
+    assert insight["evidence_refs"] == []
+    assert insight["type"] == "limitation"
+    assert insight["confidence"] == 0.0
+
+
+def test_legacy_string_insight_is_limitation():
+    value = parse_model_json(json.dumps({"insights": ["texto legado"], "risks": [], "proposed_changes": [], "next_cycle": []}))
+    assert value["insights"] == [{"text": "texto legado", "evidence_refs": [], "type": "limitation", "confidence": 0.0}]

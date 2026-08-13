@@ -86,7 +86,7 @@ def parse_model_json(raw: str) -> dict:
     for item in parsed["insights"]:
         # Compatibilidade com memórias antigas; novos retornos devem ser objetos.
         if isinstance(item, str):
-            normalized_insights.append({"text": item, "evidence_refs": [], "type": "observation", "confidence": 0.0})
+            normalized_insights.append({"text": item, "evidence_refs": [], "type": "limitation", "confidence": 0.0})
             continue
         if not isinstance(item, dict) or not {"text", "evidence_refs", "type", "confidence"}.issubset(item):
             raise ValueError("cada insight precisa de text, evidence_refs, type e confidence")
@@ -94,6 +94,10 @@ def parse_model_json(raw: str) -> dict:
             raise ValueError("text e evidence_refs têm tipos inválidos")
         if not isinstance(item["confidence"], (int, float)) or not 0 <= item["confidence"] <= 1:
             raise ValueError("confidence do insight deve estar entre 0 e 1")
+        item["evidence_refs"] = [ref.strip() for ref in item["evidence_refs"] if ref.strip()]
+        if not item["evidence_refs"]:
+            item["confidence"] = 0.0
+            item["type"] = "limitation"
         normalized_insights.append(item)
     parsed["insights"] = normalized_insights
     if not isinstance(parsed["risks"], list) or not all(isinstance(item, str) for item in parsed["risks"]):
