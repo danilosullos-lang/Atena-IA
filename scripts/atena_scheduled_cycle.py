@@ -22,6 +22,7 @@ from pathlib import Path
 from core.episodic_memory import build_episode
 from core.memory_store import MemoryStore
 from core.memory_consolidation import compact_context
+from core.memory_retrieval import format_context, retrieve_context
 from core.research_sources import fetch_configured_sources
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -217,9 +218,10 @@ def deduplicate_observations(observations: dict, memory: list[dict]) -> dict:
     return observations
 
 
-def ask_local_model(memory: list[dict], research: dict, topic: str, question: str) -> dict:
-    context = json.dumps(compact_context(memory[-200:], max_items=30), ensure_ascii=False, indent=2)[:12000]
+def ask_local_model(memory: list[dict], research: dict, topic: str, question: str, sqlite_context: str = "") -> dict:
+    context = json.dumps(compact_context(memory[-200:], max_items=30), ensure_ascii=False, indent=2)[:9000]
     research_context = json.dumps(research, ensure_ascii=False, indent=2)[:7000]
+    sqlite_context = sqlite_context or "(nenhum contexto SQLite recuperado)"
     prompt = f"""Você é o módulo local de análise da ATENA. Faça um ciclo de aprendizagem de no máximo cinco minutos.
 Responda SOMENTE com um objeto JSON, sem Markdown, sem comentários, sem códigos ANSI e sem texto antes ou depois.
 As chaves obrigatórias são: insights (lista de strings), risks (lista de strings), proposed_changes
@@ -236,8 +238,11 @@ REGRAS DE DIVERSIDADE:
 Pergunta de investigação: {question}
 Dados coletados das fontes públicas autorizadas:
 {research_context}
-Memória recente:
+Memória recente legada:
 {context}
+
+Memória episódica SQLite recuperada por relevância:
+{sqlite_context}
 """
     host = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434").rstrip("/")
     payload = {
@@ -286,7 +291,12 @@ def main() -> int:
     research = collect_research(topic, question)
     research["requested_by"] = "telegram" if intent else "rotation"
     research["intent_id"] = intent.get("id") if intent else None
-    observations = ask_local_model(memory, research, topic, question)
+    sqlite_context = ""
+    try:
+        sqlite_context = format_context(retrieve_context(SQLITE_PATH, f"{topic} {question}", limit=12))
+    except Exception as exc:
+        print(f"recuperação SQLite indisponível: {exc}", file=sys.stderr)
+    observations = ask_local_model(memory, research, topic, question, sqlite_context)
     observations = deduplicate_observations(observations, memory)
     if not any(observations.get(key) for key in ("insights", "risks", "proposed_changes", "next_cycle")):
         observations["insights"] = [
@@ -298,6 +308,7 @@ def main() -> int:
         "sources_to_consult": [item["source"] for item in research.get("sources", []) if item.get("ok")],
         "evidence_expected": "comparar pelo menos duas evidências independentes antes de consolidar um fato",
         "next_test": f"verificar uma instância inédita relacionada a {topic}",
+        "retrieval": {"source": "sqlite", "episode_limit": 12, "context_chars": len(sqlite_context)},
     }
     cycle = {
         "timestamp": now.isoformat(),
