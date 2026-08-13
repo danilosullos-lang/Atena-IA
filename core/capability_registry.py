@@ -8,6 +8,7 @@ from __future__ import annotations
 import ast
 import importlib.util
 import inspect
+import os
 import json
 import sys
 from dataclasses import asdict, dataclass
@@ -95,10 +96,20 @@ def _resolve(capability: Capability) -> Path:
     return path
 
 
+def _execution_allowlist() -> set[str]:
+    raw = os.getenv("ATENA_CAPABILITY_ALLOWLIST", "")
+    return {item.strip() for item in raw.split(",") if item.strip()}
+
+
 def run_capability(name: str, args: list[str] | None = None) -> Any:
     matches = [item for item in discover_capabilities() if item.name == name]
     if len(matches) != 1:
         raise KeyError(f"capacidade não encontrada ou ambígua: {name}")
+    allowlist = _execution_allowlist()
+    if name not in allowlist:
+        raise PermissionError(
+            f"capacidade {name} bloqueada: defina ATENA_CAPABILITY_ALLOWLIST explicitamente"
+        )
     capability = matches[0]
     if not capability.importable or not capability.entrypoints:
         raise ValueError(f"capacidade {name} não declara um ponto de entrada executável")

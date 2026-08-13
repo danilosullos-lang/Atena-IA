@@ -158,6 +158,20 @@ jobs:
           ATENA_TAVILY_API_KEY: ${{ secrets.ATENA_TAVILY_API_KEY }}
           ATENA_GOOGLE_API_KEY: ${{ secrets.ATENA_GOOGLE_API_KEY }}
           ATENA_GOOGLE_CSE_ID: ${{ secrets.ATENA_GOOGLE_CSE_ID }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ATENA_GEMINI_MODEL: ${{ vars.ATENA_GEMINI_MODEL || 'gemini-3.7-flash' }}
+          ATENA_ANTHROPIC_MODEL: ${{ vars.ATENA_ANTHROPIC_MODEL || 'claude-fable-5' }}
+          ATENA_OPENAI_MODEL: ${{ vars.ATENA_OPENAI_MODEL || 'gpt-4.1-mini' }}
+          ATENA_EVOLUTION_TASK_TYPE: github_evolution
+          ATENA_PROVIDER_QUOTA_DB: ${{ github.workspace }}/atena_evolution/provider_quota.sqlite3
+          ATENA_GEMINI_DAILY_REQUESTS: ${{ vars.ATENA_GEMINI_DAILY_REQUESTS || '0' }}
+          ATENA_GEMINI_DAILY_TOKENS: ${{ vars.ATENA_GEMINI_DAILY_TOKENS || '0' }}
+          ATENA_ANTHROPIC_DAILY_REQUESTS: ${{ vars.ATENA_ANTHROPIC_DAILY_REQUESTS || '0' }}
+          ATENA_ANTHROPIC_DAILY_TOKENS: ${{ vars.ATENA_ANTHROPIC_DAILY_TOKENS || '0' }}
+          ATENA_OPENAI_DAILY_REQUESTS: ${{ vars.ATENA_OPENAI_DAILY_REQUESTS || '0' }}
+          ATENA_OPENAI_DAILY_TOKENS: ${{ vars.ATENA_OPENAI_DAILY_TOKENS || '0' }}
           ATENA_SQLITE_REQUIRED: "1"
           ATENA_CYCLE_ROLE: autonomous-evolution-with-demand-intents
           ATENA_AUTONOMOUS_SOURCES_ONLY: "1"

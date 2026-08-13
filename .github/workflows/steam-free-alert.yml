@@ -19,10 +19,10 @@ jobs:
     timeout-minutes: 8
 
     steps:
-      - name: Checkout da branch de memória
+      - name: Checkout do código da main
         uses: actions/checkout@v4
         with:
-          ref: atena/autoevolution
+          ref: main
           fetch-depth: 1
 
       - name: Configurar Python
