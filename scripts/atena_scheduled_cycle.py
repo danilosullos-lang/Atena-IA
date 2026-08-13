@@ -106,13 +106,27 @@ def parse_model_json(raw: str) -> dict:
         raise ValueError("next_cycle deve ser uma lista de textos")
     if not isinstance(parsed["proposed_changes"], list):
         raise ValueError("proposed_changes deve ser uma lista")
+    valid_changes = []
+    rejected_changes = 0
     for proposal in parsed["proposed_changes"]:
         if not isinstance(proposal, dict) or not {"file", "rationale", "tests"}.issubset(proposal):
-            raise ValueError("cada proposta precisa de file, rationale e tests")
+            rejected_changes += 1
+            continue
         if not isinstance(proposal["file"], str) or not isinstance(proposal["rationale"], str):
-            raise ValueError("file e rationale devem ser textos")
+            rejected_changes += 1
+            continue
         if not isinstance(proposal["tests"], list) or not all(isinstance(item, str) for item in proposal["tests"]):
-            raise ValueError("tests deve ser uma lista de textos")
+            rejected_changes += 1
+            continue
+        valid_changes.append(proposal)
+    if rejected_changes:
+        parsed["risks"].append(
+            f"{rejected_changes} proposta(s) do modelo foram descartadas por não atenderem ao contrato file/rationale/tests."
+        )
+        parsed["next_cycle"].append(
+            "Reformular propostas de alteração no schema obrigatório antes de qualquer Pull Request."
+        )
+    parsed["proposed_changes"] = valid_changes
     return parsed
 
 
