@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 );
 CREATE TABLE IF NOT EXISTS episodes (
     id TEXT PRIMARY KEY,
+    sequence INTEGER UNIQUE,
     record_type TEXT NOT NULL,
     task_id TEXT NOT NULL,
     domain TEXT NOT NULL,
@@ -105,9 +106,14 @@ class MemoryStore:
 
     def initialize(self) -> None:
         self.connection.executescript(SCHEMA_SQL)
-        self.connection.execute(
-            "INSERT OR IGNORE INTO schema_migrations(version) VALUES (1)"
-        )
+        columns = {row[1] for row in self.connection.execute("PRAGMA table_info(episodes)").fetchall()}
+        if "sequence" not in columns:
+            self.connection.execute("ALTER TABLE episodes ADD COLUMN sequence INTEGER")
+            rows = self.connection.execute("SELECT id FROM episodes ORDER BY created_at ASC, id ASC").fetchall()
+            for index, row in enumerate(rows, start=1):
+                self.connection.execute("UPDATE episodes SET sequence=? WHERE id=?", (index, row[0]))
+        self.connection.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_episodes_sequence ON episodes(sequence)")
+        self.connection.execute("INSERT OR IGNORE INTO schema_migrations(version) VALUES (1)")
         self.connection.commit()
 
     def close(self) -> None:
@@ -121,7 +127,7 @@ class MemoryStore:
 
     def _last_hash(self) -> str | None:
         row = self.connection.execute(
-            "SELECT content_hash FROM episodes ORDER BY created_at DESC, id DESC LIMIT 1"
+            "SELECT content_hash FROM episodes ORDER BY sequence DESC LIMIT 1"
         ).fetchone()
         return str(row[0]) if row else None
 
@@ -158,15 +164,16 @@ class MemoryStore:
         subject = value["subject"]
         evidence = value["evidence"]
         lifecycle = value["lifecycle"]
+        next_sequence = self.connection.execute("SELECT COALESCE(MAX(sequence), 0) + 1 FROM episodes").fetchone()[0]
         with self.connection:
             self.connection.execute(
                 """INSERT INTO episodes
-                (id, record_type, task_id, domain, benchmark_version, created_at,
+                (id, sequence, record_type, task_id, domain, benchmark_version, created_at,
                  record_json, content_hash, previous_record_hash, status, confidence,
                  lifecycle_state, supersedes_id, created_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
-                    value["memory_id"], value["record_type"], subject["task_id"],
+                    value["memory_id"], next_sequence, value["record_type"], subject["task_id"],
                     subject["domain"], subject.get("benchmark_version"), value["created_at"],
                     event_json, value["content_hash"], provenance.get("previous_record_hash"),
                     evidence["status"], float(evidence["confidence"]), lifecycle["state"],
@@ -228,19 +235,19 @@ class MemoryStore:
         limit = max(1, min(int(limit), 500))
         if task_id:
             rows = self.connection.execute(
-                "SELECT record_json FROM episodes WHERE task_id = ? ORDER BY created_at DESC, id DESC LIMIT ?",
+                "SELECT record_json FROM episodes WHERE task_id = ? ORDER BY sequence DESC LIMIT ?",
                 (task_id, limit),
             ).fetchall()
         else:
             rows = self.connection.execute(
-                "SELECT record_json FROM episodes ORDER BY created_at DESC, id DESC LIMIT ?",
+                "SELECT record_json FROM episodes ORDER BY sequence DESC LIMIT ?",
                 (limit,),
             ).fetchall()
         return [json.loads(row[0]) for row in rows]
 
     def iter_ordered(self) -> Iterable[dict[str, Any]]:
         rows = self.connection.execute(
-            "SELECT record_json FROM episodes ORDER BY created_at ASC, id ASC"
+            "SELECT record_json FROM episodes ORDER BY sequence ASC"
         )
         for row in rows:
             yield json.loads(row[0])
