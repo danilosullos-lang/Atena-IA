@@ -19,6 +19,7 @@ class XPostEvidence:
     url: str
     created_at: str | None
     author_id: str | None
+    public_metrics: dict[str, int] | None = None
 
 
 class XNewsResearch:
@@ -41,7 +42,7 @@ class XNewsResearch:
             params={
                 "query": f"{query} -is:retweet lang:pt",
                 "max_results": max_results,
-                "tweet.fields": "created_at,author_id",
+                "tweet.fields": "created_at,author_id,public_metrics",
             },
             timeout=self.timeout,
         )
@@ -56,6 +57,7 @@ class XNewsResearch:
                 url=f"https://x.com/i/web/status/{item.get('id', '')}",
                 created_at=item.get("created_at"),
                 author_id=item.get("author_id"),
+                public_metrics=item.get("public_metrics") or {},
             )
             for item in payload.get("data", [])
             if item.get("id") and item.get("text")

@@ -103,7 +103,14 @@ def collect_x(query: str = "(futebol OR política OR jogos OR tecnologia) lang:p
         posts = XNewsResearch().search(query, limit)
     except XNotConfigured:
         return []
-    return [NewsItem("Em alta no X", " ".join(post.text.split())[:220], post.url, "X", post.created_at or "") for post in posts]
+    def score(post):
+        metrics = post.public_metrics or {}
+        return int(metrics.get("like_count", 0)) + 2 * int(metrics.get("retweet_count", 0)) + int(metrics.get("reply_count", 0))
+
+    return [
+        NewsItem("Em alta no X", f"[{score(post)} sinais de engajamento] " + " ".join(post.text.split())[:190], post.url, "X", post.created_at or "")
+        for post in sorted(posts, key=score, reverse=True)
+    ]
 
 
 def format_digest(items: Iterable[NewsItem], errors: list[str], *, include_x: bool) -> str:
