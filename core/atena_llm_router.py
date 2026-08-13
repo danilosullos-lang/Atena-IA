@@ -659,8 +659,8 @@ class LocalProvider(BaseLLMProvider):
     """Suporte a servidores locais compatíveis com OpenAI API (Ollama, LM Studio, llama.cpp)"""
     def __init__(self, config: RouterConfig):
         super().__init__("local", config)
-        self.base_url = os.getenv("ATENA_LOCAL_LLM_URL", "http://localhost:11434/v1")  # Ollama padrão
-        self.model = os.getenv("ATENA_LOCAL_LLM_MODEL", "llama3")
+        self.base_url = os.getenv("ATENA_LOCAL_LLM_URL", "http://localhost:11434/v1")  # API compatível com OpenAI do Ollama
+        self.model = os.getenv("ATENA_LOCAL_LLM_MODEL", "qwen2.5:3b-instruct")
         self.api_key = "no-key"  # placeholder
     
     async def generate(self, request: LLMRequest) -> LLMResponse:
@@ -676,7 +676,7 @@ class LocalProvider(BaseLLMProvider):
             "stream": False
         }
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload) as resp:
+            async with session.post(url, json=payload, timeout=self.config.health_check_timeout + REQUEST_TIMEOUT) as resp:
                 if resp.status != 200:
                     text = await resp.text() if resp is not None else "Erro: Resposta vazia"
                     raise Exception(f"Local LLM error {resp.status}: {text}")
@@ -697,7 +697,7 @@ class LocalProvider(BaseLLMProvider):
             "stream": True
         }
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload) as resp:
+            async with session.post(url, json=payload, timeout=self.config.health_check_timeout + REQUEST_TIMEOUT) as resp:
                 async for line in resp.content:
                     line = line.decode().strip()
                     if line.startswith("data: "):
