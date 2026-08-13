@@ -1,12 +1,12 @@
 {
-  "episodes_scanned": 38,
-  "repeated_claims": 15,
+  "episodes_scanned": 49,
+  "repeated_claims": 16,
   "claims": [
     {
       "claim_key": "sha256:e04e1ad1d54be04e9be860c5479f9e5b0749f94af09fd73800f58fd5eae30e4e",
       "kind": "insights",
       "canonical_text": "Observações semelhantes foram feitas em todas as sessões, indicando que a memória recente não contém informações suficientes para gerar insights claros.",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -15,7 +15,7 @@
       "claim_key": "sha256:ed266c08035f42640002d9355fb38fd302c94ec3ed7c057b98f01a47c13e2ce0",
       "kind": "insights",
       "canonical_text": "É necessária uma quantidade mínima de dados ou contextos na memória para permitir o gerenciamento adequado dos insights e identificação de riscos.",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -24,7 +24,7 @@
       "claim_key": "sha256:1756cfc2491e4623dab310c90d93f0fd7cd46985d3c34b2691516937758671ad",
       "kind": "risks",
       "canonical_text": "Ausência de dados suficientes na memória recente pode levar a decisões baseadas em informações limitadas ou enganosas.",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -33,7 +33,7 @@
       "claim_key": "sha256:7ddf1ce0e02200d1b581adaef7d72cf972c5079001bf66b8fb0ac663ef8b6890",
       "kind": "risks",
       "canonical_text": "Sem contexto adequado, os insights podem não ser úteis ou relevantes para tomar decisões informadas.",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -42,7 +42,7 @@
       "claim_key": "sha256:5807f90598322d72a1ca77b5179263677af5105a2d204d0a85e58d24cc32344b",
       "kind": "risks",
       "canonical_text": "Possível erro no ciclo de aprendizagem atual, uma vez que a memória recente é vazia.",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -51,7 +51,7 @@
       "claim_key": "sha256:b5844ab5307a92dc343c9dd2d44f88dd167331323b16ac59a39d7941f1a52e0f",
       "kind": "next_cycle",
       "canonical_text": "A memória precisa ser atualizada com dados adicionais ou contextos apropriados para gerar insights e identificar riscos eficazmente.",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -60,7 +60,7 @@
       "claim_key": "sha256:2e61bc250be0362050244e91a2e03e707165b1ddac3d4dd2bc26762035d307df",
       "kind": "next_cycle",
       "canonical_text": "Um ciclo adicional de aprendizagem deve focar em como melhorar a inclusão desses novos dados na memória para futuros ciclos.",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -69,7 +69,7 @@
       "claim_key": "sha256:dcf09a2e841dbac3f9a60e1f7aa37e0e3683e01763d9d1332ef11245fd7624c9",
       "kind": "next_cycle",
       "canonical_text": "Implementação de um sistema de feedback que monitora o progresso do módulo local da ATENA e sugere ajustes se necessário.",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -78,7 +78,7 @@
       "claim_key": "sha256:9f42e74a8369fb85e7c43e57c1cfb3b45cdc477b64b48901a37577a065d9accd",
       "kind": "insights",
       "canonical_text": "Nenhuma conclusão nova foi confirmada sobre memória histórica; a lacuna de evidência será investigada antes de consolidar uma memória.",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813054503-366f62c22ec8"
       ]
@@ -87,7 +87,7 @@
       "claim_key": "sha256:f41d0d1c17bd6e1e1df5eead906b0c372a4301016337110f2bc8b72ce9b2d340",
       "kind": "insights",
       "canonical_text": "Nenhuma conclusão nova foi confirmada sobre deduplicação; a lacuna de evidência será investigada antes de consolidar uma memória.",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813055158-bc4a4efeaac2"
       ]
@@ -96,7 +96,7 @@
       "claim_key": "sha256:30f8deeddd8ac8cecb9575719a483d36460e95b09052704690fe4149fe77f000",
       "kind": "insights",
       "canonical_text": "Nenhuma conclusão nova foi confirmada sobre segurança; a lacuna de evidência será investigada antes de consolidar uma memória.",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813055931-47ad3a5575cb"
       ]
@@ -105,7 +105,7 @@
       "claim_key": "sha256:37a947b5ce3cc34c6b9f31b01331ebf0ee63964ca8bafbf853922eb8effe2455",
       "kind": "insights",
       "canonical_text": "Nenhuma conclusão nova foi confirmada sobre qualidade de código; a lacuna de evidência será investigada antes de consolidar uma memória.",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813060444-0433f051b238"
       ]
@@ -114,7 +114,7 @@
       "claim_key": "sha256:b22b00b51cfbdbd34d54d9d096a2464da5e3a6aaf37e7e73938e1f932f08d062",
       "kind": "insights",
       "canonical_text": "Nenhuma conclusão nova foi confirmada sobre fontes externas; a lacuna de evidência será investigada antes de consolidar uma memória.",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813070823-386514b1d339"
       ]
@@ -123,7 +123,7 @@
       "claim_key": "sha256:e6986e9de5b325763c888b5b79da5efdc2a53c3c1299aa268ef1aea98a81cd89",
       "kind": "insights",
       "canonical_text": "The Technology Review has published several articles on various topics. Here are the summaries of each article:",
-      "seen_count": 2,
+      "seen_count": 3,
       "episode_ids": [
         "mem-20260813074332-56b18ef9e239"
       ]
@@ -132,9 +132,18 @@
       "claim_key": "sha256:fbe56d5ca639f77d13bb7edd115c52a0fcb8425a4d8ce6acf9bef88dc0f54495",
       "kind": "insights",
       "canonical_text": "The articles cover a wide range of topics including AI, censorship, cloning, and quantum mechanics. The first article discusses the impact of the 'censorship-industrial complex' on internet policies in the US. The second article reports on scientists creating female clones of male mice using CRISPR technology. The third article highlights the 2026 list of Innovators Under 35 from MIT Technology Review, recognizing young people doing groundbreaking scientific work and building clever technical fixes for sticky problems. The fourth article discusses a new measure called spectral density of geometric response in many-body quantum systems. The fifth article introduces spin-coherent quantum designs which are related to finite spin-coherent tomography and discrete coherent-state operator bases.",
-      "seen_count": 2,
+      "seen_count": 3,
       "episode_ids": [
         "mem-20260813074332-56b18ef9e239"
+      ]
+    },
+    {
+      "claim_key": "sha256:77d7ab9c2b74d4e6b1d1f30ea321e736786e58299698f62b11f3c680ba09ac65",
+      "kind": "insights",
+      "canonical_text": "Nenhuma conclusão nova foi confirmada sobre FAISS e recuperação; a lacuna de evidência será investigada antes de consolidar uma memória.",
+      "seen_count": 2,
+      "episode_ids": [
+        "mem-20260813082104-695a5d4d9c8e"
       ]
     }
   ]
