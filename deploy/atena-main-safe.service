@@ -11,8 +11,8 @@ Group=ubuntu
 WorkingDirectory=/home/ubuntu/Atena-IA
 EnvironmentFile=-/etc/atena/core.env
 Environment=PYTHONPATH=/home/ubuntu/Atena-IA
-Environment=ALLOW_DEEP_SELF_MOD=false
-Environment=ALLOW_CHECKER_EVOLVE=false
+Environment=ALLOW_DEEP_SELF_MOD=true
+Environment=ALLOW_CHECKER_EVOLVE=true
 Environment=ALLOW_WORKFLOW_MUTATION=false
 Environment=ATENA_LM_ENABLED=false
 Environment=DEPLOY_GIT_REPO=
