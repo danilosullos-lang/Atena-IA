@@ -255,7 +255,12 @@ def _get_text(url: str, timeout: int = None, headers: Optional[Dict] = None) -> 
 
 
 def _timed(fn, source_name: str, *args, **kwargs):
-    """Executa função com medição de tempo e rate limiting"""
+    """Executa função com medição de tempo e rate limiting.
+
+    Alguns adaptadores passam `source_name` também para a função interna de
+    retry. Ele é metadado do wrapper e não deve ser encaminhado duas vezes.
+    """
+    kwargs.pop("source_name", None)
     RateLimiter.wait_if_needed(source_name)
     
     t0 = time.time()
