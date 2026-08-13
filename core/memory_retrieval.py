@@ -1,6 +1,7 @@
 """Recuperação lexical e epistemológica de episódios SQLite para os ciclos da Atena."""
 from __future__ import annotations
 import json, math, re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from core.memory_store import MemoryStore
@@ -16,8 +17,24 @@ def _episode_text(record: dict[str, Any]) -> str:
     output = event.get("output", "") if isinstance(event, dict) else ""
     return " ".join([str(record.get("subject", {}).get("domain", "")), str(record.get("subject", {}).get("task_id", "")), str(output)])
 
+def _recency_score(created_at: str) -> float:
+    try:
+        value = created_at.replace("Z", "+00:00")
+        timestamp = datetime.fromisoformat(value)
+        if timestamp.tzinfo is None:
+            timestamp = timestamp.replace(tzinfo=timezone.utc)
+        age_days = max(0.0, (datetime.now(timezone.utc) - timestamp).total_seconds() / 86400)
+        return math.exp(-age_days / 30.0)
+    except (TypeError, ValueError, AttributeError):
+        return 0.0
+
+
 def retrieve_context(db_path: str | Path, query: str, limit: int = 12) -> list[dict[str, Any]]:
-    """Retorna episódios relevantes sem modificar a memória append-only."""
+    """Retorna episódios relevantes sem modificar a memória append-only.
+
+    O ranking combina correspondência textual, confiança, evidência e recência.
+    A memória não é alterada durante a recuperação.
+    """
     wanted = _tokens(query)
     if not wanted:
         return []
@@ -30,12 +47,18 @@ def retrieve_context(db_path: str | Path, query: str, limit: int = 12) -> list[d
         for row in rows:
             record = json.loads(row[1]); tokens = _tokens(_episode_text(record)); overlap = len(wanted & tokens)
             if overlap == 0: continue
-            score = overlap / math.sqrt(max(1, len(wanted) * len(tokens)))
-            item = {"episode_id": row[0], "created_at": row[2], "status": row[3], "confidence": row[4], "score": round(score, 5), "record": record}
+            lexical = overlap / math.sqrt(max(1, len(wanted) * len(tokens)))
+            item = {"episode_id": row[0], "created_at": row[2], "status": row[3], "confidence": row[4], "score": round(lexical, 5), "record": record}
             try: item["evidence"] = store.evidence_summary(row[0])
             except Exception: item["evidence"] = {"status": "unverified"}
+            evidence = item["evidence"] or {}
+            evidence_count = int(evidence.get("count", evidence.get("evidence_count", 0)) or 0)
+            verified = 1.0 if str(evidence.get("status", row[3])).casefold() in {"verified", "supported", "confirmed"} else 0.0
+            confidence = max(0.0, min(1.0, float(row[4] or 0.0)))
+            recency = _recency_score(str(row[2]))
+            item["ranking"] = round(0.65 * lexical + 0.15 * confidence + 0.10 * min(1.0, evidence_count / 3) + 0.05 * verified + 0.05 * recency, 5)
             scored.append(item)
-        scored.sort(key=lambda x: (x["score"], x["created_at"]), reverse=True)
+        scored.sort(key=lambda x: (x["ranking"], x["score"], x["created_at"]), reverse=True)
         return scored[:max(1, min(int(limit), 50))]
 
 def format_context(items: list[dict[str, Any]], max_chars: int = 9000) -> str:

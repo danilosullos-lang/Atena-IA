@@ -24,6 +24,7 @@ from core.episodic_memory import build_episode
 from core.memory_store import MemoryStore
 from core.memory_consolidation import compact_context
 from core.memory_retrieval import format_context, retrieve_context
+from core.evolution_quality_gate import evaluate_cycle
 from core.research_sources import fetch_configured_sources
 from core.atena_llm_router import AtenaLLMRouterAdvanced
 
@@ -427,6 +428,8 @@ def main() -> int:
         print(f"recuperação SQLite indisponível: {exc}", file=sys.stderr)
     observations, provider_used, model_used = ask_local_model(memory, research, topic, question, sqlite_context)
     observations = deduplicate_observations(observations, memory)
+    quality_gate = evaluate_cycle(observations)
+    observations["quality_gate"] = quality_gate.to_dict()
     if not any(observations.get(key) for key in ("insights", "risks", "proposed_changes", "next_cycle")):
         observations["insights"] = [{
             "text": f"Nenhuma conclusão nova foi confirmada sobre {topic}; a lacuna de evidência será investigada antes de consolidar uma memória.",
