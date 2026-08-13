@@ -274,7 +274,12 @@ def _timed(fn, *args, **kwargs):
     error_msg = None
     
     try:
-        result = fn(*args, **kwargs)
+        # `_get_with_retry` precisa receber source_name para suas métricas,
+        # mas os adaptadores antigos também o passam como primeiro argumento.
+        if fn is _get_with_retry:
+            result = fn(*args, source_name=source_name, **kwargs)
+        else:
+            result = fn(*args, **kwargs)
         ms = (time.time() - t0) * 1000
         SourceMetrics.record(source_name, True, ms)
         return result, ms, None
