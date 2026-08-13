@@ -10,16 +10,23 @@ import json
 import os
 import re
 import subprocess
+import sys
 import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+from core.episodic_memory import build_episode
+from core.memory_store import MemoryStore
+
 ROOT = Path(__file__).resolve().parents[1]
 MEMORY_PATH = ROOT / "atena_evolution" / "llm_learning_memory.json"
 PROPOSALS_DIR = ROOT / "atena_evolution" / "proposals"
+SQLITE_PATH = Path(os.getenv("ATENA_MEMORY_DB", str(ROOT / "atena_evolution" / "memory.sqlite3")))
 MODEL = os.getenv("ATENA_LOCAL_MODEL", "qwen2.5:3b-instruct")
+SQLITE_REQUIRED = os.getenv("ATENA_SQLITE_REQUIRED", "0").lower() in {"1", "true", "yes"}
+SYSTEM_VERSION = os.getenv("GITHUB_SHA", "local")
 
 
 def load_memory() -> list[dict]:
@@ -74,6 +81,39 @@ def parse_model_json(raw: str) -> dict:
     return parsed
 
 
+def cycle_to_episode(cycle: dict) -> dict:
+    """Converte o formato legado do ciclo para o contrato episódico."""
+    observations = cycle["observations"]
+    output = json.dumps(observations, ensure_ascii=False, sort_keys=True)
+    return build_episode(
+        record_type="outcome",
+        task_id="scheduled-learning-cycle",
+        domain="self_evolution",
+        output=output,
+        source_type="llm",
+        source_id=f"cycle:{cycle['timestamp']}",
+        system_version=SYSTEM_VERSION,
+        model=cycle.get("model", MODEL),
+        status="unverified",
+        confidence=0.0,
+        event_extra={
+            "environment": {
+                "duration_limit_seconds": cycle.get("duration_limit_seconds", 300),
+                "storage_mode": "dual-write",
+            }
+        },
+    )
+
+
+def write_sqlite_cycle(cycle: dict) -> str:
+    """Persiste o ciclo no SQLite e verifica a integridade da cadeia."""
+    episode = cycle_to_episode(cycle)
+    with MemoryStore(SQLITE_PATH) as store:
+        memory_id = store.append(episode)
+        store.verify_integrity()
+    return memory_id
+
+
 def ask_local_model(memory: list[dict]) -> dict:
     context = json.dumps(memory[-8:], ensure_ascii=False, indent=2)
     prompt = f"""Você é o módulo local de análise da ATENA. Faça um ciclo de aprendizagem de no máximo cinco minutos.
@@ -125,10 +165,30 @@ def main() -> int:
         "observations": observations,
     }
     memory.append(cycle)
+    # Compatibilidade: o JSON legado continua sendo escrito primeiro.
     MEMORY_PATH.write_text(json.dumps(memory[-200:], ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     proposal_path = PROPOSALS_DIR / f"cycle-{now.strftime('%Y%m%dT%H%M%SZ')}.json"
     proposal_path.write_text(json.dumps(cycle, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"model": MODEL, "elapsed_seconds": round(time.monotonic() - start, 2), "memory": str(MEMORY_PATH), "proposal": str(proposal_path)}, ensure_ascii=False))
+
+    sqlite_status = "ok"
+    sqlite_memory_id = None
+    try:
+        sqlite_memory_id = write_sqlite_cycle(cycle)
+    except Exception as exc:
+        sqlite_status = f"error:{type(exc).__name__}"
+        print(f"SQLite dual-write falhou: {exc}", file=sys.stderr)
+        if SQLITE_REQUIRED:
+            raise
+
+    print(json.dumps({
+        "model": MODEL,
+        "elapsed_seconds": round(time.monotonic() - start, 2),
+        "memory": str(MEMORY_PATH),
+        "proposal": str(proposal_path),
+        "sqlite": str(SQLITE_PATH),
+        "sqlite_status": sqlite_status,
+        "sqlite_memory_id": sqlite_memory_id,
+    }, ensure_ascii=False))
     return 0
 
 
