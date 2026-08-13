@@ -17,6 +17,32 @@ def clip(value: str, limit: int = 700) -> str:
     return value if len(value) <= limit else value[: limit - 1] + "…"
 
 
+def _safe_url(value: object) -> str | None:
+    url = str(value or "").strip()
+    return url if url.startswith(("https://", "http://")) else None
+
+
+def _format_insight(item: object, index: int) -> tuple[str, list[str]]:
+    if not isinstance(item, dict):
+        return f"• {html.escape(clip(str(item)))}", []
+    text = clip(str(item.get("text", "limitação sem descrição")), 900)
+    kind = html.escape(str(item.get("type", "insight")))
+    try:
+        confidence = float(item.get("confidence", 0.0))
+        confidence_text = f"{confidence:.2f}"
+    except (TypeError, ValueError):
+        confidence_text = "0.00"
+    refs = [_safe_url(ref) for ref in item.get("evidence_refs", []) or []]
+    refs = list(dict.fromkeys(ref for ref in refs if ref))
+    lines = [
+        f"<b>{index}. {html.escape(kind)}</b> · confiança: <code>{confidence_text}</code>",
+        html.escape(text),
+    ]
+    for ref_index, ref in enumerate(refs[:5], 1):
+        lines.append(f"<a href=\"{html.escape(ref, quote=True)}\">Fonte {ref_index}</a>")
+    return "\n".join(f"• {line}" if line == lines[0] else f"  {line}" for line in lines), refs
+
+
 def build_message(proposal: dict, run_url: str | None) -> str:
     observations = proposal.get("observations", {})
     insights = observations.get("insights", [])
@@ -35,7 +61,12 @@ def build_message(proposal: dict, run_url: str | None) -> str:
         "",
         "<b>Insights</b>",
     ]
-    lines.extend(f"• {html.escape(clip(str(item)))}" for item in insights[:5])
+    all_refs: list[str] = []
+    for index, item in enumerate(insights[:5], 1):
+        formatted, refs = _format_insight(item, index)
+        lines.append(formatted)
+        all_refs.extend(refs)
+    all_refs = list(dict.fromkeys(all_refs))
     lines.append("\n<b>Riscos</b>")
     lines.extend(f"• {html.escape(clip(str(item)))}" for item in risks[:5])
     lines.append("\n<b>Propostas geradas</b>")
@@ -52,7 +83,11 @@ def build_message(proposal: dict, run_url: str | None) -> str:
     rss_consulted = [item.get("source") for item in research.get("rss_sources", []) if item.get("ok")]
     consulted = list(dict.fromkeys([*consulted, *rss_consulted]))
     if consulted:
-        lines.append(f"• Fontes: {html.escape(clip(', '.join(map(str, consulted)), 300))}")
+        lines.append(f"• Fontes consultadas: {html.escape(clip(', '.join(map(str, consulted)), 300))}")
+    if all_refs:
+        lines.append("\n<b>Referências dos insights</b>")
+        for index, ref in enumerate(all_refs[:10], 1):
+            lines.append(f"{index}. <a href=\"{html.escape(ref, quote=True)}\">{html.escape(clip(ref, 180))}</a>")
     if research_plan.get("question"):
         lines.append(f"• Pergunta: {html.escape(clip(str(research_plan['question']), 360))}")
     if research_plan.get("next_test"):
