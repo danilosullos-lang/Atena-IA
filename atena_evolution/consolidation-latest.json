@@ -1,5 +1,123 @@
 {
-  "episodes_scanned": 16,
-  "repeated_claims": 0,
-  "claims": []
+  "episodes_scanned": 27,
+  "repeated_claims": 13,
+  "claims": [
+    {
+      "claim_key": "sha256:e04e1ad1d54be04e9be860c5479f9e5b0749f94af09fd73800f58fd5eae30e4e",
+      "kind": "insights",
+      "canonical_text": "Observações semelhantes foram feitas em todas as sessões, indicando que a memória recente não contém informações suficientes para gerar insights claros.",
+      "seen_count": 2,
+      "episode_ids": [
+        "mem-20260813053710-8f564162ab4a"
+      ]
+    },
+    {
+      "claim_key": "sha256:ed266c08035f42640002d9355fb38fd302c94ec3ed7c057b98f01a47c13e2ce0",
+      "kind": "insights",
+      "canonical_text": "É necessária uma quantidade mínima de dados ou contextos na memória para permitir o gerenciamento adequado dos insights e identificação de riscos.",
+      "seen_count": 2,
+      "episode_ids": [
+        "mem-20260813053710-8f564162ab4a"
+      ]
+    },
+    {
+      "claim_key": "sha256:1756cfc2491e4623dab310c90d93f0fd7cd46985d3c34b2691516937758671ad",
+      "kind": "risks",
+      "canonical_text": "Ausência de dados suficientes na memória recente pode levar a decisões baseadas em informações limitadas ou enganosas.",
+      "seen_count": 2,
+      "episode_ids": [
+        "mem-20260813053710-8f564162ab4a"
+      ]
+    },
+    {
+      "claim_key": "sha256:7ddf1ce0e02200d1b581adaef7d72cf972c5079001bf66b8fb0ac663ef8b6890",
+      "kind": "risks",
+      "canonical_text": "Sem contexto adequado, os insights podem não ser úteis ou relevantes para tomar decisões informadas.",
+      "seen_count": 2,
+      "episode_ids": [
+        "mem-20260813053710-8f564162ab4a"
+      ]
+    },
+    {
+      "claim_key": "sha256:5807f90598322d72a1ca77b5179263677af5105a2d204d0a85e58d24cc32344b",
+      "kind": "risks",
+      "canonical_text": "Possível erro no ciclo de aprendizagem atual, uma vez que a memória recente é vazia.",
+      "seen_count": 2,
+      "episode_ids": [
+        "mem-20260813053710-8f564162ab4a"
+      ]
+    },
+    {
+      "claim_key": "sha256:b5844ab5307a92dc343c9dd2d44f88dd167331323b16ac59a39d7941f1a52e0f",
+      "kind": "next_cycle",
+      "canonical_text": "A memória precisa ser atualizada com dados adicionais ou contextos apropriados para gerar insights e identificar riscos eficazmente.",
+      "seen_count": 2,
+      "episode_ids": [
+        "mem-20260813053710-8f564162ab4a"
+      ]
+    },
+    {
+      "claim_key": "sha256:2e61bc250be0362050244e91a2e03e707165b1ddac3d4dd2bc26762035d307df",
+      "kind": "next_cycle",
+      "canonical_text": "Um ciclo adicional de aprendizagem deve focar em como melhorar a inclusão desses novos dados na memória para futuros ciclos.",
+      "seen_count": 2,
+      "episode_ids": [
+        "mem-20260813053710-8f564162ab4a"
+      ]
+    },
+    {
+      "claim_key": "sha256:dcf09a2e841dbac3f9a60e1f7aa37e0e3683e01763d9d1332ef11245fd7624c9",
+      "kind": "next_cycle",
+      "canonical_text": "Implementação de um sistema de feedback que monitora o progresso do módulo local da ATENA e sugere ajustes se necessário.",
+      "seen_count": 2,
+      "episode_ids": [
+        "mem-20260813053710-8f564162ab4a"
+      ]
+    },
+    {
+      "claim_key": "sha256:9f42e74a8369fb85e7c43e57c1cfb3b45cdc477b64b48901a37577a065d9accd",
+      "kind": "insights",
+      "canonical_text": "Nenhuma conclusão nova foi confirmada sobre memória histórica; a lacuna de evidência será investigada antes de consolidar uma memória.",
+      "seen_count": 2,
+      "episode_ids": [
+        "mem-20260813054503-366f62c22ec8"
+      ]
+    },
+    {
+      "claim_key": "sha256:f41d0d1c17bd6e1e1df5eead906b0c372a4301016337110f2bc8b72ce9b2d340",
+      "kind": "insights",
+      "canonical_text": "Nenhuma conclusão nova foi confirmada sobre deduplicação; a lacuna de evidência será investigada antes de consolidar uma memória.",
+      "seen_count": 2,
+      "episode_ids": [
+        "mem-20260813055158-bc4a4efeaac2"
+      ]
+    },
+    {
+      "claim_key": "sha256:30f8deeddd8ac8cecb9575719a483d36460e95b09052704690fe4149fe77f000",
+      "kind": "insights",
+      "canonical_text": "Nenhuma conclusão nova foi confirmada sobre segurança; a lacuna de evidência será investigada antes de consolidar uma memória.",
+      "seen_count": 2,
+      "episode_ids": [
+        "mem-20260813055931-47ad3a5575cb"
+      ]
+    },
+    {
+      "claim_key": "sha256:37a947b5ce3cc34c6b9f31b01331ebf0ee63964ca8bafbf853922eb8effe2455",
+      "kind": "insights",
+      "canonical_text": "Nenhuma conclusão nova foi confirmada sobre qualidade de código; a lacuna de evidência será investigada antes de consolidar uma memória.",
+      "seen_count": 2,
+      "episode_ids": [
+        "mem-20260813060444-0433f051b238"
+      ]
+    },
+    {
+      "claim_key": "sha256:b22b00b51cfbdbd34d54d9d096a2464da5e3a6aaf37e7e73938e1f932f08d062",
+      "kind": "insights",
+      "canonical_text": "Nenhuma conclusão nova foi confirmada sobre fontes externas; a lacuna de evidência será investigada antes de consolidar uma memória.",
+      "seen_count": 2,
+      "episode_ids": [
+        "mem-20260813070823-386514b1d339"
+      ]
+    }
+  ]
 }
