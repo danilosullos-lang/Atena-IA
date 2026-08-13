@@ -23,7 +23,7 @@ ONBOARDING_STEPS: list[tuple[str, str]] = [
     ("doctor", "./atena doctor"),
     ("guardian", "./atena guardian"),
     ("production-ready", "./atena production-ready"),
-    ("professional-launch", "./atena professional-launch"),
+    ("professional-launch", "python3 modules/atena_professional_launch_mission.py"),
 ]
 
 

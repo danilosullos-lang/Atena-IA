@@ -117,3 +117,19 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+class CapabilityRegistry:
+    """Fachada compatível para descoberta segura de capacidades."""
+    def __init__(self, root: Path | str = ROOT):
+        self.root = Path(root).resolve()
+
+    def discover(self) -> list[Capability]:
+        # O registro atual é deliberadamente somente-leitura e usa a raiz do
+        # projeto; validar a raiz evita que o catálogo atravesse o repositório.
+        if self.root != ROOT:
+            raise ValueError("CapabilityRegistry deve apontar para a raiz da Atena")
+        return discover_capabilities()
+
+    def catalog(self) -> list[dict[str, Any]]:
+        return [asdict(item) for item in self.discover()]
