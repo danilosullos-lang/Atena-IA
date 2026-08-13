@@ -100,9 +100,10 @@ jobs:
           git show origin/main:core/episodic_memory.py > core/episodic_memory.py
           git show origin/main:core/memory_store.py > core/memory_store.py
           git show origin/main:core/research_sources.py > core/research_sources.py
+          git show origin/main:core/memory_consolidation.py > core/memory_consolidation.py
           git show origin/main:config/research_sources.json > config/research_sources.json
           git show origin/main:scripts/atena_scheduled_cycle.py > scripts/atena_scheduled_cycle.py
-          python -m py_compile core/episodic_memory.py core/memory_store.py core/research_sources.py scripts/atena_scheduled_cycle.py
+          python -m py_compile core/episodic_memory.py core/memory_store.py core/research_sources.py core/memory_consolidation.py scripts/atena_scheduled_cycle.py
 
       - name: Configurar Python
         uses: actions/setup-python@v5
