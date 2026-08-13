@@ -48,7 +48,7 @@ def _hash(value: Any) -> str:
     return "sha256:" + hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
-def load_config(path: str | Path = DEFAULT_CONFIG) -> list[dict[str, Any]]:
+def load_config(path: str | Path = DEFAULT_CONFIG, mode: str = "autonomous") -> list[dict[str, Any]]:
     source_path = Path(path)
     if not source_path.exists():
         return []
@@ -58,6 +58,9 @@ def load_config(path: str | Path = DEFAULT_CONFIG) -> list[dict[str, Any]]:
     result = []
     for source in data["sources"]:
         if not isinstance(source, dict) or source.get("type") != "rss" or not source.get("enabled", True):
+            continue
+        source_mode = str(source.get("mode", "autonomous"))
+        if mode != "all" and source_mode != mode:
             continue
         url = str(source.get("url", ""))
         parsed = urllib.parse.urlparse(url)
@@ -128,8 +131,8 @@ def fetch_source(source: dict[str, Any], timeout: int = DEFAULT_TIMEOUT, limit: 
         return {"source": source.get("name", source.get("url", "unknown")), "category": source.get("category", "custom"), "ok": False, "items": [], "error": f"{type(exc).__name__}: {exc}", "response_time_ms": round((time.monotonic() - started) * 1000, 2)}
 
 
-def fetch_configured_sources(query: str = "", config_path: str | Path = DEFAULT_CONFIG, max_sources: int = 4, limit_per_source: int = 5) -> list[dict[str, Any]]:
+def fetch_configured_sources(query: str = "", config_path: str | Path = DEFAULT_CONFIG, max_sources: int = 4, limit_per_source: int = 5, mode: str = "autonomous") -> list[dict[str, Any]]:
     query_terms = {term.lower() for term in query.split() if len(term) >= 4}
-    sources = load_config(config_path)
+    sources = load_config(config_path, mode=mode)
     ranked = sorted(sources, key=lambda source: (len(query_terms.intersection({str(x).lower() for x in source.get("keywords", [])})), float(source.get("weight", 0.5))), reverse=True)
     return [fetch_source(source, limit=limit_per_source) for source in ranked[:max_sources]]
