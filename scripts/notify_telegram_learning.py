@@ -6,7 +6,9 @@ import argparse
 import html
 import json
 import os
+import re
 import sys
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -94,22 +96,69 @@ def build_message(proposal: dict, run_url: str | None) -> str:
         lines.append(f"• Próximo teste: {html.escape(clip(str(research_plan['next_test']), 360))}")
     if run_url:
         lines.append(f"\n<a href=\"{html.escape(run_url, quote=True)}\">Ver execução no GitHub Actions</a>")
-    return "\n".join(lines)[:3900]
+    message = "\n".join(lines)
+    if len(message) <= 3900:
+        return message
+
+    # Nunca corte HTML no meio de uma tag ou entidade: o Telegram responde
+    # HTTP 400 quando parse_mode=HTML recebe markup incompleto. Neste caso,
+    # enviamos um resumo compacto, sem links, mas ainda formatado validamente.
+    compact_parts = [
+        "<b>ATENA — nova aprendizagem</b>",
+        f"Modelo: <code>{model}</code>",
+        f"Ciclo: <code>{timestamp}</code>",
+        "",
+        "<b>Resumo dos insights</b>",
+    ]
+    for index, item in enumerate(insights[:3], 1):
+        if isinstance(item, dict):
+            text = clip(str(item.get("text", "limitação sem descrição")), 700)
+        else:
+            text = clip(str(item), 700)
+        compact_parts.append(f"• {index}. {html.escape(text)}")
+    compact = "\n".join(compact_parts)
+    if len(compact) <= 3900:
+        return compact
+    prefix = "<b>ATENA — nova aprendizagem</b>\n"
+    return prefix + html.escape(clip("Resumo: " + compact, 3900 - len(prefix)))
+
+
+def _telegram_request(endpoint: str, payload: dict[str, str], timeout: int) -> dict:
+    encoded = urllib.parse.urlencode(payload).encode("utf-8")
+    request = urllib.request.Request(endpoint, data=encoded, method="POST")
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            body = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        raw = exc.read().decode("utf-8", errors="replace")
+        try:
+            detail = json.loads(raw).get("description", raw)
+        except json.JSONDecodeError:
+            detail = raw
+        raise RuntimeError(f"Telegram HTTP {exc.code}: {detail}") from exc
+    if not body.get("ok"):
+        raise RuntimeError(f"Telegram recusou a mensagem: {body.get('description', 'erro desconhecido')}")
+    return body
 
 
 def send(token: str, chat_id: str, message: str, timeout: int = 15) -> None:
     endpoint = f"https://api.telegram.org/bot{token}/sendMessage"
-    payload = urllib.parse.urlencode({
+    payload = {
         "chat_id": chat_id,
         "text": message,
         "parse_mode": "HTML",
         "disable_web_page_preview": "true",
-    }).encode("utf-8")
-    request = urllib.request.Request(endpoint, data=payload, method="POST")
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        body = json.loads(response.read().decode("utf-8"))
-    if not body.get("ok"):
-        raise RuntimeError("Telegram recusou a mensagem")
+    }
+    try:
+        _telegram_request(endpoint, payload, timeout)
+    except RuntimeError as exc:
+        # Mantém a notificação funcionando mesmo quando uma entidade HTML
+        # inesperada for rejeitada pelo parser do Telegram.
+        if "HTTP 400" not in str(exc):
+            raise
+        plain = re.sub(r"<[^>]+>", "", message)
+        plain = html.unescape(plain)
+        _telegram_request(endpoint, {"chat_id": chat_id, "text": plain, "disable_web_page_preview": "true"}, timeout)
 
 
 def main() -> int:

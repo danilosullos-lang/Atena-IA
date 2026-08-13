@@ -7,6 +7,7 @@ import asyncio
 import json
 import logging
 import os
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -154,6 +155,40 @@ class AtenaTelegramChat:
         save_sessions(self.sessions)
         return answer
 
+    async def best_store_deals(self, minimum_discount: float = 50.0, limit: int = 10) -> str:
+        """Consulta as melhores ofertas atuais sem enviar alertas duplicados."""
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from scripts.store_discount_alert import best_deals
+
+        report = await asyncio.to_thread(
+            best_deals,
+            ["steam", "epic", "gog", "nuuvem", "humble"],
+            minimum_discount,
+            limit,
+        )
+        deals = report.get("deals", [])
+        errors = report.get("errors", [])
+        if not deals:
+            suffix = "\n\nFalhas: " + "; ".join(errors) if errors else ""
+            return "Não encontrei ofertas acima do limite informado agora." + suffix
+
+        lines = [
+            f"ATENA — melhores ofertas do dia (mínimo {minimum_discount:g}% OFF)",
+            f"Consulta: {report.get('checked_at', '')}",
+            "",
+        ]
+        for index, deal in enumerate(deals, 1):
+            price = f" | {deal.get('current_price')}" if deal.get("current_price") else ""
+            lines.append(
+                f"{index}. [{deal.get('store', '').upper()}] {deal.get('title', 'Sem título')} — "
+                f"{float(deal.get('discount_percent', 0)):g}% OFF{price}\n"
+                f"{deal.get('product_url', '')}"
+            )
+        if errors:
+            lines.extend(["", "Lojas com erro nesta consulta: " + "; ".join(errors)])
+        return clip("\n".join(lines))
+
     def latest_proposal(self) -> dict[str, Any] | None:
         proposals = sorted((ROOT / "atena_evolution" / "proposals").glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
         if not proposals:
@@ -168,7 +203,7 @@ class AtenaTelegramChat:
         if command == "/start":
             return "Olá. Sou a ponte de conversa da Atena. Envie uma pergunta ou use /help."
         if command == "/help":
-            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset, /voz on|off|status, /pesquisar <tema> e /fila. Mensagens comuns são respondidas pelo modelo local."
+            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset, /voz on|off|status, /pesquisar <tema>, /fila e /ofertas [mínimo%] [limite]. Mensagens comuns são respondidas pelo modelo local."
         if command == "/voz":
             option = text.split(maxsplit=1)[1].strip().lower() if len(text.split(maxsplit=1)) > 1 else "status"
             if option == "on":
@@ -182,6 +217,16 @@ class AtenaTelegramChat:
             if option == "status":
                 return "Modo de voz: " + ("ativado" if str(chat_id) in self.voice_enabled else "desativado")
             return "Uso: /voz on, /voz off ou /voz status."
+        if command in {"/ofertas", "/oferta"}:
+            parts = text.split()
+            try:
+                minimum_discount = float(parts[1]) if len(parts) > 1 else float(os.getenv("ATENA_MIN_DISCOUNT", "50"))
+                limit = int(parts[2]) if len(parts) > 2 else 10
+            except ValueError:
+                return "Uso: /ofertas [desconto mínimo] [quantidade]. Exemplo: /ofertas 60 8"
+            if not 0 <= minimum_discount <= 100 or not 1 <= limit <= 20:
+                return "Use desconto entre 0 e 100 e quantidade entre 1 e 20."
+            return await self.best_store_deals(minimum_discount, limit)
         if command == "/pesquisar":
             topic = text.split(maxsplit=1)[1].strip() if len(text.split(maxsplit=1)) > 1 else ""
             if not topic:
