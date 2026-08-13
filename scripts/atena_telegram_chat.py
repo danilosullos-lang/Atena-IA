@@ -38,6 +38,17 @@ VOICE_SETTINGS_PATH = Path(os.getenv("ATENA_TELEGRAM_VOICE_SETTINGS_PATH", str(R
 MAX_HISTORY = 12
 MAX_MESSAGE = 3900
 
+
+def infer_task_type(text: str) -> str:
+    lowered = text.casefold()
+    if any(marker in lowered for marker in ("últimas notícias", "notícia", "pesquise", "fontes", "nasa", "atualmente", "hoje")):
+        return "web_research"
+    if any(marker in lowered for marker in ("código", "script", "python", "github", "pull request", "bug", "programar")):
+        return "code"
+    if any(marker in lowered for marker in ("privado", "senha", "e-mail da empresa", "email da empresa")):
+        return "private"
+    return "telegram"
+
 logging.basicConfig(level=os.getenv("ATENA_TELEGRAM_LOG_LEVEL", "INFO"))
 log = logging.getLogger("atena.telegram")
 
@@ -169,10 +180,11 @@ class AtenaTelegramChat:
             "Responda diretamente à pergunta do usuário em português. Não diga que você não tem internet: "
             "a pesquisa abaixo foi fornecida pelo sistema. Não confunda uma notificação de aprendizagem com a resposta. "
             "Informe data/horário quando houver fonte suficiente e termine com 'Fontes:' e as URLs usadas.\n\n" + context,
+            task_type="web_research",
         )
         return "ATENA — resposta atual\n\n" + answer
 
-    async def ollama(self, chat_id: int, user_text: str) -> str:
+    async def ollama(self, chat_id: int, user_text: str, task_type: str | None = None) -> str:
         assert self.http is not None
         history = self.sessions.setdefault(str(chat_id), [])
         system = (
@@ -185,11 +197,25 @@ class AtenaTelegramChat:
         )
         messages = [{"role": "system", "content": system}, *history[-MAX_HISTORY:], {"role": "user", "content": user_text}]
         payload = {"model": self.model, "stream": False, "messages": messages, "options": {"temperature": 0.2, "num_predict": 550}}
-        async with self.http.post(OLLAMA_CHAT, json=payload, timeout=aiohttp.ClientTimeout(total=180)) as response:
-            if response.status != 200:
-                raise TelegramError(f"Ollama HTTP {response.status}")
-            data = await response.json(content_type=None)
-            answer = str(data.get("message", {}).get("content", "Não consegui gerar uma resposta."))
+        selected_task = task_type or infer_task_type(user_text)
+        try:
+            from core.atena_llm_router import get_router
+            router = await get_router()
+            routed = await router.generate(
+                user_text,
+                context="\n".join(f"{item['role']}: {item['content']}" for item in history[-MAX_HISTORY:]),
+                task_type=selected_task,
+                temperature=0.2,
+                max_tokens=550,
+            )
+            answer = routed.content
+        except Exception as exc:
+            log.warning("roteador LLM indisponível; usando Ollama direto: %s", exc)
+            async with self.http.post(OLLAMA_CHAT, json=payload, timeout=aiohttp.ClientTimeout(total=180)) as response:
+                if response.status != 200:
+                    raise TelegramError(f"Ollama HTTP {response.status}")
+                data = await response.json(content_type=None)
+                answer = str(data.get("message", {}).get("content", "Não consegui gerar uma resposta."))
         history.extend([{"role": "user", "content": clip(user_text, 1200)}, {"role": "assistant", "content": clip(answer, 1800)}])
         self.sessions[str(chat_id)] = history[-MAX_HISTORY:]
         save_sessions(self.sessions)
