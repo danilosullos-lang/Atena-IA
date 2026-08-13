@@ -190,7 +190,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add atena_evolution/llm_learning_memory.json atena_evolution/proposals
+          git add atena_evolution/llm_learning_memory.json atena_evolution/proposals atena_evolution/memory.sqlite3
           if git diff --cached --quiet; then
             echo "Nenhuma atualização de memória ou proposta."
             exit 0
