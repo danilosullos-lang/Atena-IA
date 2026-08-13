@@ -27,3 +27,6 @@ atena_chat_history.db
 dashboard/node_modules/
 dashboard/dist/
 dashboard/.vite/
+
+# Diretório local opcional; não é um submódulo versionado
+llama.cpp/
