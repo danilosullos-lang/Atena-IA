@@ -30,3 +30,9 @@ dashboard/.vite/
 
 # Diretório local opcional; não é um submódulo versionado
 llama.cpp/
+
+# Google Workspace OAuth local credentials
+credentials.json
+secrets/google/
+**/token.json
+**/calendar-token.json

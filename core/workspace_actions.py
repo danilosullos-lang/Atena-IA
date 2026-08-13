@@ -51,6 +51,10 @@ def _provider(text: str) -> str:
 def _event_parameters(text: str) -> dict[str, Any]:
     compact = _compact(text)
     result: dict[str, Any] = {"request": compact}
+    title = re.sub(r"^(?:/)?agendar\s*", "", compact, flags=re.I)
+    title = re.split(r"\s+(?:em|no dia|às|as|at)\s+", title, maxsplit=1, flags=re.I)[0].strip()
+    if title:
+        result["title"] = title
     time_match = re.search(r"\b(?:às|as|at)\s+(\d{1,2})(?::(\d{2}))?\b", compact, re.I)
     if time_match:
         result["time"] = f"{int(time_match.group(1)):02d}:{time_match.group(2) or '00'}"
