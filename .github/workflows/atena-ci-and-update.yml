@@ -257,7 +257,7 @@ jobs:
 
       - name: Notificar nova aprendizagem no Telegram
         if: always() && steps.validate_learning.outputs.latest_proposal != ''
-        continue-on-error: true
+        continue-on-error: false
         env:
           ATENA_TELEGRAM_BOT_TOKEN: ${{ secrets.ATENA_TELEGRAM_BOT_TOKEN }}
           ATENA_TELEGRAM_CHAT_ID: ${{ secrets.ATENA_TELEGRAM_CHAT_ID }}

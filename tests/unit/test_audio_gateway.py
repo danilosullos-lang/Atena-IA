@@ -4,6 +4,9 @@ import sys
 from pathlib import Path
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
 def load_module(path: str, name: str):
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
@@ -14,7 +17,7 @@ def load_module(path: str, name: str):
 
 
 def test_audio_gateway_rejects_empty_audio():
-    audio = load_module("/home/ubuntu/Atena-IA/core/audio_gateway.py", "audio_gateway_test")
+    audio = load_module(str(REPO_ROOT / "core" / "audio_gateway.py"), "audio_gateway_test")
     gateway = audio.AudioGateway(audio.AudioConfig(max_audio_bytes=10))
     try:
         gateway.transcribe_bytes(b"")
@@ -25,7 +28,7 @@ def test_audio_gateway_rejects_empty_audio():
 
 
 def test_audio_gateway_rejects_oversized_audio():
-    audio = load_module("/home/ubuntu/Atena-IA/core/audio_gateway.py", "audio_gateway_size_test")
+    audio = load_module(str(REPO_ROOT / "core" / "audio_gateway.py"), "audio_gateway_size_test")
     gateway = audio.AudioGateway(audio.AudioConfig(max_audio_bytes=3))
     try:
         gateway.transcribe_bytes(b"1234")
@@ -36,7 +39,7 @@ def test_audio_gateway_rejects_oversized_audio():
 
 
 def test_voice_command_is_documented_and_persistent(tmp_path, monkeypatch):
-    chat = load_module("/home/ubuntu/Atena-IA/scripts/atena_telegram_chat.py", "telegram_voice_test")
+    chat = load_module(str(REPO_ROOT / "scripts" / "atena_telegram_chat.py"), "telegram_voice_test")
     monkeypatch.setattr(chat, "VOICE_SETTINGS_PATH", tmp_path / "voice.json")
     instance = chat.AtenaTelegramChat("token", "123")
     import asyncio
