@@ -10,6 +10,7 @@ import html
 import logging
 import re
 from dataclasses import dataclass
+from datetime import date, timedelta
 from urllib.parse import quote_plus, urlparse
 
 import requests
@@ -91,7 +92,44 @@ def search_web(query: str, limit: int = 5, timeout: int = 20) -> list[WebEvidenc
         seen.add(url)
         if len(results) >= max(1, min(limit, 10)):
             break
-    return results
+    if results:
+        return results
+    return _sports_fallback(query, timeout=timeout)
+
+
+def _sports_fallback(query: str, timeout: int = 20) -> list[WebEvidence]:
+    """Consulta o placar/calendário público da ESPN para perguntas esportivas."""
+    lowered = query.casefold()
+    teams = ("santos", "palmeiras", "corinthians", "são paulo", "flamengo")
+    if not any(team in lowered for team in teams):
+        return []
+    start = date.today().strftime("%Y%m%d")
+    end = (date.today() + timedelta(days=90)).strftime("%Y%m%d")
+    url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/bra.1/scoreboard?limit=500&dates={start}-{end}"
+    try:
+        response = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=timeout)
+        response.raise_for_status()
+        data = response.json()
+    except (requests.RequestException, ValueError) as exc:
+        LOG.warning("fallback esportivo indisponível: %s", exc)
+        return []
+    results: list[WebEvidence] = []
+    for event in data.get("events", []):
+        text = str(event)
+        if not any(team in text.casefold() for team in teams):
+            continue
+        competitions = event.get("competitions", [])
+        competition = competitions[0] if competitions else {}
+        competitors = competition.get("competitors", [])
+        names = [item.get("team", {}).get("displayName", "") for item in competitors]
+        event_date = event.get("date", "")
+        title = " x ".join(name for name in names if name) or event.get("name", "Jogo")
+        results.append(WebEvidence(
+            title=f"{title} — calendário esportivo",
+            url=url,
+            snippet=f"Data/hora publicada pela fonte esportiva: {event_date}. Competição: {competition.get('league', {}).get('name', 'futebol brasileiro')}.",
+        ))
+    return results[:10]
 
 
 def build_context(query: str, evidence: list[WebEvidence]) -> str:
