@@ -16,6 +16,12 @@ import aiohttp
 
 from core.audio_gateway import AudioGateway, AudioGatewayError
 from core.memory_store import MemoryStore
+from core.workspace_actions import (
+    confirmation_prompt,
+    is_cancellation,
+    is_confirmation,
+    parse_workspace_intent,
+)
 
 ROOT = Path(os.getenv("ATENA_ROOT", Path(__file__).resolve().parents[1]))
 MEMORY_DB = Path(os.getenv("ATENA_MEMORY_DB", str(ROOT / "atena_evolution" / "memory.sqlite3")))
@@ -84,6 +90,7 @@ class AtenaTelegramChat:
         self.model = model
         self.sessions = load_sessions()
         self.voice_enabled = load_voice_settings()
+        self.pending_workspace: dict[str, Any] = {}
         self.audio = AudioGateway()
         self.offset = 0
         self.http: aiohttp.ClientSession | None = None
@@ -229,7 +236,29 @@ class AtenaTelegramChat:
         if command == "/start":
             return "Olá. Sou a ponte de conversa da Atena. Envie uma pergunta ou use /help."
         if command == "/help":
-            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset, /voz on|off|status, /pesquisar <tema>, /fila e /ofertas [mínimo%] [limite]. Perguntas atuais recebem pesquisa web controlada."
+            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset, /voz on|off|status, /pesquisar <tema>, /fila, /ofertas [mínimo%] [limite], /agenda, /agendar <evento>, /criar planilha <título>. Ações de escrita exigem confirmação."
+        # Ações de workspace são sempre interpretadas antes do Ollama.
+        workspace_intent = parse_workspace_intent(chat_id, text)
+        if workspace_intent is not None:
+            if workspace_intent.requires_confirmation:
+                self.pending_workspace[str(chat_id)] = workspace_intent.to_dict()
+                return confirmation_prompt(workspace_intent)
+            return (
+                f"Intenção recebida: {workspace_intent.action} ({workspace_intent.provider}).\n"
+                "A consulta foi validada, mas o conector da conta ainda precisa ser autorizado para executar a leitura."
+            )
+        pending = self.pending_workspace.get(str(chat_id))
+        if pending:
+            pending_id = str(pending.get("id", ""))
+            if is_confirmation(text, pending_id):
+                self.pending_workspace.pop(str(chat_id), None)
+                return (
+                    "Confirmação registrada. A ação está autorizada, mas ainda não será executada porque "
+                    "o conector Google/Microsoft e o OAuth da conta precisam ser configurados."
+                )
+            if is_cancellation(text, pending_id):
+                self.pending_workspace.pop(str(chat_id), None)
+                return "Ação cancelada; nenhuma planilha ou evento foi alterado."
         if command == "/voz":
             option = text.split(maxsplit=1)[1].strip().lower() if len(text.split(maxsplit=1)) > 1 else "status"
             if option == "on":
