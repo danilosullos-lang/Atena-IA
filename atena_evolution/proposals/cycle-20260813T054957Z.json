@@ -1,0 +1,34 @@
+{
+  "timestamp": "2026-08-13T05:49:57.398978+00:00",
+  "model": "qwen2.5:3b-instruct",
+  "duration_limit_seconds": 300,
+  "research": {
+    "topic": "deduplicação",
+    "question": "Como detectar memórias repetidas e preservar apenas novas evidências?",
+    "query": "ATENA deduplicação: Como detectar memórias repetidas e preservar apenas novas evidências?",
+    "sources": [
+      {
+        "source": "huggingface",
+        "category": "ai_ml",
+        "ok": false,
+        "details": "{\"error\": \"_timed() got multiple values for argument 'source_name'\"}"
+      }
+    ],
+    "errors": []
+  },
+  "observations": {
+    "insights": [
+      "Nenhuma conclusão nova foi confirmada sobre deduplicação; a lacuna de evidência será investigada antes de consolidar uma memória."
+    ],
+    "risks": [],
+    "proposed_changes": [],
+    "next_cycle": [],
+    "research_plan": {
+      "topic": "deduplicação",
+      "question": "Como detectar memórias repetidas e preservar apenas novas evidências?",
+      "sources_to_consult": [],
+      "evidence_expected": "comparar pelo menos duas evidências independentes antes de consolidar um fato",
+      "next_test": "verificar uma instância inédita relacionada a deduplicação"
+    }
+  }
+}
