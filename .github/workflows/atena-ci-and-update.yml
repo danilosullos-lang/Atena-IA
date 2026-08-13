@@ -130,14 +130,26 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}
         run: timeout --signal=TERM --kill-after=15s 300s python scripts/atena_scheduled_cycle.py
 
-      - name: Validar memória e propostas
+      - name: Validar memória e proposta do ciclo atual
         run: |
           python -m json.tool atena_evolution/llm_learning_memory.json >/dev/null
-          find atena_evolution/proposals -type f -name '*.json' -mmin -15 -print -quit | grep .
-          if grep -R '"parse_error"' atena_evolution/llm_learning_memory.json atena_evolution/proposals; then
-            echo "Resposta inválida do modelo detectada; bloqueando publicação."
-            exit 1
-          fi
+          latest_proposal="$(find atena_evolution/proposals -type f -name '*.json' -mmin -15 -printf '%T@ %p\\n' | sort -nr | head -1 | cut -d' ' -f2-)"
+          test -n "$latest_proposal"
+          python - "$latest_proposal" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          proposal_path = Path(sys.argv[1])
+          proposal = json.loads(proposal_path.read_text(encoding="utf-8"))
+          observations = proposal.get("observations")
+          required = {"insights", "risks", "proposed_changes", "next_cycle"}
+          if not isinstance(observations, dict) or not required.issubset(observations):
+              raise SystemExit("Proposta atual não atende ao esquema esperado.")
+          if "parse_error" in json.dumps(proposal, ensure_ascii=False):
+              raise SystemExit("Resposta inválida no ciclo atual; bloqueando publicação.")
+          print(f"Proposta atual validada: {proposal_path}")
+          PY
           git diff --check
 
       - name: Publicar memória e propostas na branch própria
