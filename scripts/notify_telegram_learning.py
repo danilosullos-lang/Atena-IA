@@ -54,10 +54,12 @@ def build_message(proposal: dict, run_url: str | None) -> str:
     research_plan = observations.get("research_plan", {})
     research = proposal.get("research", {})
     model = html.escape(str(proposal.get("model", "modelo local")))
+    provider = html.escape(str(proposal.get("provider", "desconhecido")))
     requested_by = research.get("requested_by", "rotation")
     timestamp = html.escape(str(proposal.get("timestamp", "agora")))
     lines = [
         "<b>ATENA — nova aprendizagem</b>",
+        f"Provider: <code>{provider}</code>",
         f"Modelo: <code>{model}</code>",
         f"Ciclo: <code>{timestamp}</code>",
         "",
@@ -105,6 +107,7 @@ def build_message(proposal: dict, run_url: str | None) -> str:
     # enviamos um resumo compacto, sem links, mas ainda formatado validamente.
     compact_parts = [
         "<b>ATENA — nova aprendizagem</b>",
+        f"Provider: <code>{provider}</code>",
         f"Modelo: <code>{model}</code>",
         f"Ciclo: <code>{timestamp}</code>",
         "",

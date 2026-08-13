@@ -6,6 +6,7 @@ As propostas ficam em atena_evolution/proposals para revisão e testes posterior
 """
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import importlib.util
 import json
@@ -24,12 +25,14 @@ from core.memory_store import MemoryStore
 from core.memory_consolidation import compact_context
 from core.memory_retrieval import format_context, retrieve_context
 from core.research_sources import fetch_configured_sources
+from core.atena_llm_router import AtenaLLMRouterAdvanced
 
 ROOT = Path(__file__).resolve().parents[1]
 MEMORY_PATH = ROOT / "atena_evolution" / "llm_learning_memory.json"
 PROPOSALS_DIR = ROOT / "atena_evolution" / "proposals"
 SQLITE_PATH = Path(os.getenv("ATENA_MEMORY_DB", str(ROOT / "atena_evolution" / "memory.sqlite3")))
 MODEL = os.getenv("ATENA_LOCAL_MODEL", "qwen2.5:3b-instruct")
+EVOLUTION_TASK_TYPE = os.getenv("ATENA_EVOLUTION_TASK_TYPE", "github_evolution")
 SQLITE_REQUIRED = os.getenv("ATENA_SQLITE_REQUIRED", "0").lower() in {"1", "true", "yes"}
 SYSTEM_VERSION = os.getenv("GITHUB_SHA", "local")
 
@@ -315,7 +318,7 @@ def deduplicate_observations(observations: dict, memory: list[dict]) -> dict:
     return observations
 
 
-def ask_local_model(memory: list[dict], research: dict, topic: str, question: str, sqlite_context: str = "") -> dict:
+def ask_local_model(memory: list[dict], research: dict, topic: str, question: str, sqlite_context: str = "") -> tuple[dict, str, str]:
     context = json.dumps(compact_context(memory[-200:], max_items=30), ensure_ascii=False, indent=2)[:9000]
     research_context = json.dumps(research, ensure_ascii=False, indent=2)[:7000]
     sqlite_context = sqlite_context or "(nenhum contexto SQLite recuperado)"
@@ -346,6 +349,23 @@ Memória recente legada:
 Memória episódica SQLite recuperada por relevância:
 {sqlite_context}
 """
+    async def generate_with_router() -> object:
+        router = AtenaLLMRouterAdvanced()
+        return await router.generate(
+            prompt,
+            task_type=EVOLUTION_TASK_TYPE,
+            temperature=0.1,
+            max_tokens=1500,
+        )
+
+    try:
+        response = asyncio.run(generate_with_router())
+        return parse_model_json(response.content), response.provider, response.model
+    except Exception as router_exc:
+        # Compatibilidade operacional: se o roteador não puder ser inicializado,
+        # tenta o endpoint nativo local sem alterar o contrato do ciclo.
+        print(f"roteador multi-API indisponível; fallback Ollama: {type(router_exc).__name__}", file=sys.stderr)
+
     host = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434").rstrip("/")
     payload = {
         "model": MODEL,
@@ -370,7 +390,7 @@ Memória episódica SQLite recuperada por relevância:
     content = body.get("message", {}).get("content")
     if not isinstance(content, str):
         raise RuntimeError("Resposta do Ollama não contém message.content textual")
-    return parse_model_json(content)
+    return parse_model_json(content), "local", MODEL
 
 
 def main() -> int:
@@ -405,7 +425,7 @@ def main() -> int:
         sqlite_context = format_context(retrieve_context(SQLITE_PATH, f"{topic} {question}", limit=12))
     except Exception as exc:
         print(f"recuperação SQLite indisponível: {exc}", file=sys.stderr)
-    observations = ask_local_model(memory, research, topic, question, sqlite_context)
+    observations, provider_used, model_used = ask_local_model(memory, research, topic, question, sqlite_context)
     observations = deduplicate_observations(observations, memory)
     if not any(observations.get(key) for key in ("insights", "risks", "proposed_changes", "next_cycle")):
         observations["insights"] = [{
@@ -422,7 +442,9 @@ def main() -> int:
     }
     cycle = {
         "timestamp": now.isoformat(),
-        "model": MODEL,
+        "model": model_used,
+        "provider": provider_used,
+        "task_type": EVOLUTION_TASK_TYPE,
         "duration_limit_seconds": 300,
         "research": research,
         "observations": observations,
@@ -456,7 +478,8 @@ def main() -> int:
             raise
 
     print(json.dumps({
-        "model": MODEL,
+        "model": model_used,
+        "provider": provider_used,
         "elapsed_seconds": round(time.monotonic() - start, 2),
         "memory": str(MEMORY_PATH),
         "proposal": str(proposal_path),
