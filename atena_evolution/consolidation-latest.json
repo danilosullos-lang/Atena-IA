@@ -1,12 +1,12 @@
 {
-  "episodes_scanned": 219,
-  "repeated_claims": 62,
+  "episodes_scanned": 240,
+  "repeated_claims": 63,
   "claims": [
     {
       "claim_key": "sha256:e04e1ad1d54be04e9be860c5479f9e5b0749f94af09fd73800f58fd5eae30e4e",
       "kind": "insights",
       "canonical_text": "Observações semelhantes foram feitas em todas as sessões, indicando que a memória recente não contém informações suficientes para gerar insights claros.",
-      "seen_count": 13,
+      "seen_count": 14,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -15,7 +15,7 @@
       "claim_key": "sha256:ed266c08035f42640002d9355fb38fd302c94ec3ed7c057b98f01a47c13e2ce0",
       "kind": "insights",
       "canonical_text": "É necessária uma quantidade mínima de dados ou contextos na memória para permitir o gerenciamento adequado dos insights e identificação de riscos.",
-      "seen_count": 13,
+      "seen_count": 14,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -24,7 +24,7 @@
       "claim_key": "sha256:1756cfc2491e4623dab310c90d93f0fd7cd46985d3c34b2691516937758671ad",
       "kind": "risks",
       "canonical_text": "Ausência de dados suficientes na memória recente pode levar a decisões baseadas em informações limitadas ou enganosas.",
-      "seen_count": 13,
+      "seen_count": 14,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -33,7 +33,7 @@
       "claim_key": "sha256:7ddf1ce0e02200d1b581adaef7d72cf972c5079001bf66b8fb0ac663ef8b6890",
       "kind": "risks",
       "canonical_text": "Sem contexto adequado, os insights podem não ser úteis ou relevantes para tomar decisões informadas.",
-      "seen_count": 13,
+      "seen_count": 14,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -42,7 +42,7 @@
       "claim_key": "sha256:5807f90598322d72a1ca77b5179263677af5105a2d204d0a85e58d24cc32344b",
       "kind": "risks",
       "canonical_text": "Possível erro no ciclo de aprendizagem atual, uma vez que a memória recente é vazia.",
-      "seen_count": 13,
+      "seen_count": 14,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -51,7 +51,7 @@
       "claim_key": "sha256:b5844ab5307a92dc343c9dd2d44f88dd167331323b16ac59a39d7941f1a52e0f",
       "kind": "next_cycle",
       "canonical_text": "A memória precisa ser atualizada com dados adicionais ou contextos apropriados para gerar insights e identificar riscos eficazmente.",
-      "seen_count": 13,
+      "seen_count": 14,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -60,7 +60,7 @@
       "claim_key": "sha256:2e61bc250be0362050244e91a2e03e707165b1ddac3d4dd2bc26762035d307df",
       "kind": "next_cycle",
       "canonical_text": "Um ciclo adicional de aprendizagem deve focar em como melhorar a inclusão desses novos dados na memória para futuros ciclos.",
-      "seen_count": 13,
+      "seen_count": 14,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -69,7 +69,7 @@
       "claim_key": "sha256:dcf09a2e841dbac3f9a60e1f7aa37e0e3683e01763d9d1332ef11245fd7624c9",
       "kind": "next_cycle",
       "canonical_text": "Implementação de um sistema de feedback que monitora o progresso do módulo local da ATENA e sugere ajustes se necessário.",
-      "seen_count": 13,
+      "seen_count": 14,
       "episode_ids": [
         "mem-20260813053710-8f564162ab4a"
       ]
@@ -78,7 +78,7 @@
       "claim_key": "sha256:9f42e74a8369fb85e7c43e57c1cfb3b45cdc477b64b48901a37577a065d9accd",
       "kind": "insights",
       "canonical_text": "Nenhuma conclusão nova foi confirmada sobre memória histórica; a lacuna de evidência será investigada antes de consolidar uma memória.",
-      "seen_count": 21,
+      "seen_count": 23,
       "episode_ids": [
         "mem-20260813054503-366f62c22ec8",
         "mem-20260813100451-85968e656fbb"
@@ -88,7 +88,7 @@
       "claim_key": "sha256:f41d0d1c17bd6e1e1df5eead906b0c372a4301016337110f2bc8b72ce9b2d340",
       "kind": "insights",
       "canonical_text": "Nenhuma conclusão nova foi confirmada sobre deduplicação; a lacuna de evidência será investigada antes de consolidar uma memória.",
-      "seen_count": 17,
+      "seen_count": 19,
       "episode_ids": [
         "mem-20260813055158-bc4a4efeaac2",
         "mem-20260813150157-9149373e11d0"
@@ -98,7 +98,7 @@
       "claim_key": "sha256:30f8deeddd8ac8cecb9575719a483d36460e95b09052704690fe4149fe77f000",
       "kind": "insights",
       "canonical_text": "Nenhuma conclusão nova foi confirmada sobre segurança; a lacuna de evidência será investigada antes de consolidar uma memória.",
-      "seen_count": 19,
+      "seen_count": 21,
       "episode_ids": [
         "mem-20260813055931-47ad3a5575cb",
         "mem-20260813121203-e3970e103b06"
@@ -108,7 +108,7 @@
       "claim_key": "sha256:37a947b5ce3cc34c6b9f31b01331ebf0ee63964ca8bafbf853922eb8effe2455",
       "kind": "insights",
       "canonical_text": "Nenhuma conclusão nova foi confirmada sobre qualidade de código; a lacuna de evidência será investigada antes de consolidar uma memória.",
-      "seen_count": 13,
+      "seen_count": 14,
       "episode_ids": [
         "mem-20260813060444-0433f051b238"
       ]
@@ -117,7 +117,7 @@
       "claim_key": "sha256:b22b00b51cfbdbd34d54d9d096a2464da5e3a6aaf37e7e73938e1f932f08d062",
       "kind": "insights",
       "canonical_text": "Nenhuma conclusão nova foi confirmada sobre fontes externas; a lacuna de evidência será investigada antes de consolidar uma memória.",
-      "seen_count": 13,
+      "seen_count": 14,
       "episode_ids": [
         "mem-20260813070823-386514b1d339"
       ]
@@ -126,7 +126,7 @@
       "claim_key": "sha256:e6986e9de5b325763c888b5b79da5efdc2a53c3c1299aa268ef1aea98a81cd89",
       "kind": "insights",
       "canonical_text": "The Technology Review has published several articles on various topics. Here are the summaries of each article:",
-      "seen_count": 12,
+      "seen_count": 13,
       "episode_ids": [
         "mem-20260813074332-56b18ef9e239"
       ]
@@ -135,7 +135,7 @@
       "claim_key": "sha256:fbe56d5ca639f77d13bb7edd115c52a0fcb8425a4d8ce6acf9bef88dc0f54495",
       "kind": "insights",
       "canonical_text": "The articles cover a wide range of topics including AI, censorship, cloning, and quantum mechanics. The first article discusses the impact of the 'censorship-industrial complex' on internet policies in the US. The second article reports on scientists creating female clones of male mice using CRISPR technology. The third article highlights the 2026 list of Innovators Under 35 from MIT Technology Review, recognizing young people doing groundbreaking scientific work and building clever technical fixes for sticky problems. The fourth article discusses a new measure called spectral density of geometric response in many-body quantum systems. The fifth article introduces spin-coherent quantum designs which are related to finite spin-coherent tomography and discrete coherent-state operator bases.",
-      "seen_count": 12,
+      "seen_count": 13,
       "episode_ids": [
         "mem-20260813074332-56b18ef9e239"
       ]
@@ -144,7 +144,7 @@
       "claim_key": "sha256:77d7ab9c2b74d4e6b1d1f30ea321e736786e58299698f62b11f3c680ba09ac65",
       "kind": "insights",
       "canonical_text": "Nenhuma conclusão nova foi confirmada sobre FAISS e recuperação; a lacuna de evidência será investigada antes de consolidar uma memória.",
-      "seen_count": 11,
+      "seen_count": 12,
       "episode_ids": [
         "mem-20260813082104-695a5d4d9c8e"
       ]
@@ -153,7 +153,7 @@
       "claim_key": "sha256:6b4f380c63e4ae34089a879b4efdcbc86ec8a1286cab54257f36c4940c26af1e",
       "kind": "insights",
       "canonical_text": "The episode you've shared appears to be a summary or excerpt from multiple articles published by MIT Technology Review. Here are some key points based on these summaries:",
-      "seen_count": 10,
+      "seen_count": 11,
       "episode_ids": [
         "mem-20260813085549-e814eb4b4ee1"
       ]
@@ -162,7 +162,7 @@
       "claim_key": "sha256:ef5605eabb755004875c7b06422745f8191bf06d46fb9af155e9793a62c834fa",
       "kind": "insights",
       "canonical_text": "The articles cover a range of topics including scientific breakthroughs, AI advancements, and discussions on censorship and internet policy.",
-      "seen_count": 10,
+      "seen_count": 11,
       "episode_ids": [
         "mem-20260813085549-e814eb4b4ee1"
       ]
@@ -171,7 +171,7 @@
       "claim_key": "sha256:7c91075b4867f12fc787c1c4c92a1af190de4c7562566c02c1cc6e7cbd33338f",
       "kind": "insights",
       "canonical_text": "One of the articles discusses the shutdown of an office in the U.S. State Department that monitors and counters foreign disinformation, which is related to the 'censorship-industrial complex' concept.",
-      "seen_count": 10,
+      "seen_count": 11,
       "episode_ids": [
         "mem-20260813085549-e814eb4b4ee1"
       ]
@@ -180,7 +180,7 @@
       "claim_key": "sha256:2fcf2bc74a5ee74576dbc9d5686df74c163055c572f3c1ff3b8c338bdf270b07",
       "kind": "insights",
       "canonical_text": "Another article mentions the MIT Technology Review's list of Innovators Under 35 for 2026, which includes young scientists and engineers from around the world.",
-      "seen_count": 10,
+      "seen_count": 11,
       "episode_ids": [
         "mem-20260813085549-e814eb4b4ee1"
       ]
@@ -189,7 +189,7 @@
       "claim_key": "sha256:8836c6e9c0e08b2e4a83fb2437e2e2b9f90a11258ce72b264978471961448340",
       "kind": "insights",
       "canonical_text": "The last article is a technical paper discussing the spectral density of geometric response in many-body quantum systems, which could be relevant to understanding eigenstate sensitivity and integrability-to-chaos transitions.",
-      "seen_count": 10,
+      "seen_count": 11,
       "episode_ids": [
         "mem-20260813085549-e814eb4b4ee1"
       ]
@@ -198,7 +198,7 @@
       "claim_key": "sha256:f0026c9b7a5a4e0e1d80de20f31f03ab1662ee75610d5c45d291f74849bda762",
       "kind": "next_cycle",
       "canonical_text": "https://www.technologyreview.com/2026/08/12/1141768/scientists-just-created-female-clones-of-male-mice/",
-      "seen_count": 10,
+      "seen_count": 11,
       "episode_ids": [
         "mem-20260813085549-e814eb4b4ee1"
       ]
@@ -207,7 +207,7 @@
       "claim_key": "sha256:d5b4607f0a314a32d70c6785d0aaa9c5f3d7d152436b6f8cad7b5ed677f2714b",
       "kind": "next_cycle",
       "canonical_text": "https://www.technologyreview.com/2026/08/12/1141032/scaling-ai-agents-with-trustworthy-data/",
-      "seen_count": 10,
+      "seen_count": 11,
       "episode_ids": [
         "mem-20260813085549-e814eb4b4ee1"
       ]
@@ -216,7 +216,7 @@
       "claim_key": "sha256:1cf14966c50876a1585842d6aa25d9fc012a347283eda0d583c8d6c21d4812fd",
       "kind": "next_cycle",
       "canonical_text": "https://www.technologyreview.com/2026/08/11/1141635/how-the-censorship-industrial-complex-is-changing-the-internet-and-us-policy/",
-      "seen_count": 10,
+      "seen_count": 11,
       "episode_ids": [
         "mem-20260813085549-e814eb4b4ee1"
       ]
@@ -225,7 +225,7 @@
       "claim_key": "sha256:03433de70c2b762b4212112d13803011c429eb978f3ecfed9c0baed5a9b2ec1a",
       "kind": "next_cycle",
       "canonical_text": "https://www.technologyreview.com/2026/08/12/1141714/the-download-innovators-under-35-censorship-industrial-complex/",
-      "seen_count": 10,
+      "seen_count": 11,
       "episode_ids": [
         "mem-20260813085549-e814eb4b4ee1"
       ]
@@ -234,7 +234,7 @@
       "claim_key": "sha256:786cdb82a65c61a10268f3d4e71c21184e73e565eca4195a25a8b86ddc0e9e70",
       "kind": "next_cycle",
       "canonical_text": "https://www.technologyreview.com/2026/08/12/1141605/2026-innovators-under-35-top-young-scientists-engineers/",
-      "seen_count": 10,
+      "seen_count": 11,
       "episode_ids": [
         "mem-20260813085549-e814eb4b4ee1"
       ]
@@ -243,7 +243,7 @@
       "claim_key": "sha256:8250a142ac8ec4cd9ca521124356084148c22ca2839516cc6a1e60fbf4d52336",
       "kind": "insights",
       "canonical_text": "The episode mem-20260813070634-ec3757164dea contains the same article link and summary as mem-20260813095724-ec3757164dea, indicating that they are likely referring to the same content.",
-      "seen_count": 9,
+      "seen_count": 10,
       "episode_ids": [
         "mem-20260813100047-f2ab6871d09a"
       ]
@@ -252,7 +252,7 @@
       "claim_key": "sha256:11d62fb06d3e2349e8dca54b8653857e6f504ecf63350f91cdadbf6f96df415c",
       "kind": "insights",
       "canonical_text": "The article in mem-20260813095724-b8534e273fb1 discusses scientists creating female clones of male mice, which is a significant scientific breakthrough.",
-      "seen_count": 9,
+      "seen_count": 10,
       "episode_ids": [
         "mem-20260813100047-f2ab6871d09a"
       ]
@@ -261,7 +261,7 @@
       "claim_key": "sha256:4719bf6378f4560974358198a092f500517c2debd5c83b3d3662652f25b5266b",
       "kind": "insights",
       "canonical_text": "The article in mem-20260813095724-37a1f8bfc830 discusses how kids feel about AI, sharing their own words on the topic.",
-      "seen_count": 9,
+      "seen_count": 10,
       "episode_ids": [
         "mem-20260813100047-f2ab6871d09a"
       ]
@@ -270,7 +270,7 @@
       "claim_key": "sha256:486bac8329a0cdce41f69b9cfd0b9d76e3f3ccefee155493f596013880d8391f",
       "kind": "insights",
       "canonical_text": "The article in mem-20260813070634-1979e18c71d2 discusses the concept of a 'censorship-industrial complex' and its impact on the internet and US policy.",
-      "seen_count": 9,
+      "seen_count": 10,
       "episode_ids": [
         "mem-20260813100047-f2ab6871d09a"
       ]
@@ -279,7 +279,7 @@
       "claim_key": "sha256:39936b413abbbfc1fe1f83f1a3eb7a84d5e7ba56c62a399c44f7567290e79531",
       "kind": "insights",
       "canonical_text": "The article in mem-20260813095724-ec3757164dea contains the same content as mem-20260813070634-ec3757164dea, suggesting they are referring to the same article.",
-      "seen_count": 9,
+      "seen_count": 10,
       "episode_ids": [
         "mem-20260813100047-f2ab6871d09a"
       ]
@@ -288,7 +288,7 @@
       "claim_key": "sha256:fa9bd14db88d9794faed4065286653ce484d64e06d0a0c2158a2b28ee77be317",
       "kind": "risks",
       "canonical_text": "The redundant content in mem-20260813070634-ec3757164dea and mem-20260813095724-ec3757164dea may lead to confusion or unnecessary duplication of efforts.",
-      "seen_count": 9,
+      "seen_count": 10,
       "episode_ids": [
         "mem-20260813100047-f2ab6871d09a"
       ]
@@ -297,7 +297,7 @@
       "claim_key": "sha256:6cca28f2e6f5bae8b05d8a27e0a9a29797d622049228cdf0311c338fe8581c0f",
       "kind": "risks",
       "canonical_text": "The article in mem-20260813070634-1979e18c71d2 discusses a controversial topic (internet censorship) and might be used for misinformation if not handled carefully.",
-      "seen_count": 9,
+      "seen_count": 10,
       "episode_ids": [
         "mem-20260813100047-f2ab6871d09a"
       ]
@@ -306,7 +306,7 @@
       "claim_key": "sha256:0b2c90f0607042437d916462e7e9dc5c3fab0b1760a1259cd40a9478d9eb8764",
       "kind": "risks",
       "canonical_text": "2 proposta(s) do modelo foram descartadas por não atenderem ao contrato file/rationale/tests.",
-      "seen_count": 21,
+      "seen_count": 24,
       "episode_ids": [
         "mem-20260813100047-f2ab6871d09a",
         "mem-20260813112606-d571f01d7c7e",
@@ -317,7 +317,7 @@
       "claim_key": "sha256:dbaba45d2c0c35a3d5072b7800235c663e285621c63a12b94e84095a7c269410",
       "kind": "next_cycle",
       "canonical_text": "Review and verify the content in mem-20260813095724-b8534e273fb1 for scientific accuracy.",
-      "seen_count": 9,
+      "seen_count": 10,
       "episode_ids": [
         "mem-20260813100047-f2ab6871d09a"
       ]
@@ -326,7 +326,7 @@
       "claim_key": "sha256:d7a7bad286ede6a177f384d8873b1b65553338b4108d8a9639787fabe653412f",
       "kind": "next_cycle",
       "canonical_text": "Monitor the discussion on internet censorship in mem-20260813070634-1979e18c71d2 to ensure it does not spread misinformation.",
-      "seen_count": 9,
+      "seen_count": 10,
       "episode_ids": [
         "mem-20260813100047-f2ab6871d09a"
       ]
@@ -335,7 +335,7 @@
       "claim_key": "sha256:04811096c53fe40c235fbc0a4cb28516c0e6005b50555ac841e92acf42370261",
       "kind": "next_cycle",
       "canonical_text": "Reformular propostas de alteração no schema obrigatório antes de qualquer Pull Request.",
-      "seen_count": 9,
+      "seen_count": 10,
       "episode_ids": [
         "mem-20260813100047-f2ab6871d09a"
       ]
@@ -344,7 +344,7 @@
       "claim_key": "sha256:75356226b95728bb8fd1c32c582d264ee5ebe0990cb59880e2d5e05fc9441eba",
       "kind": "next_cycle",
       "canonical_text": "Testar riscos operacionais relacionados à segurança.",
-      "seen_count": 7,
+      "seen_count": 8,
       "episode_ids": [
         "mem-20260813112606-d571f01d7c7e"
       ]
@@ -353,7 +353,7 @@
       "claim_key": "sha256:3b11307bd2cffe727ed981209c7796c0ec5ec557563fb34cf57668af0cca6146",
       "kind": "next_cycle",
       "canonical_text": "Investigar como recuperar evidências antigas sem confundir hipótese com fato.",
-      "seen_count": 7,
+      "seen_count": 8,
       "episode_ids": [
         "mem-20260813112606-d571f01d7c7e"
       ]
@@ -362,7 +362,7 @@
       "claim_key": "sha256:d115b5386115b38127f227029c072a8b7ef15dc2f9d6535bbdde72a46b189518",
       "kind": "next_cycle",
       "canonical_text": "Investigar como melhorar a busca semântica e diversidade do contexto.",
-      "seen_count": 7,
+      "seen_count": 8,
       "episode_ids": [
         "mem-20260813112606-d571f01d7c7e"
       ]
@@ -371,7 +371,7 @@
       "claim_key": "sha256:5304cca3931bee6db5fd85f4fcad3de00bbb5ec37e495e0a44bea5d1755e3417",
       "kind": "insights",
       "canonical_text": "O treino desta sexta-feira (26) será aberto após as 17h, com acesso dos jornalistas entre 17h e 17h30. Somente o técnico Vanderlei Luxemburgo concederá entrevista coletiva.",
-      "seen_count": 5,
+      "seen_count": 6,
       "episode_ids": [
         "mem-20260813140222-df3888ccf399"
       ]
@@ -380,7 +380,7 @@
       "claim_key": "sha256:81f629d413ae203f8cd58745f6c18f91b984e7a6417de1e9ebff5b340d4af516",
       "kind": "insights",
       "canonical_text": "O Santos FC apoiou a Campanha Agosto Lilás, da Prefeitura de Santos, com uma faixa em campo.",
-      "seen_count": 5,
+      "seen_count": 6,
       "episode_ids": [
         "mem-20260813140222-df3888ccf399"
       ]
@@ -389,7 +389,7 @@
       "claim_key": "sha256:b4fe5905289c8607cfcbf036ebfd86d7ab9ad63dfa47d4cac6c4fe8c2e60904f",
       "kind": "insights",
       "canonical_text": "A Polícia Federal prendeu o presidente da Conafer, Carlos Lopes, investigado na Operação Sem Desconto.",
-      "seen_count": 5,
+      "seen_count": 6,
       "episode_ids": [
         "mem-20260813140222-df3888ccf399"
       ]
@@ -398,7 +398,7 @@
       "claim_key": "sha256:fad97d1a67893fd0e8b7b5fd065c8d27e89be86c296959ad1d4c40851392aa8e",
       "kind": "insights",
       "canonical_text": "A equipe de futsal sub-20 do Palmeiras/São João se despediu do Campeonato Metropolitano após ser derrotada pelo Barueri por 5 a 3.",
-      "seen_count": 5,
+      "seen_count": 6,
       "episode_ids": [
         "mem-20260813140222-df3888ccf399"
       ]
@@ -407,7 +407,7 @@
       "claim_key": "sha256:27a938db3efc802be5049e9f8b44d3e82f4f3e1206cb9c60d4f9bb23ad35b2d1",
       "kind": "risks",
       "canonical_text": "The news articles provided are from verified sources and seem to be accurate based on the information available.",
-      "seen_count": 5,
+      "seen_count": 6,
       "episode_ids": [
         "mem-20260813140222-df3888ccf399"
       ]
@@ -416,7 +416,7 @@
       "claim_key": "sha256:83bfa0b84147d79791f5b6d68a74d8eaf9823d2807718e17fb28e3d70b3a97c8",
       "kind": "risks",
       "canonical_text": "However, it's important to verify any claims or statements made in these articles for their full accuracy.",
-      "seen_count": 5,
+      "seen_count": 6,
       "episode_ids": [
         "mem-20260813140222-df3888ccf399"
       ]
@@ -425,7 +425,7 @@
       "claim_key": "sha256:aaf8a34b66614ce365b42bd53a21dcef0cab4a132c41fc9cf0801410154d1def",
       "kind": "next_cycle",
       "canonical_text": "Verify the proposed changes for accuracy and relevance before implementing them.",
-      "seen_count": 5,
+      "seen_count": 6,
       "episode_ids": [
         "mem-20260813140222-df3888ccf399"
       ]
@@ -434,7 +434,7 @@
       "claim_key": "sha256:1d9a30629d27bec7c151f3e10682703549ee0fef807c28f7c3f6d5179cb23b6e",
       "kind": "insights",
       "canonical_text": "A TV Brasil exibe uma edição inédita do programa 'Brasil no Mundo' nesta quinta-feira (13), às 21h. O programa analisa os principais acontecimentos internacionais e seus impactos no país, incluindo o vídeo recém-divulgado pelo Departamento de Estado dos Estados Unidos sobre a dominação do continente americano por parte dos EUA. ",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813160606-7453f201b20f"
       ]
@@ -443,7 +443,7 @@
       "claim_key": "sha256:df3cb07775b6cd96886eb2a0636d92d8cf3bbc0307dd2840393ee60c2a5a7fb1",
       "kind": "insights",
       "canonical_text": "O programa 'Brasil no Mundo' recebe a professora Ana Penido, da UFRJ, que analisa a nova corrida espacial entre China e EUA e atualiza sobre a situação em Gaza. ",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813160606-7453f201b20f"
       ]
@@ -452,7 +452,7 @@
       "claim_key": "sha256:c9f5abd1b7b790094ceba5b6ffdd1460cd92b69f212e58c02fddc00f2087e346",
       "kind": "insights",
       "canonical_text": "O programa 'Brasil no Mundo' também aborda as eleições presidenciais nos EUA, com especial atenção aos candidatos Lula e Flávio. ",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813160606-7453f201b20f"
       ]
@@ -461,7 +461,7 @@
       "claim_key": "sha256:e1041f1c47449ebb38d32da9a10b2d7ac5fe856f4bf749ccb6ff11b6d0caa271",
       "kind": "insights",
       "canonical_text": "O programa 'Brasil no Mundo' destaca o início do primeiro turno das eleições presidenciais de 2026, marcado para 4 de outubro. ",
-      "seen_count": 3,
+      "seen_count": 4,
       "episode_ids": [
         "mem-20260813160606-7453f201b20f"
       ]
@@ -470,7 +470,7 @@
       "claim_key": "sha256:a965a9cc0d2df3013c004e1e5954ba0f205c72bbab595c475fcaa67263faf3d3",
       "kind": "insights",
       "canonical_text": "Grandes partidos do Centrão optaram por neutralidade na disputa presidencial, de olho na disputa pelo Congresso.",
-      "seen_count": 2,
+      "seen_count": 3,
       "episode_ids": [
         "mem-20260813170248-c466799d6282"
       ]
@@ -479,7 +479,7 @@
       "claim_key": "sha256:bd6c1648501bcffd6434181eaa8d8eeea7cdbf720642f13a24a6a74687186182",
       "kind": "insights",
       "canonical_text": "Entidades internacionais de defesa da liberdade de imprensa criticaram uma medida autorizada pelo ministro em 11 de agosto, alertando para riscos ao sigilo das fontes jornalísticas.",
-      "seen_count": 2,
+      "seen_count": 3,
       "episode_ids": [
         "mem-20260813170248-c466799d6282"
       ]
@@ -488,7 +488,7 @@
       "claim_key": "sha256:af4b8ab14780491b699568c026636f1b4f0eab7d1deadfa24c611dce15710277",
       "kind": "insights",
       "canonical_text": "Alina Fernández, única filha de Fidel Castro, reflete sobre o pai que ela nunca quis chamar de pai e como ele a criou.",
-      "seen_count": 2,
+      "seen_count": 3,
       "episode_ids": [
         "mem-20260813170248-c466799d6282"
       ]
@@ -497,7 +497,7 @@
       "claim_key": "sha256:432ea48cb50611604619a366c252016a77af7aa349a3c41d91f2ada3ffd0c743",
       "kind": "insights",
       "canonical_text": "A nova onda de ataques às vacinas gerou um efeito reverso nas redes sociais, segundo levantamento.",
-      "seen_count": 2,
+      "seen_count": 3,
       "episode_ids": [
         "mem-20260813170248-c466799d6282"
       ]
@@ -506,7 +506,7 @@
       "claim_key": "sha256:e94f85ccc24cf194dc3212e19741434519efa3d0f67aefeeff2d8d98b0b4b96d",
       "kind": "insights",
       "canonical_text": "Business and technology leaders estão rapidamente adotando agentes de IA, mas muitas organizações encontram dificuldades em alcançar o retorno esperado.",
-      "seen_count": 2,
+      "seen_count": 3,
       "episode_ids": [
         "mem-20260813170248-c466799d6282"
       ]
@@ -515,7 +515,7 @@
       "claim_key": "sha256:d70c1c5d36377745d23fb8d1adb326c11b05ac3f2181a55a6926824fca7a71c9",
       "kind": "risks",
       "canonical_text": "A medida autorizada pelo ministro que afetou a liberdade de imprensa, possivelmente prejudicando o sigilo das fontes jornalísticas.",
-      "seen_count": 2,
+      "seen_count": 3,
       "episode_ids": [
         "mem-20260813170248-c466799d6282"
       ]
@@ -524,7 +524,7 @@
       "claim_key": "sha256:7816b3586cf0f51d3328cc93830fdb730b5d64a93a9d924168668792ae59857d",
       "kind": "risks",
       "canonical_text": "O aumento da discussão sobre vacinas e as manifestações favoráveis à imunização podem ter gerado um efeito reverso nas redes sociais.",
-      "seen_count": 2,
+      "seen_count": 3,
       "episode_ids": [
         "mem-20260813170248-c466799d6282"
       ]
@@ -533,7 +533,7 @@
       "claim_key": "sha256:169079e3f1ff3ebaf8f409a399cdd3833aa58553c86a77e8bf1014fbfa35fff3",
       "kind": "risks",
       "canonical_text": "A adoção rápida de agentes de IA por parte dos líderes empresariais e tecnológicos, mas a dificuldade em alcançar o retorno esperado.",
-      "seen_count": 2,
+      "seen_count": 3,
       "episode_ids": [
         "mem-20260813170248-c466799d6282"
       ]
@@ -542,7 +542,7 @@
       "claim_key": "sha256:041e5ec9f884848a347f582916bf11049705816aede03be8dc4ce0febcaeec44",
       "kind": "next_cycle",
       "canonical_text": "A medida autorizada pelo ministro sobre liberdade de imprensa será debatida em uma reunião internacional de defesa da liberdade de imprensa.",
-      "seen_count": 2,
+      "seen_count": 3,
       "episode_ids": [
         "mem-20260813170248-c466799d6282"
       ]
@@ -551,7 +551,7 @@
       "claim_key": "sha256:88150200a9d23a4739918436c1957e61ea28a0c529d37caae382e33084db8a37",
       "kind": "next_cycle",
       "canonical_text": "Estudos serão realizados para entender melhor o impacto das discussões sobre vacinas nas redes sociais e as estratégias de comunicação que podem ser implementadas.",
-      "seen_count": 2,
+      "seen_count": 3,
       "episode_ids": [
         "mem-20260813170248-c466799d6282"
       ]
@@ -560,9 +560,18 @@
       "claim_key": "sha256:09b3b8a0c70dd4a46b5f0aefab06fb31a99ebb05aa43c502643eceb005deb39d",
       "kind": "next_cycle",
       "canonical_text": "Investigadores continuarão estudando a adoção de agentes de IA em organizações, com foco em identificar quais fatores contribuem para o retorno esperado.",
-      "seen_count": 2,
+      "seen_count": 3,
       "episode_ids": [
         "mem-20260813170248-c466799d6282"
+      ]
+    },
+    {
+      "claim_key": "sha256:4410f461590ee7aa8c44cdc56776eaeba5e0dd4176578adc47ed49aad38c45f8",
+      "kind": "insights",
+      "canonical_text": "Nenhuma conclusão nova foi confirmada sobre autocorreção; a lacuna de evidência será investigada antes de consolidar uma memória.",
+      "seen_count": 2,
+      "episode_ids": [
+        "mem-20260813173250-c3cd6c4955a2"
       ]
     }
   ]
