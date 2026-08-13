@@ -21,6 +21,7 @@ from pathlib import Path
 
 from core.episodic_memory import build_episode
 from core.memory_store import MemoryStore
+from core.memory_consolidation import compact_context
 from core.research_sources import fetch_configured_sources
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -217,7 +218,7 @@ def deduplicate_observations(observations: dict, memory: list[dict]) -> dict:
 
 
 def ask_local_model(memory: list[dict], research: dict, topic: str, question: str) -> dict:
-    context = json.dumps(memory[-12:], ensure_ascii=False, indent=2)
+    context = json.dumps(compact_context(memory[-200:], max_items=30), ensure_ascii=False, indent=2)[:12000]
     research_context = json.dumps(research, ensure_ascii=False, indent=2)[:7000]
     prompt = f"""Você é o módulo local de análise da ATENA. Faça um ciclo de aprendizagem de no máximo cinco minutos.
 Responda SOMENTE com um objeto JSON, sem Markdown, sem comentários, sem códigos ANSI e sem texto antes ou depois.

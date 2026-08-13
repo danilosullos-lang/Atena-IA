@@ -314,8 +314,16 @@ class MemoryStore:
         return [dict(row) for row in rows]
 
     def link_evidence(self, episode_id: str, evidence_episode_id: str, relation: str, weight: float = 1.0) -> None:
+        allowed = {"supports", "contradicts", "derived_from", "duplicates", "revalidates"}
+        if relation not in allowed:
+            raise ValueError(f"relação de evidência inválida: {relation}")
+        if episode_id == evidence_episode_id:
+            raise ValueError("um episódio não pode ser evidência de si mesmo")
         if not 0 <= weight <= 1:
             raise ValueError("weight deve estar entre 0 e 1")
+        for identifier in (episode_id, evidence_episode_id):
+            if not self.connection.execute("SELECT 1 FROM episodes WHERE id=?", (identifier,)).fetchone():
+                raise EpisodicMemoryError(f"episódio inexistente: {identifier}")
         with self.connection:
             self.connection.execute(
                 "INSERT OR REPLACE INTO evidence_links(episode_id, evidence_episode_id, relation, weight) VALUES (?, ?, ?, ?)",
@@ -324,12 +332,44 @@ class MemoryStore:
 
     def evidence_for(self, episode_id: str) -> list[dict[str, Any]]:
         rows = self.connection.execute(
-            """SELECT e.record_json, l.relation, l.weight
-               FROM evidence_links l JOIN episodes e ON e.id = l.evidence_episode_id
+            """SELECT e.record_json, p.source_id, p.source_type, l.relation, l.weight
+               FROM evidence_links l
+               JOIN episodes e ON e.id = l.evidence_episode_id
+               LEFT JOIN provenance p ON p.episode_id = e.id
                WHERE l.episode_id = ? ORDER BY l.weight DESC""",
             (episode_id,),
         ).fetchall()
-        return [{"record": json.loads(row[0]), "relation": row[1], "weight": row[2]} for row in rows]
+        return [{"record": json.loads(row[0]), "source_id": row[1], "source_type": row[2], "relation": row[3], "weight": row[4]} for row in rows]
+
+    def evidence_summary(self, episode_id: str) -> dict[str, Any]:
+        links = self.evidence_for(episode_id)
+        supporting = [item for item in links if item["relation"] in {"supports", "revalidates"}]
+        contradicting = [item for item in links if item["relation"] == "contradicts"]
+        independent_sources = {item["source_id"] for item in supporting if item.get("source_id")}
+        return {
+            "episode_id": episode_id,
+            "total_links": len(links),
+            "supporting_links": len(supporting),
+            "contradicting_links": len(contradicting),
+            "independent_sources": len(independent_sources),
+            "supported_weight": round(sum(float(item["weight"]) for item in supporting), 4),
+            "contradicted_weight": round(sum(float(item["weight"]) for item in contradicting), 4),
+            "status": "contradicted" if contradicting else ("supported" if len(independent_sources) >= 2 else "unverified"),
+        }
+
+    def promote_from_evidence(self, episode_id: str, *, min_sources: int = 2, confirm_sources: int = 3) -> str:
+        summary = self.evidence_summary(episode_id)
+        if summary["contradicting_links"]:
+            status = "contested"
+        elif summary["independent_sources"] >= confirm_sources:
+            status = "confirmed"
+        elif summary["independent_sources"] >= min_sources:
+            status = "supported"
+        else:
+            status = "unverified"
+        with self.connection:
+            self.connection.execute("UPDATE episodes SET status=? WHERE id=?", (status, episode_id))
+        return status
 
     def export_json(self, path: str | Path, limit: int | None = None) -> int:
         records = list(self.iter_ordered())
