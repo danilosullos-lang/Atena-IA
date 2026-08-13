@@ -19,7 +19,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: atena-ci-${{ github.workflow }}-${{ github.ref }}
+  # Pushes de código não podem cancelar o ciclo agendado que envia a evolução ao Telegram.
+  group: atena-ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
