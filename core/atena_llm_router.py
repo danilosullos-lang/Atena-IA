@@ -40,6 +40,8 @@ from typing import Any, AsyncIterator, Dict, List, Optional, Set, Tuple, Union
 import aiohttp
 import aiofiles
 
+from core.task_routing import provider_order, route_for_task
+
 try:
     from openai import OpenAI
 except ImportError:
@@ -566,7 +568,7 @@ class AnthropicProvider(BaseLLMProvider):
     def __init__(self, config: RouterConfig):
         super().__init__("anthropic", config)
         self.api_key = os.getenv("ANTHROPIC_API_KEY")
-        self.model = os.getenv("ATENA_ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
+        self.model = os.getenv("ATENA_ANTHROPIC_MODEL", "claude-fable-5")
         self.base_url = "https://api.anthropic.com/v1/messages"
     
     async def generate(self, request: LLMRequest) -> LLMResponse:
@@ -605,7 +607,7 @@ class GeminiProvider(BaseLLMProvider):
     def __init__(self, config: RouterConfig):
         super().__init__("gemini", config)
         self.api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-        self.model = os.getenv("ATENA_GEMINI_MODEL", "gemini-2.5-flash")
+        self.model = os.getenv("ATENA_GEMINI_MODEL", "gemini-3.7-flash")
         self.base_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
 
     async def generate(self, request: LLMRequest) -> LLMResponse:
@@ -878,11 +880,13 @@ class AtenaLLMRouterAdvanced:
         try:
             # Obter provedores saudáveis
             all_providers = list(self._providers.keys())
+            task_type = kwargs.get("task_type") or request.metadata.get("task_type") or "auto"
             if prefer_provider and prefer_provider in all_providers:
                 providers = [prefer_provider] + [p for p in all_providers if p != prefer_provider]
             else:
                 healthy = self.health_checker.get_healthy(all_providers)
-                providers = healthy if healthy else all_providers
+                available = healthy if healthy else all_providers
+                providers = provider_order(str(task_type), available)
             
             # Selecionar via load balancer
             metrics = {name: self._providers[name].metrics for name in providers}
@@ -921,11 +925,13 @@ class AtenaLLMRouterAdvanced:
             stream=True
         )
         all_providers = list(self._providers.keys())
+        task_type = kwargs.get("task_type", "auto")
         if prefer_provider and prefer_provider in all_providers:
             providers = [prefer_provider]
         else:
             healthy = self.health_checker.get_healthy(all_providers)
-            providers = healthy if healthy else all_providers
+            available = healthy if healthy else all_providers
+            providers = provider_order(str(task_type), available)
         
         for provider_name in providers:
             try:
