@@ -39,8 +39,10 @@ jobs:
           ATENA_TELEGRAM_BOT_TOKEN: ${{ secrets.ATENA_TELEGRAM_BOT_TOKEN }}
           ATENA_TELEGRAM_CHAT_ID: ${{ secrets.ATENA_TELEGRAM_CHAT_ID }}
           ATENA_NOTIFY_PERMANENT_FREE: "0"
+          ATENA_NOTIFY_GOG_PERMANENT_FREE: "1"
         run: |
-          python scripts/steam_free_alert.py \
+          python scripts/steam_free_alert.py \\
+            --stores steam epic gog \\
             --db atena_evolution/memory.sqlite3
 
       - name: Publicar deduplicação no SQLite
