@@ -33,6 +33,10 @@ jobs:
         env:
           ATENA_TELEGRAM_BOT_TOKEN: ${{ secrets.ATENA_TELEGRAM_BOT_TOKEN }}
           ATENA_TELEGRAM_CHAT_ID: ${{ secrets.ATENA_TELEGRAM_CHAT_ID }}
+          ATENA_WEB_SEARCH_PROVIDER: ${{ vars.ATENA_WEB_SEARCH_PROVIDER || 'tavily' }}
+          ATENA_TAVILY_API_KEY: ${{ secrets.ATENA_TAVILY_API_KEY }}
+          ATENA_GOOGLE_API_KEY: ${{ secrets.ATENA_GOOGLE_API_KEY }}
+          ATENA_GOOGLE_CSE_ID: ${{ secrets.ATENA_GOOGLE_CSE_ID }}
         run: |
           PYTHONPATH="$GITHUB_WORKSPACE" python scripts/web_research_telegram_smoke.py \
             --question "${{ inputs.question }}"
