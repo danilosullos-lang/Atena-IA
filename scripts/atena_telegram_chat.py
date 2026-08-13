@@ -16,7 +16,12 @@ import aiohttp
 
 from core.audio_gateway import AudioGateway, AudioGatewayError
 from core.memory_store import MemoryStore
+from core.google_calendar_client import GoogleCalendarClient, GoogleCalendarNotConfigured, format_event
+from core.x_news_research import XNewsResearch, XNotConfigured
+from core.tasker_client import TaskerClient, TaskerDispatchError, TaskerNotConfigured
+from core.universal_task_router import TaskIntent, confirmation_prompt as task_confirmation_prompt, parse_task_intent
 from core.workspace_actions import (
+    WorkspaceIntent,
     confirmation_prompt,
     is_cancellation,
     is_confirmation,
@@ -32,6 +37,17 @@ SESSION_PATH = Path(os.getenv("ATENA_TELEGRAM_SESSION_PATH", str(ROOT / "data" /
 VOICE_SETTINGS_PATH = Path(os.getenv("ATENA_TELEGRAM_VOICE_SETTINGS_PATH", str(ROOT / "data" / "telegram_voice_settings.json")))
 MAX_HISTORY = 12
 MAX_MESSAGE = 3900
+
+
+def infer_task_type(text: str) -> str:
+    lowered = text.casefold()
+    if any(marker in lowered for marker in ("últimas notícias", "notícia", "pesquise", "fontes", "nasa", "atualmente", "hoje")):
+        return "web_research"
+    if any(marker in lowered for marker in ("código", "script", "python", "github", "pull request", "bug", "programar")):
+        return "code"
+    if any(marker in lowered for marker in ("privado", "senha", "e-mail da empresa", "email da empresa")):
+        return "private"
+    return "telegram"
 
 logging.basicConfig(level=os.getenv("ATENA_TELEGRAM_LOG_LEVEL", "INFO"))
 log = logging.getLogger("atena.telegram")
@@ -91,6 +107,8 @@ class AtenaTelegramChat:
         self.sessions = load_sessions()
         self.voice_enabled = load_voice_settings()
         self.pending_workspace: dict[str, Any] = {}
+        self.pending_device: dict[str, Any] = {}
+        self.tasker = TaskerClient()
         self.audio = AudioGateway()
         self.offset = 0
         self.http: aiohttp.ClientSession | None = None
@@ -162,10 +180,11 @@ class AtenaTelegramChat:
             "Responda diretamente à pergunta do usuário em português. Não diga que você não tem internet: "
             "a pesquisa abaixo foi fornecida pelo sistema. Não confunda uma notificação de aprendizagem com a resposta. "
             "Informe data/horário quando houver fonte suficiente e termine com 'Fontes:' e as URLs usadas.\n\n" + context,
+            task_type="web_research",
         )
         return "ATENA — resposta atual\n\n" + answer
 
-    async def ollama(self, chat_id: int, user_text: str) -> str:
+    async def ollama(self, chat_id: int, user_text: str, task_type: str | None = None) -> str:
         assert self.http is not None
         history = self.sessions.setdefault(str(chat_id), [])
         system = (
@@ -178,11 +197,25 @@ class AtenaTelegramChat:
         )
         messages = [{"role": "system", "content": system}, *history[-MAX_HISTORY:], {"role": "user", "content": user_text}]
         payload = {"model": self.model, "stream": False, "messages": messages, "options": {"temperature": 0.2, "num_predict": 550}}
-        async with self.http.post(OLLAMA_CHAT, json=payload, timeout=aiohttp.ClientTimeout(total=180)) as response:
-            if response.status != 200:
-                raise TelegramError(f"Ollama HTTP {response.status}")
-            data = await response.json(content_type=None)
-            answer = str(data.get("message", {}).get("content", "Não consegui gerar uma resposta."))
+        selected_task = task_type or infer_task_type(user_text)
+        try:
+            from core.atena_llm_router import get_router
+            router = await get_router()
+            routed = await router.generate(
+                user_text,
+                context="\n".join(f"{item['role']}: {item['content']}" for item in history[-MAX_HISTORY:]),
+                task_type=selected_task,
+                temperature=0.2,
+                max_tokens=550,
+            )
+            answer = routed.content
+        except Exception as exc:
+            log.warning("roteador LLM indisponível; usando Ollama direto: %s", exc)
+            async with self.http.post(OLLAMA_CHAT, json=payload, timeout=aiohttp.ClientTimeout(total=180)) as response:
+                if response.status != 200:
+                    raise TelegramError(f"Ollama HTTP {response.status}")
+                data = await response.json(content_type=None)
+                answer = str(data.get("message", {}).get("content", "Não consegui gerar uma resposta."))
         history.extend([{"role": "user", "content": clip(user_text, 1200)}, {"role": "assistant", "content": clip(answer, 1800)}])
         self.sessions[str(chat_id)] = history[-MAX_HISTORY:]
         save_sessions(self.sessions)
@@ -236,29 +269,103 @@ class AtenaTelegramChat:
         if command == "/start":
             return "Olá. Sou a ponte de conversa da Atena. Envie uma pergunta ou use /help."
         if command == "/help":
-            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset, /voz on|off|status, /pesquisar <tema>, /fila, /ofertas [mínimo%] [limite], /agenda, /agendar <evento>, /criar planilha <título>. Ações de escrita exigem confirmação."
+            return "Comandos: /status, /aprendizagens, /capabilities, /modelo, /reset, /voz on|off|status, /pesquisar <tema>, /x <notícia>, /fila, /ofertas [mínimo%] [limite], /agenda, /agendar <evento>, /criar planilha <título>. Também aceito: abrir Spotify, tocar <música> de <artista>, pausar mídia, próxima música, status do celular. Ações sensíveis exigem confirmação."
         # Ações de workspace são sempre interpretadas antes do Ollama.
         workspace_intent = parse_workspace_intent(chat_id, text)
         if workspace_intent is not None:
+            if workspace_intent.action == "calendar_list":
+                if workspace_intent.provider == "microsoft":
+                    return "A consulta Outlook ainda precisa do conector Microsoft Graph. O Google Calendar pode ser ativado com OAuth desktop."
+                try:
+                    events = await asyncio.to_thread(GoogleCalendarClient().upcoming, 10)
+                except GoogleCalendarNotConfigured as exc:
+                    return f"Google Calendar ainda não configurado: {exc}"
+                except Exception as exc:
+                    log.exception("falha ao listar eventos do Google Calendar")
+                    return f"Não consegui consultar o Google Calendar: {type(exc).__name__}."
+                if not events:
+                    return "ATENA — agenda\n\nNenhum evento futuro encontrado."
+                return clip("ATENA — agenda\n\n" + "\n".join(f"• {format_event(event)}" for event in events))
             if workspace_intent.requires_confirmation:
                 self.pending_workspace[str(chat_id)] = workspace_intent.to_dict()
                 return confirmation_prompt(workspace_intent)
-            return (
-                f"Intenção recebida: {workspace_intent.action} ({workspace_intent.provider}).\n"
-                "A consulta foi validada, mas o conector da conta ainda precisa ser autorizado para executar a leitura."
-            )
         pending = self.pending_workspace.get(str(chat_id))
         if pending:
             pending_id = str(pending.get("id", ""))
             if is_confirmation(text, pending_id):
                 self.pending_workspace.pop(str(chat_id), None)
-                return (
-                    "Confirmação registrada. A ação está autorizada, mas ainda não será executada porque "
-                    "o conector Google/Microsoft e o OAuth da conta precisam ser configurados."
-                )
+                intent = WorkspaceIntent(**pending)
+                if intent.action == "calendar_create":
+                    if intent.provider == "microsoft":
+                        return "Ação confirmada, mas o conector Outlook ainda não está configurado. Nenhum evento foi criado."
+                    try:
+                        event = await asyncio.to_thread(GoogleCalendarClient().create_event, intent.parameters)
+                    except GoogleCalendarNotConfigured as exc:
+                        return f"Confirmação recebida, mas o Google Calendar ainda não está configurado: {exc}"
+                    except Exception as exc:
+                        log.exception("falha ao criar evento no Google Calendar")
+                        return f"Confirmação recebida, mas não consegui criar o evento: {type(exc).__name__}."
+                    return f"ATENA — evento criado\n\n{format_event(event)}\n{event.get('htmlLink', '')}".strip()
+                return "Confirmação registrada. O adaptador desta ação ainda precisa ser configurado; nenhuma alteração foi feita."
             if is_cancellation(text, pending_id):
                 self.pending_workspace.pop(str(chat_id), None)
                 return "Ação cancelada; nenhuma planilha ou evento foi alterado."
+        pending_device = self.pending_device.get(str(chat_id))
+        if pending_device:
+            pending_id = str(pending_device.get("id", ""))
+            normalized = " ".join(text.strip().split()).casefold()
+            if normalized == f"confirmar {pending_id}".casefold():
+                self.pending_device.pop(str(chat_id), None)
+                try:
+                    await self.tasker.approve(
+                        approval_id=pending_id,
+                        requester_chat_id=str(chat_id),
+                        action=str(pending_device["action"]),
+                        target=str(pending_device["target"]),
+                        parameters=dict(pending_device.get("parameters", {})),
+                        expires_in=120,
+                    )
+                    result = await self.tasker.dispatch(
+                        action=str(pending_device["action"]),
+                        target=str(pending_device["target"]),
+                        parameters=dict(pending_device.get("parameters", {})),
+                        command_id=pending_id,
+                        approval_id=pending_id,
+                    )
+                except TaskerNotConfigured as exc:
+                    return f"Confirmação recebida, mas o gateway Android ainda não está configurado: {exc}."
+                except TaskerDispatchError as exc:
+                    log.exception("falha ao aprovar/despachar ação sensível")
+                    return f"Ação não executada: {exc}"
+                return f"Ação sensível confirmada e enfileirada no Tasker. ID: {result.get('command_id', pending_id)}"
+            if normalized == f"cancelar {pending_id}".casefold():
+                self.pending_device.pop(str(chat_id), None)
+                return "Ação Android cancelada; nenhum aplicativo ou arquivo foi alterado."
+
+        task_intent = parse_task_intent(text)
+        if task_intent is not None:
+            if task_intent.requires_confirmation:
+                self.pending_device[str(chat_id)] = {
+                    "id": task_intent.id,
+                    "action": task_intent.action,
+                    "target": task_intent.target,
+                    "parameters": task_intent.parameters,
+                }
+                return task_confirmation_prompt(task_intent)
+            try:
+                result = await self.tasker.dispatch(
+                    action=task_intent.action,
+                    target=task_intent.target,
+                    parameters=task_intent.parameters,
+                    command_id=task_intent.id,
+                )
+            except TaskerNotConfigured as exc:
+                return f"Roteador Android ainda não configurado: {exc}."
+            except TaskerDispatchError as exc:
+                log.exception("falha ao despachar tarefa Android")
+                return f"Não consegui entregar a tarefa ao Tasker: {exc}"
+            return f"Tarefa Android enfileirada: {task_intent.action}\nID: {result.get('command_id', task_intent.id)}"
+
         if command == "/voz":
             option = text.split(maxsplit=1)[1].strip().lower() if len(text.split(maxsplit=1)) > 1 else "status"
             if option == "on":
@@ -282,6 +389,24 @@ class AtenaTelegramChat:
             if not 0 <= minimum_discount <= 100 or not 1 <= limit <= 20:
                 return "Use desconto entre 0 e 100 e quantidade entre 1 e 20."
             return await self.best_store_deals(minimum_discount, limit)
+        if command in {"/x", "/noticiasx"}:
+            query = text.split(maxsplit=1)[1].strip() if len(text.split(maxsplit=1)) > 1 else ""
+            if not query:
+                return "Uso: /x <tema>. Exemplo: /x últimas notícias sobre inteligência artificial"
+            try:
+                posts = await asyncio.to_thread(XNewsResearch().search, query, 10)
+            except XNotConfigured as exc:
+                return f"Pesquisa no X indisponível: {exc}"
+            except Exception as exc:
+                log.exception("falha na pesquisa do X")
+                return f"Não consegui consultar o X agora: {type(exc).__name__}."
+            if not posts:
+                return "ATENA — X\n\nNenhum post recente encontrado para essa consulta."
+            lines = ["ATENA — notícias recentes no X", ""]
+            for post in posts[:10]:
+                snippet = " ".join(post.text.split())[:240]
+                lines.append(f"• {snippet}\n  {post.url}")
+            return clip("\n".join(lines))
         if command == "/pesquisar":
             topic = text.split(maxsplit=1)[1].strip() if len(text.split(maxsplit=1)) > 1 else ""
             if not topic:

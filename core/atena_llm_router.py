@@ -40,6 +40,9 @@ from typing import Any, AsyncIterator, Dict, List, Optional, Set, Tuple, Union
 import aiohttp
 import aiofiles
 
+from core.provider_quota import QuotaLedger
+from core.task_routing import provider_order, route_for_task
+
 try:
     from openai import OpenAI
 except ImportError:
@@ -566,7 +569,7 @@ class AnthropicProvider(BaseLLMProvider):
     def __init__(self, config: RouterConfig):
         super().__init__("anthropic", config)
         self.api_key = os.getenv("ANTHROPIC_API_KEY")
-        self.model = os.getenv("ATENA_ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
+        self.model = os.getenv("ATENA_ANTHROPIC_MODEL", "claude-fable-5")
         self.base_url = "https://api.anthropic.com/v1/messages"
     
     async def generate(self, request: LLMRequest) -> LLMResponse:
@@ -605,7 +608,7 @@ class GeminiProvider(BaseLLMProvider):
     def __init__(self, config: RouterConfig):
         super().__init__("gemini", config)
         self.api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-        self.model = os.getenv("ATENA_GEMINI_MODEL", "gemini-2.5-flash")
+        self.model = os.getenv("ATENA_GEMINI_MODEL", "gemini-3.7-flash")
         self.base_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
 
     async def generate(self, request: LLMRequest) -> LLMResponse:
@@ -724,6 +727,7 @@ class AtenaLLMRouterAdvanced:
         self.health_checker = HealthChecker(self.config)
         self.load_balancer = LoadBalancer(self.config.lb_strategy)
         self._providers: Dict[str, BaseLLMProvider] = {}
+        self.quota_ledger = QuotaLedger()
         self._init_providers()
         self._tracer = None
         if self.config.tracing_enabled and OTEL_AVAILABLE:
@@ -840,6 +844,16 @@ class AtenaLLMRouterAdvanced:
     async def start(self):
         await self.health_checker.start()
     
+    @staticmethod
+    def _is_failover_error(error: Exception) -> bool:
+        text = str(error).casefold()
+        markers = (
+            "429", "408", "500", "502", "503", "504", "quota", "rate limit",
+            "rate_limit", "resource exhausted", "temporarily unavailable",
+            "timeout", "timed out", "circuit breaker open", "overloaded",
+        )
+        return any(marker in text for marker in markers)
+
     async def generate(
         self, 
         prompt: str, 
@@ -878,26 +892,45 @@ class AtenaLLMRouterAdvanced:
         try:
             # Obter provedores saudáveis
             all_providers = list(self._providers.keys())
+            task_type = kwargs.get("task_type") or request.metadata.get("task_type") or "auto"
             if prefer_provider and prefer_provider in all_providers:
                 providers = [prefer_provider] + [p for p in all_providers if p != prefer_provider]
             else:
                 healthy = self.health_checker.get_healthy(all_providers)
-                providers = healthy if healthy else all_providers
-            
-            # Selecionar via load balancer
+                available = healthy if healthy else all_providers
+                providers = provider_order(str(task_type), available)
+
+            providers = [provider for provider in providers if self.quota_ledger.available(provider)]
+            if not providers:
+                raise Exception("Nenhum provider disponível: quotas locais esgotadas ou cooldown ativo")
+
+            # Selecionar primeiro por métricas, mantendo a ordem como fallback.
             metrics = {name: self._providers[name].metrics for name in providers}
             selected = self.load_balancer.select(providers, metrics)
             if not selected:
                 raise Exception("Nenhum provider disponível")
-            
-            provider = self._providers[selected]
-            response = await provider.execute_with_monitoring(request)
-            if self.semantic_cache and not response.cached:
-                await self.semantic_cache.set(prompt, context, response.content)
-            if span:
-                span.set_attribute("selected_provider", selected)
-                span.set_status(Status(StatusCode.OK))
-            return response
+            attempts = [selected] + [provider for provider in providers if provider != selected]
+            last_error: Exception | None = None
+            for provider_name in attempts:
+                provider = self._providers[provider_name]
+                try:
+                    response = await provider.execute_with_monitoring(request)
+                    estimated_tokens = response.tokens_used or self.token_counter.count(prompt) + self.token_counter.count(request.context)
+                    self.quota_ledger.record(provider_name, estimated_tokens)
+                    if self.semantic_cache and not response.cached:
+                        await self.semantic_cache.set(prompt, context, response.content)
+                    if span:
+                        span.set_attribute("selected_provider", provider_name)
+                        span.set_status(Status(StatusCode.OK))
+                    return response
+                except Exception as exc:
+                    last_error = exc
+                    if not self._is_failover_error(exc):
+                        raise
+                    cooldown = 300 if "429" in str(exc) or "quota" in str(exc).casefold() else 45
+                    self.quota_ledger.cooldown(provider_name, cooldown, str(exc))
+                    logger.warning("provider %s falhou; failover para o próximo: %s", provider_name, exc)
+            raise last_error or Exception("Nenhum provider conseguiu gerar resposta")
         except Exception as e:
             if span:
                 span.set_status(Status(StatusCode.ERROR, str(e)))
@@ -921,11 +954,13 @@ class AtenaLLMRouterAdvanced:
             stream=True
         )
         all_providers = list(self._providers.keys())
+        task_type = kwargs.get("task_type", "auto")
         if prefer_provider and prefer_provider in all_providers:
             providers = [prefer_provider]
         else:
             healthy = self.health_checker.get_healthy(all_providers)
-            providers = healthy if healthy else all_providers
+            available = healthy if healthy else all_providers
+            providers = provider_order(str(task_type), available)
         
         for provider_name in providers:
             try:

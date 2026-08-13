@@ -6,6 +6,8 @@ __pycache__/
 venv/
 venv_*/
 .env
+atena_evolution/provider_quota.sqlite3
+atena_evolution/provider_quota.sqlite3-*
 
 # Local production-center runtime state; regenerate with scripts/bootstrap_production_readiness.py
 atena_evolution/production_center/
@@ -30,3 +32,9 @@ dashboard/.vite/
 
 # Diretório local opcional; não é um submódulo versionado
 llama.cpp/
+
+# Google Workspace OAuth local credentials
+credentials.json
+secrets/google/
+**/token.json
+**/calendar-token.json
