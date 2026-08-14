@@ -68,3 +68,26 @@ def test_blocked_outcome_is_not_success(tmp_path):
     assert metrics.successes == 0
     assert metrics.success_rate == 0
     store.close()
+
+
+def test_ranked_search_and_json_roundtrip(tmp_path):
+    source = ConsequenceMemory(tmp_path / "source.sqlite3")
+    first = make_episode()
+    source.record_episode(first)
+    second = make_episode()
+    second.episode_id = "conseq-second-search"
+    second.task_id = "task-search"
+    source.record_episode(second)
+    source.consolidate_lessons(min_evidence=2, min_confidence=0.5)
+
+    ranked = source.search_validated_lessons("validar alteração de código sandbox", limit=3)
+    assert ranked
+    assert ranked[0]["score"] >= 0
+    assert ranked[0]["lesson"]["status"] == "validated"
+
+    backup = source.export_json(tmp_path / "backup.json")
+    target = ConsequenceMemory(tmp_path / "target.sqlite3")
+    assert target.import_json(backup) == 2
+    assert target.verify_integrity()
+    assert len(target.recent()) == 2
+    source.close(); target.close()

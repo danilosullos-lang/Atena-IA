@@ -80,3 +80,39 @@ O banco produtivo deve receber somente episódios completos e validados pelo qua
 ## Métricas
 
 `metrics()` retorna total, sucessos, parciais, falhas, bloqueios, taxa de sucesso, taxa de feedback, taxa de evidência, variação média de confiança e taxa de episódios com regressão verificada. Essas métricas devem entrar no relatório de evolução e no avaliador baseline versus candidato.
+
+## Busca ranqueada antes do planner
+
+Use `search_validated_lessons()` para recuperar somente lições com status `validated`. O ranking combina sobreposição de termos, confiança, taxa de sucesso, quantidade de evidências e recência. O retorno inclui a pontuação e seus componentes para auditoria.
+
+```python
+ranked = memory.search_validated_lessons(
+    "corrigir falha de código no Telegram",
+    limit=5,
+    min_confidence=0.65,
+    applicability="código",
+)
+```
+
+A busca deve ser feita antes do planner e os `lesson_id` recuperados devem ser gravados no episódio como `used_lesson_ids`. A nova experiência deve ser gravada separadamente em `generated_lessons`, evitando confundir memória consultada com aprendizado novo.
+
+## Avaliação com e sem memória
+
+O avaliador recebe dois JSONL pareados com os mesmos `task_id`:
+
+```bash
+python scripts/evaluate_consequence_memory_effect.py \
+  --with-memory results/with_memory.jsonl \
+  --without-memory results/without_memory.jsonl \
+  --output results/consequence-effect-report.json
+```
+
+Cada linha deve conter `task_id` e `outcome`, por exemplo:
+
+```json
+{"task_id":"case-001","outcome":"success","critical_failure":false}
+```
+
+O relatório compara taxa de sucesso, regressões, tarefas melhoradas, tarefas pioradas, empates, uplift absoluto e intervalo bootstrap pareado. A decisão `promote_memory` só ocorre quando o limite inferior do intervalo de diferença é positivo e a taxa de regressão não aumenta. Caso contrário, a decisão é `hold`.
+
+O avaliador não executa ferramentas e não grava no SQLite. Ele mede o efeito das lições; a execução dos casos deve ocorrer em sandbox separado, mantendo seed, modelo, prompt, ferramentas e ordem constantes entre as duas condições.

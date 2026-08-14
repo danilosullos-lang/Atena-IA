@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
+import re
 import sqlite3
 import uuid
 from datetime import datetime, timezone
@@ -18,6 +20,19 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 Outcome = Literal["success", "partial", "failure", "unknown", "blocked"]
 EvidenceKind = Literal["test", "user_feedback", "tool_result", "metric", "observation", "external"]
+
+
+def _tokens(text: str) -> set[str]:
+    return {token.casefold() for token in re.findall(r"[A-Za-zÀ-ÿ0-9_]+", text) if len(token) >= 3}
+
+
+def _recency_score(updated_at: str) -> float:
+    try:
+        updated = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
+        age_days = max(0.0, (datetime.now(timezone.utc) - updated).total_seconds() / 86400)
+        return math.exp(-age_days / 90.0)
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def utc_now() -> str:
@@ -86,6 +101,8 @@ class ConsequenceEpisode(BaseModel):
     evidence: list[ConsequenceEvidence] = Field(default_factory=list, max_length=100)
     feedback: list[ConsequenceFeedback] = Field(default_factory=list, max_length=100)
     lessons: list[Lesson] = Field(default_factory=list, max_length=20)
+    used_lesson_ids: list[str] = Field(default_factory=list, max_length=50)
+    generated_lessons: list[Lesson] = Field(default_factory=list, max_length=20)
     confidence_before: float = Field(default=0, ge=0, le=1)
     confidence_after: float = Field(default=0, ge=0, le=1)
     regression_checked: bool = False
@@ -262,6 +279,59 @@ class ConsequenceMemory:
                     json.dumps(lesson.source_episode_ids), lesson.created_at, lesson.updated_at, lesson.content_hash, payload))
             output.append(lesson)
         return output
+
+    def search_validated_lessons(self, query: str, *, limit: int = 5, min_confidence: float = 0.65, applicability: str | None = None) -> list[dict[str, Any]]:
+        """Busca lições validadas com ranking explicável e sem efeitos externos."""
+        query_tokens = _tokens(query)
+        candidates = self.lessons(limit=500, validated_only=True)
+        ranked: list[dict[str, Any]] = []
+        for lesson in candidates:
+            if lesson.confidence < min_confidence:
+                continue
+            haystack = f"{lesson.statement} {lesson.applicability}"
+            if applicability and applicability.casefold() not in haystack.casefold():
+                continue
+            lesson_tokens = _tokens(haystack)
+            overlap = len(query_tokens & lesson_tokens) / max(1, len(query_tokens))
+            recency = _recency_score(lesson.updated_at)
+            evidence = min(1.0, lesson.evidence_count / 5.0)
+            score = 0.40 * overlap + 0.25 * lesson.confidence + 0.20 * lesson.success_rate + 0.10 * evidence + 0.05 * recency
+            ranked.append({"lesson": lesson.model_dump(mode="json"), "score": round(score, 6), "ranking": {
+                "token_overlap": round(overlap, 6), "confidence": lesson.confidence,
+                "success_rate": lesson.success_rate, "evidence": evidence, "recency": round(recency, 6)}})
+        ranked.sort(key=lambda item: item["score"], reverse=True)
+        return ranked[:max(1, min(int(limit), 20))]
+
+    def export_json(self, path: str | Path) -> Path:
+        """Exporta episódios e lições em JSON canônico para backup/análise."""
+        target = Path(path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        payload = {"schema_version": 1, "exported_at": utc_now(),
+                   "episodes": [episode.model_dump(mode="json") for episode in self.recent(5000)],
+                   "lessons": [lesson.model_dump(mode="json") for lesson in self.lessons(5000)]}
+        payload["content_hash"] = canonical_hash(payload)
+        target.write_text(json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+        return target
+
+    def import_json(self, path: str | Path, *, replace: bool = False) -> int:
+        """Importa backup JSON validado; por padrão é append/idempotente."""
+        payload = json.loads(Path(path).read_text(encoding="utf-8"))
+        if payload.get("schema_version") != 1:
+            raise ValueError("schema de backup desconhecido")
+        expected = payload.get("content_hash")
+        check = dict(payload); check.pop("content_hash", None)
+        if expected and expected != canonical_hash(check):
+            raise ValueError("hash do backup inválido")
+        if replace:
+            with self.connection:
+                self.connection.execute("DELETE FROM consequence_events")
+                self.connection.execute("DELETE FROM consequence_episodes")
+                self.connection.execute("DELETE FROM consequence_lessons")
+        count = 0
+        for raw in payload.get("episodes", []):
+            self.record_episode(ConsequenceEpisode.model_validate(raw))
+            count += 1
+        return count
 
     def lessons(self, limit: int = 50, validated_only: bool = False) -> list[Lesson]:
         query = "SELECT record_json FROM consequence_lessons"
