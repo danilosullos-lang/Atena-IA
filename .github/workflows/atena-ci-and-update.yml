@@ -210,6 +210,7 @@ jobs:
             scripts/atena_telegram_chat.py
             scripts/atena_scheduled_cycle.py
             core/atena_llm_router.py
+            core/task_routing.py
             core/audio_gateway.py
             core/evolution_quality_gate.py
             core/episodic_memory.py
