@@ -1,7 +1,7 @@
 # 🔱 ATENA Ω (Atena-AGI) v3.2.0
 
-[![CI/CD Pipeline](https://github.com/AtenaAuto/ATENA-/actions/workflows/ci.yml/badge.svg)](https://github.com/AtenaAuto/ATENA-/actions)
-[![Code Coverage](https://codecov.io/gh/AtenaAuto/ATENA-/branch/main/graph/badge.svg)](https://codecov.io/gh/AtenaAuto/ATENA-)
+[![CI/CD Pipeline](https://github.com/danilosullos-lang/Atena-IA/actions/workflows/atena-ci-and-update.yml/badge.svg)](https://github.com/danilosullos-lang/Atena-IA/actions/workflows/atena-ci-and-update.yml)
+[![Repository](https://img.shields.io/badge/repository-Atena--IA-blue)](https://github.com/danilosullos-lang/Atena-IA)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -10,14 +10,11 @@
 
 ---
 
-## 🏁 Status Oficial (Projeto)
+## 🏁 Status atual do projeto
 
-> **ATENA AGI (oficial do projeto): ATIVA**
->
-> A classificação oficial deste repositório considera a ATENA como AGI operacional, com score interno e score externo máximos nos gates atuais do projeto.
+> A Atena é um sistema experimental de agentes com memória, planejamento, roteamento de modelos, gates de segurança e integrações controladas. Os benchmarks atuais **não comprovam AGI nem generalização perfeita**.
 
-- Internal AGI Uplift: `10.0/10`
-- External AGI Validation: `10.0/10`
+Os resultados devem ser interpretados pelos relatórios e testes reproduzíveis do repositório. A arquitetura possui capacidades de planejamento, recuperação de memória e execução de ferramentas em sandbox, mas ações reais continuam condicionadas a allowlists, credenciais e confirmação explícita.
 
 ---
 
@@ -58,9 +55,10 @@ git clone https://github.com/danilosullos-lang/Atena-IA.git
 # Entrar na pasta
 cd Atena-IA
 
-# Instalar dependências
-pip install -r setup/requirements-pinned.txt
-pip install -r setup/requirements-dev.txt
+# Instalar dependências de runtime e desenvolvimento
+python -m pip install --upgrade pip
+python -m pip install -r setup/requirements-pinned.txt
+python -m pip install -r setup/requirements-dev.txt
 
 # Rodar o assistente
 python atena assistant
@@ -146,7 +144,7 @@ Depois execute:
 
 ```bash
 !cd /content/projects/Atena-IA && bash atena doctor
-!cd /content/projects/atena-IA && ATENA_AUTO_ENDPOINT_SETUP=false USER=colab bash atena assistant
+!cd /content/projects/Atena-IA && ATENA_AUTO_ENDPOINT_SETUP=false USER=colab bash atena assistant
 ```
 
 Uma célula única no Colab (clone + bootstrap + run):
@@ -168,7 +166,7 @@ Uma célula Python alternativa (com fallback de `pip` no venv):
 !rm -rf Atena-IA
 
 # Clonar o repositório
-!git clone [.] https://github.com/danilosullos-lang/Atena-IA.git
+!git clone https://github.com/danilosullos-lang/Atena-IA.git
 
 # Entrar na pasta
 %cd Atena-IA
@@ -184,7 +182,7 @@ Uma célula Python alternativa (com fallback de `pip` no venv):
 %cd ..
 
 # Conceder permissão de execução ao script 'atena'
-!chmod +x Atena-IA
+!chmod +x atena
 
 # Rodar o assistente
 # '.\atena assistant' é um caminho de executável Windows.
@@ -211,8 +209,11 @@ git clone https://github.com/danilosullos-lang/Atena-IA.git
 # Acessar a pasta correta (ajustado para o repositório)
 cd Atena-IA
 
-# Instalar requisitos (usando o requirements.txt da raiz ou setup)
-pip install -r requirements.txt
+# Instalar requisitos de runtime
+python -m pip install -r setup/requirements-pinned.txt
+
+# Dependências de desenvolvimento são opcionais no Android
+# python -m pip install -r setup/requirements-dev.txt
 
 ```
 

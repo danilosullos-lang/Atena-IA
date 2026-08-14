@@ -44,12 +44,13 @@ jobs:
           cache: pip
           cache-dependency-path: |
             requirements.txt
+            setup/requirements-pinned.txt
             pyproject.toml
 
       - name: Instalar dependências
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
+          python -m pip install -r setup/requirements-pinned.txt
           python -m pip install -e '.[testing]'
 
       - name: Compilar módulos principais
@@ -91,7 +92,7 @@ jobs:
     name: Ciclo local de aprendizagem da Atena
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 15
     permissions:
       contents: write
       pull-requests: write
@@ -115,8 +116,14 @@ jobs:
           git show origin/main:scripts/rotating_benchmark.py > scripts/rotating_benchmark.py
           git show origin/main:scripts/evaluate_rotating_benchmark.py > scripts/evaluate_rotating_benchmark.py
           git show origin/main:scripts/run_rotating_benchmark_ollama.py > scripts/run_rotating_benchmark_ollama.py
+          git show origin/main:core/atena_llm_router.py > core/atena_llm_router.py
+          git show origin/main:core/provider_quota.py > core/provider_quota.py
+          git show origin/main:core/agent_plan_loop.py > core/agent_plan_loop.py
+          git show origin/main:core/evolution_quality_gate.py > core/evolution_quality_gate.py
+          git show origin/main:core/identity_state.py > core/identity_state.py
+          git show origin/main:core/sensemaking.py > core/sensemaking.py
           git show origin/main:scripts/consolidate_sqlite_memory.py > scripts/consolidate_sqlite_memory.py
-          python -m py_compile core/episodic_memory.py core/memory_store.py core/research_sources.py core/memory_consolidation.py core/memory_retrieval.py scripts/atena_scheduled_cycle.py scripts/rotating_benchmark.py scripts/evaluate_rotating_benchmark.py scripts/run_rotating_benchmark_ollama.py scripts/consolidate_sqlite_memory.py
+          python -m py_compile core/episodic_memory.py core/memory_store.py core/research_sources.py core/memory_consolidation.py core/memory_retrieval.py core/atena_llm_router.py core/provider_quota.py core/agent_plan_loop.py core/evolution_quality_gate.py core/identity_state.py core/sensemaking.py scripts/atena_scheduled_cycle.py scripts/rotating_benchmark.py scripts/evaluate_rotating_benchmark.py scripts/run_rotating_benchmark_ollama.py scripts/consolidate_sqlite_memory.py
 
       - name: Configurar Python
         uses: actions/setup-python@v5
@@ -125,6 +132,7 @@ jobs:
           cache: pip
           cache-dependency-path: |
             requirements.txt
+            setup/requirements-pinned.txt
             pyproject.toml
 
       - name: Restaurar cache do modelo local
@@ -138,14 +146,31 @@ jobs:
       - name: Instalar dependências de runtime
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
+          python -m pip install -r setup/requirements-pinned.txt
+          python -m pip install -e . --no-deps
           curl -fsSL https://ollama.com/install.sh | sh
 
       - name: Iniciar servidor local e garantir modelo
         run: |
+          set -euo pipefail
           ollama serve >/tmp/ollama.log 2>&1 &
-          for i in $(seq 1 30); do ollama list >/dev/null 2>&1 && break; sleep 1; done
+          OLLAMA_PID=$!
+          trap 'kill "$OLLAMA_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 60); do
+            curl --fail --silent http://127.0.0.1:11434/api/tags >/dev/null && break
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:11434/api/tags >/dev/null
           ollama pull qwen2.5:3b-instruct
+
+      - name: Validar configuração mínima do Telegram
+        env:
+          ATENA_TELEGRAM_BOT_TOKEN: ${{ secrets.ATENA_TELEGRAM_BOT_TOKEN }}
+          ATENA_TELEGRAM_CHAT_ID: ${{ secrets.ATENA_TELEGRAM_CHAT_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$ATENA_TELEGRAM_BOT_TOKEN" || { echo 'ATENA_TELEGRAM_BOT_TOKEN não configurado'; exit 1; }
+          test -n "$ATENA_TELEGRAM_CHAT_ID" || { echo 'ATENA_TELEGRAM_CHAT_ID não configurado'; exit 1; }
 
       - name: Executar ciclo e atender Telegram por cinco minutos
         env:
@@ -179,11 +204,35 @@ jobs:
           set -euo pipefail
           git fetch origin main --depth=1
           # O checkout do ciclo usa atena/autoevolution, que pode não conter
-          # módulos de runtime recém-publicados na main. Sincronizar o bot e
-          # sua dependência de áudio no workspace antes de iniciar o polling.
-          git show origin/main:scripts/atena_telegram_chat.py > scripts/atena_telegram_chat.py
-          git show origin/main:core/audio_gateway.py > core/audio_gateway.py
-          python -m py_compile scripts/atena_telegram_chat.py core/audio_gateway.py
+          # módulos de runtime recém-publicados na main. Sincronizar todos os
+          # módulos importados pelo ciclo, além do bot e do gateway de áudio.
+          runtime_files=(
+            scripts/atena_telegram_chat.py
+            scripts/atena_scheduled_cycle.py
+            core/atena_llm_router.py
+            core/task_routing.py
+            core/audio_gateway.py
+            core/evolution_quality_gate.py
+            core/episodic_memory.py
+            core/memory_store.py
+            core/memory_consolidation.py
+            core/memory_retrieval.py
+            core/research_sources.py
+            core/provider_quota.py
+            core/sensemaking.py
+            core/identity_state.py
+            core/agent_plan_loop.py
+            core/universal_task_router.py
+            core/tasker_client.py
+            core/workspace_actions.py
+            core/google_calendar_client.py
+            core/x_news_research.py
+          )
+          for path in "${runtime_files[@]}"; do
+            mkdir -p "$(dirname "$path")"
+            git show "origin/main:$path" > "$path"
+          done
+          python -m py_compile "${runtime_files[@]}"
 
           python scripts/atena_telegram_chat.py --poll-timeout 20 > /tmp/atena_telegram_chat.log 2>&1 &
           TELEGRAM_PID=$!
@@ -359,12 +408,16 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: requirements.txt
+          cache-dependency-path: |
+            requirements.txt
+            setup/requirements-pinned.txt
+            pyproject.toml
 
       - name: Instalar dependências
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
+          python -m pip install -r setup/requirements-pinned.txt
+          python -m pip install -e . --no-deps
 
       - name: Executar ciclo autônomo da Atena
         env:
