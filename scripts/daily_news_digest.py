@@ -52,6 +52,12 @@ FEEDS: dict[str, list[tuple[str, str]]] = {
     ],
 }
 
+SANTOS_TERMS = {
+    "santos", "santosfc", "peixe", "vila", "belmiro", "sereias", "sereinhas",
+    "neymar", "vila belmiro", "santos futebol clube",
+}
+
+
 SOURCE_WEIGHT = {
     "Agência Brasil": 1.00,
     "BBC Brasil": 0.98,
@@ -166,12 +172,14 @@ def fetch_feed(category: str, source: str, url: str, timeout: int = 18) -> list[
     return items
 
 
-def _deduplicate(items: Iterable[NewsItem]) -> list[NewsItem]:
+def _deduplicate(items: Iterable[NewsItem], *, preserve_categories: bool = False) -> list[NewsItem]:
     result: list[NewsItem] = []
     for item in items:
         title_tokens = _tokens(item.title)
         duplicate = False
         for previous in result:
+            if preserve_categories and item.category != previous.category:
+                continue
             if item.url == previous.url:
                 duplicate = True
                 break
@@ -211,6 +219,28 @@ def collect_rss(limit_per_category: int = 4) -> tuple[list[NewsItem], list[str]]
     return all_items, errors
 
 
+def collect_santos(items: Iterable[NewsItem], limit: int = 3) -> list[NewsItem]:
+    """Seleciona notícias do Santos a partir dos feeds já coletados."""
+    selected: list[NewsItem] = []
+    for item in items:
+        haystack = f"{item.title} {item.summary}".lower()
+        tokens = _tokens(haystack)
+        relevant = bool(tokens & SANTOS_TERMS) or "santos" in haystack or "peixe" in haystack
+        trusted = item.source in {"ge", "Agência Brasil", "BBC Brasil", "Santos FC oficial"}
+        if relevant and trusted:
+            selected.append(NewsItem(
+                "Santos FC",
+                item.title,
+                item.url,
+                item.source,
+                item.published,
+                item.summary,
+                item.image_url,
+            ))
+    unique = _deduplicate(selected)
+    return sorted(unique, key=lambda item: _rank(item), reverse=True)[:max(1, min(limit, 5))]
+
+
 def collect_x(query: str = "(futebol OR política OR jogos OR tecnologia) lang:pt", limit: int = 10) -> list[NewsItem]:
     try:
         posts = XNewsResearch().search(query, limit)
@@ -230,6 +260,7 @@ def collect_x(query: str = "(futebol OR política OR jogos OR tecnologia) lang:p
 def _why_it_matters(category: str) -> str:
     return {
         "Futebol": "impacto esportivo",
+        "Santos FC": "informação principal para a torcida santista",
         "Jogos e tecnologia": "produto, mercado ou tecnologia",
         "Política e Brasil": "impacto público no Brasil",
         "Mundo": "repercussão internacional",
@@ -239,8 +270,10 @@ def _why_it_matters(category: str) -> str:
 
 
 def _caption(item: NewsItem) -> str:
+    prefix = "Santos FC | torcida santista" if item.category == "Santos FC" else item.category
     return (
-        f"<b>{html.escape(item.title[:220])}</b> — {html.escape(item.source)}\n"
+        f"<b>{html.escape(prefix)} — {html.escape(item.title[:220])}</b>\n"
+        f"<i>Fonte: {html.escape(item.source)}</i>\n"
         f"<i>{html.escape(item.summary[:420] or 'Resumo indisponível; consulte a fonte original.')}</i>\n"
         f"<u>Por que importa:</u> {html.escape(_why_it_matters(item.category))}.\n"
         f"<a href=\"{html.escape(item.url, quote=True)}\">Ler fonte original</a>"
@@ -250,7 +283,7 @@ def _caption(item: NewsItem) -> str:
 def format_digest(items: Iterable[NewsItem], errors: list[str], *, include_x: bool, max_items_per_category: int = 3) -> str:
     now = dt.datetime.now(dt.timezone.utc).astimezone(dt.timezone(dt.timedelta(hours=-3)))
     grouped: dict[str, list[NewsItem]] = {}
-    for item in _deduplicate(items):
+    for item in _deduplicate(items, preserve_categories=True):
         grouped.setdefault(item.category, []).append(item)
     for category in grouped:
         grouped[category] = sorted(grouped[category], key=lambda item: _rank(item), reverse=True)[:max_items_per_category]
@@ -302,7 +335,7 @@ def send_telegram_news(items: Iterable[NewsItem], errors: list[str], *, include_
     token, chat_id = _telegram_credentials()
     selected: list[NewsItem] = []
     grouped: dict[str, list[NewsItem]] = {}
-    for item in _deduplicate(items):
+    for item in _deduplicate(items, preserve_categories=True):
         grouped.setdefault(item.category, []).append(item)
     for category, category_items in grouped.items():
         selected.extend(sorted(category_items, key=lambda item: _rank(item), reverse=True)[:max_items_per_category])
@@ -333,8 +366,11 @@ def main() -> int:
     parser.add_argument("--include-x", action="store_true")
     parser.add_argument("--items-per-category", type=int, default=3)
     parser.add_argument("--no-images", action="store_true", help="Enviar somente texto")
+    parser.add_argument("--no-santos", action="store_true", help="Não incluir a seção Santos FC")
     args = parser.parse_args()
     items, errors = collect_rss(limit_per_category=max(1, min(args.items_per_category, 8)))
+    if not args.no_santos:
+        items.extend(collect_santos(items, limit=args.items_per_category))
     if args.include_x:
         items.extend(collect_x())
     message = format_digest(items, errors, include_x=args.include_x, max_items_per_category=args.items_per_category)

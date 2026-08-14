@@ -33,3 +33,18 @@ def test_rss_image_url_extracts_media_content():
 def test_resolve_image_url_rejects_non_http_image():
     item = NewsItem("Mundo", "Notícia", "https://example.com/news", "Fonte", image_url="file:///tmp/image.jpg")
     assert resolve_image_url(item, allow_open_graph=False) == ""
+
+
+def test_santos_section_and_caption_are_personalized():
+    from scripts.daily_news_digest import _caption, collect_santos
+
+    source = NewsItem(
+        "Futebol",
+        "Santos vence na Vila Belmiro",
+        "https://ge.example/santos",
+        "ge",
+        summary="O Peixe venceu e avançou.",
+    )
+    selected = collect_santos([source], limit=3)
+    assert selected[0].category == "Santos FC"
+    assert "torcida santista" in _caption(selected[0])
