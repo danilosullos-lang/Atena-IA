@@ -21,6 +21,17 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+# Compatibilidade somente para testes com bibliotecas legadas que ainda
+# referenciam aliases removidos do NumPy 1.24+; não altera o runtime da Atena.
+try:
+    import numpy as np
+    if "long" not in np.__dict__:
+        np.long = np.int64  # type: ignore[attr-defined]
+    if "ulong" not in np.__dict__:
+        np.ulong = np.uint64  # type: ignore[attr-defined]
+except Exception:
+    pass
+
 
 # =============================================================================
 # Infra
