@@ -15,7 +15,7 @@ import tempfile
 import time
 from pathlib import Path
 
-ALLOWED_PREFIXES = ("core/", "scripts/", "tests/", "docs/", "research/", "setup/", "deploy/", ".github/workflows/")
+ALLOWED_PREFIXES = ("core/", "scripts/", "tests/", "docs/", "research/", "setup/", "deploy/", "config/", ".github/workflows/")
 ALLOWED_ROOT_FILES = {"README.md", "pyproject.toml", "CHANGELOG.md", "conftest.py"}
 FORBIDDEN_PREFIXES = (".git/", "data/", "evolution/", "atena_evolution/", "generated/", "logs/")
 
