@@ -29,6 +29,11 @@ class NewsItem:
     image_url: str = ""
 
 
+SANTOS_FEEDS: list[tuple[str, str]] = [
+    ("Santos FC oficial", "https://www.santosfc.com.br/feed/"),
+    ("Google News Santos", "https://news.google.com/rss/search?q=Santos+FC+futebol&hl=pt-BR&gl=BR&ceid=BR:pt-419"),
+]
+
 FEEDS: dict[str, list[tuple[str, str]]] = {
     "Futebol": [
         ("ge", "https://ge.globo.com/rss/ge/"),
@@ -52,9 +57,23 @@ FEEDS: dict[str, list[tuple[str, str]]] = {
     ],
 }
 
-SANTOS_TERMS = {
-    "santos", "santosfc", "peixe", "vila", "belmiro", "sereias", "sereinhas",
-    "neymar", "vila belmiro", "santos futebol clube",
+SANTOS_TITLE_TERMS = {
+    "santos", "santos fc", "peixe", "vila belmiro", "sereias", "sereinhas",
+    "santos futebol clube",
+}
+
+SANTOS_EXCLUSIONS = {
+    "santos dumont", "santos reis", "santos pecadores", "santos nomes",
+}
+
+CATEGORY_PRIORITY = {
+    "Santos FC": 0,
+    "Futebol": 1,
+    "Jogos e tecnologia": 2,
+    "Política e Brasil": 3,
+    "Mundo": 4,
+    "Ciência e IA": 5,
+    "Em alta no X": 6,
 }
 
 
@@ -193,6 +212,12 @@ def _deduplicate(items: Iterable[NewsItem], *, preserve_categories: bool = False
     return result
 
 
+def _deduplicate_global(items: Iterable[NewsItem]) -> list[NewsItem]:
+    """Deduplica entre categorias, priorizando a classificação Santos FC."""
+    ordered = sorted(items, key=lambda item: (CATEGORY_PRIORITY.get(item.category, 99), -_rank(item)))
+    return _deduplicate(ordered, preserve_categories=False)
+
+
 def _rank(item: NewsItem, query_terms: set[str] | None = None) -> float:
     terms = query_terms or set()
     relevance = len(_tokens(item.title) & terms) / max(1, len(terms)) if terms else 0.5
@@ -216,26 +241,41 @@ def collect_rss(limit_per_category: int = 4) -> tuple[list[NewsItem], list[str]]
         category_items = _deduplicate(category_items)
         category_items.sort(key=lambda item: _rank(item), reverse=True)
         all_items.extend(category_items[: max(1, min(limit_per_category, 8))])
-    return all_items, errors
+    return _deduplicate_global(all_items), errors
+
+
+def collect_santos_feeds(limit: int = 8) -> tuple[list[NewsItem], list[str]]:
+    """Coleta fontes dedicadas e retorna apenas notícias explicitamente do clube."""
+    items: list[NewsItem] = []
+    errors: list[str] = []
+    for source, url in SANTOS_FEEDS:
+        try:
+            items.extend(fetch_feed("Santos FC", source, url))
+        except Exception as exc:
+            errors.append(f"{source}: {type(exc).__name__}")
+    selected = [item for item in items if _is_santos_news(item)]
+    selected = _deduplicate(selected)
+    selected.sort(key=lambda item: _rank(item), reverse=True)
+    return selected[: max(1, min(limit, 8))], errors
+
+
+def _is_santos_news(item: NewsItem) -> bool:
+    """Exige sinal explícito no título para evitar confundir cidade ou outro assunto."""
+    title = re.sub(r"\s+", " ", item.title.lower()).strip()
+    if any(exclusion in title for exclusion in SANTOS_EXCLUSIONS):
+        return False
+    return any(term in title for term in SANTOS_TITLE_TERMS)
 
 
 def collect_santos(items: Iterable[NewsItem], limit: int = 3) -> list[NewsItem]:
-    """Seleciona notícias do Santos a partir dos feeds já coletados."""
+    """Seleciona somente matérias cujo título identifica claramente o Santos FC."""
+    trusted = {"ge", "Agência Brasil", "BBC Brasil", "Santos FC oficial", "Google News Santos"}
     selected: list[NewsItem] = []
     for item in items:
-        haystack = f"{item.title} {item.summary}".lower()
-        tokens = _tokens(haystack)
-        relevant = bool(tokens & SANTOS_TERMS) or "santos" in haystack or "peixe" in haystack
-        trusted = item.source in {"ge", "Agência Brasil", "BBC Brasil", "Santos FC oficial"}
-        if relevant and trusted:
+        if _is_santos_news(item) and item.source in trusted:
             selected.append(NewsItem(
-                "Santos FC",
-                item.title,
-                item.url,
-                item.source,
-                item.published,
-                item.summary,
-                item.image_url,
+                "Santos FC", item.title, item.url, item.source,
+                item.published, item.summary, item.image_url,
             ))
     unique = _deduplicate(selected)
     return sorted(unique, key=lambda item: _rank(item), reverse=True)[:max(1, min(limit, 5))]
@@ -283,7 +323,7 @@ def _caption(item: NewsItem) -> str:
 def format_digest(items: Iterable[NewsItem], errors: list[str], *, include_x: bool, max_items_per_category: int = 3) -> str:
     now = dt.datetime.now(dt.timezone.utc).astimezone(dt.timezone(dt.timedelta(hours=-3)))
     grouped: dict[str, list[NewsItem]] = {}
-    for item in _deduplicate(items, preserve_categories=True):
+    for item in _deduplicate_global(items):
         grouped.setdefault(item.category, []).append(item)
     for category in grouped:
         grouped[category] = sorted(grouped[category], key=lambda item: _rank(item), reverse=True)[:max_items_per_category]
@@ -335,7 +375,7 @@ def send_telegram_news(items: Iterable[NewsItem], errors: list[str], *, include_
     token, chat_id = _telegram_credentials()
     selected: list[NewsItem] = []
     grouped: dict[str, list[NewsItem]] = {}
-    for item in _deduplicate(items, preserve_categories=True):
+    for item in _deduplicate_global(items):
         grouped.setdefault(item.category, []).append(item)
     for category, category_items in grouped.items():
         selected.extend(sorted(category_items, key=lambda item: _rank(item), reverse=True)[:max_items_per_category])
@@ -370,7 +410,11 @@ def main() -> int:
     args = parser.parse_args()
     items, errors = collect_rss(limit_per_category=max(1, min(args.items_per_category, 8)))
     if not args.no_santos:
+        santos_items, santos_errors = collect_santos_feeds(limit=max(6, args.items_per_category * 2))
+        errors.extend(santos_errors)
+        items.extend(santos_items)
         items.extend(collect_santos(items, limit=args.items_per_category))
+    items = _deduplicate_global(items)
     if args.include_x:
         items.extend(collect_x())
     message = format_digest(items, errors, include_x=args.include_x, max_items_per_category=args.items_per_category)

@@ -1,4 +1,4 @@
-from scripts.daily_news_digest import NewsItem, format_digest
+from scripts.daily_news_digest import NewsItem, format_digest, _deduplicate_global, _is_santos_news
 
 
 def test_format_digest_has_categories_links_and_disclaimer():
@@ -33,6 +33,21 @@ def test_rss_image_url_extracts_media_content():
 def test_resolve_image_url_rejects_non_http_image():
     item = NewsItem("Mundo", "Notícia", "https://example.com/news", "Fonte", image_url="file:///tmp/image.jpg")
     assert resolve_image_url(item, allow_open_graph=False) == ""
+
+
+def test_global_deduplication_removes_same_story_across_categories():
+    items = [
+        NewsItem("Futebol", "Santos vence na Vila", "https://example.com/story", "ge"),
+        NewsItem("Mundo", "Santos vence na Vila", "https://example.com/story", "BBC Brasil"),
+    ]
+    result = _deduplicate_global(items)
+    assert len(result) == 1
+    assert result[0].category == "Futebol"
+
+
+def test_santos_filter_rejects_unrelated_santos_mentions():
+    assert _is_santos_news(NewsItem("Mundo", "Santos Dumont ganha exposição", "https://example.com/a", "BBC Brasil")) is False
+    assert _is_santos_news(NewsItem("Futebol", "Santos FC anuncia novo reforço", "https://example.com/b", "ge")) is True
 
 
 def test_santos_section_and_caption_are_personalized():
