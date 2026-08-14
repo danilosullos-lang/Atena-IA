@@ -1,0 +1,307 @@
+{
+  "timestamp": "2026-08-14T22:50:40.226159+00:00",
+  "model": "qwen2.5:3b-instruct",
+  "provider": "local",
+  "task_type": "github_evolution",
+  "duration_limit_seconds": 300,
+  "research": {
+    "topic": "generalização",
+    "question": "Como testar o mesmo princípio em um domínio inédito?",
+    "query": "ATENA generalização: Como testar o mesmo princípio em um domínio inédito?",
+    "mode": "autonomous",
+    "sources": [],
+    "rss_sources": [
+      {
+        "source": "ArXiv Quantum Physics",
+        "category": "quantum_technology",
+        "ok": true,
+        "items": [
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Embedding Stabilizer Codes and Leakage Correction in Multilevel Quantum Systems",
+            "link": "https://arxiv.org/abs/2608.12450",
+            "published_at": "Fri, 14 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.12450v1 Announce Type: new Abstract: Leakage beyond the computational subspace is a major source of error in multilevel quantum hardware. We show that any \\( [[n,k,d]] \\) stabilizer code can be embedded isometrically into a single \\(D\\)-dimensional system while preserving its complete error-correcting structure. We further derive a necessary and sufficient condition for exact leakage correction, proving that leakage is correctable precisely when it does not distinguish between logical states. These results establish a unified framework for quantum error correction in multilevel quantum systems.",
+            "content_hash": "sha256:65e26120c8e8863d8b7d4e68ba954ae58da6064c66208ea3c5fa7cf8a7070a71",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260814225041-e0196cf1b868"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Spatially Dense, Continuous-Variable Quantum Computing with Solid State Spin Nonlinearities",
+            "link": "https://arxiv.org/abs/2608.12504",
+            "published_at": "Fri, 14 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.12504v1 Announce Type: new Abstract: Nanomechanical structures have been investigated as a method of achieving long-lived quantum excitations at radio frequencies. Their high quality factors are especially intriguing as a medium for bosonic encoding of quantum information. However, to leading order, mechanical modes typically lack the nonlinearities necessary to achieve interaction between bosonic channels and thus are limited in their ability to scale to the many-qubit regime necessary for practical quantum computing. In this work, we propose and describe an approach for bosonic quantum information processing that uses strain-sensitive solid-state spins as nonlinear elements to produce the relevant nonclassical mechanical states. We outline the architecture required to achieve nearest-neighbor connectivity between mechanical cat-state qubits on-chip, as well as the control and readout architecture required for universal quantum computation. In addition, we show that this architecture can allow for a high spatial density of logical qubits by leveraging both the efficiency of bosonic error correction schemes and the small sizes of the constituent nanomechanical resonators and spin qubits. Finally, we identify the necessary performance metrics that will enable error-correction thresholds at high qubit densities, illuminating a path towards scalable quantum information processing.",
+            "content_hash": "sha256:3205fb122628fd17495557c9f93ab8d97fb8fdbb1a450f5893b7f2cd53b63c26",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260814225041-68fb5b26e9e1"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Quantum Tanner Codes at Moderate Blocklength",
+            "link": "https://arxiv.org/abs/2608.12509",
+            "published_at": "Fri, 14 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.12509v1 Announce Type: new Abstract: We present explicit constructions of quantum Tanner (QT) codes with good rate and distance, obtained through two complementary approaches: the left-right Cayley complex (LRCC) description and the \"lifting\" perspective, in which a seed Calderbank-Shor-Steane (CSS) code is lifted by commuting left-right regular actions of a finite group $\\mathcal{G}$. Through an extensive search over non-abelian groups from GAP's SmallGrp library, we investigate the moderate-blocklength regime ($n \\in [500,1000]$) and identify several new code instances with distance upper bounds exceeding $20$. These include $[[480,8,(\\leq 21,\\leq 21)]]$, $[[504,4,(\\leq 36,\\leq 27)]]$, $[[672,4,(\\leq 48,\\leq 28)]]$, $[[720,6,(\\leq 30,\\leq 30)]]$, and $[[864,8,(\\leq 39,\\leq 31)]]$, with these bounds obtained using up to $350$ million trials of sQetch, a randomized distance estimator. The code instances presented have check weights ranging from $9$ to $20$. Using the Tesseract decoder, we estimate pseudo-thresholds of $3.6\\%$-$4.6\\%$ under phenomenological noise and $0.14\\%$-$0.27\\%$ under circuit-level noise, comparable to prior results at shorter code lengths. We also provide QuantumExpanders.jl, an open-source Julia library for constructing QT codes and explicit constructions of Ramanujan graphs.",
+            "content_hash": "sha256:b74ba7ac3613c1ced4c026d70bed68fef280d4acd1d72ece671476a46dadb158",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260814225041-01c4bd39fb92"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Flux control of measurement back-action and Leggett-Garg correlations in chiral quantum walks",
+            "link": "https://arxiv.org/abs/2608.12519",
+            "published_at": "Fri, 14 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.12519v1 Announce Type: new Abstract: Gauge-invariant fluxes control interference in chiral continuous-time quantum walks. We investigate how they affect sequential measurements at a single vertex, using a dichotomic observable that distinguishes return to that vertex from occupation of its complement. For a walker initially localized at the measured vertex, the complete two-time statistics, including measurement back-action and Leggett--Garg correlators, are determined exactly by the return amplitude, connecting temporal correlations to the local spectral measure and gauge-invariant closed-walk interference. At short times, the leading disturbance is independent of the Peierls phases, whereas flux sensitivity enters at higher orders through interference among closed walks. We further identify a graph-independent sufficient mechanism for saturating the L\\\"uders bound: flux can reduce the rooted dynamics to a balanced two-dimensional Krylov subspace with equal spectral weights, yielding a constructive flux-engineering criterion for attaining the L\\\"uders bound of $3/2$ at finite times. The mechanism is realized exactly on a two-flux diamond graph, where destructive interference renders additional rooted modes dark and the local back-action depends on relative combinations of the two independent fluxes. For flux-threaded cycles, an exact winding-number expansion reveals a parity-dependent onset: the leading flux contrast occurs generically at order $t^N$ for even cycles and $t^{2N}$ for odd cycles. Across the cycles examined, flux can either enhance the maximal Leggett--Garg violation or shift strong violations to earlier measurement times, with half flux driving the four-site cycle to the L\\\"uders bound. These results establish gauge-invariant flux as a resource for engineering local measurement back-action and temporal quantum correlations.",
+            "content_hash": "sha256:d955d0be2358d6a9f6b56024884566bd46429d4f0c97f69db7980709340af51e",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260814225041-752721d4d0e1"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Coherent temporal filtering of multimode parametric down-conversion using a quantum pulse gate",
+            "link": "https://arxiv.org/abs/2608.12544",
+            "published_at": "Fri, 14 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.12544v1 Announce Type: new Abstract: Spectrally pure and indistinguishable single photons are essential for quantum network platforms, where high-visibility interference underpins many quantum information protocols. However, most practical single-photon sources emit spectrally multimode states with reduced purity. Conventional spectral intensity filtering can partially improve purity but cannot select a well-defined temporal mode (TM). Here, we demonstrate coherent temporal filtering of a multimode parametric down-conversion (PDC) source using a quantum pulse gate (QPG) and benchmark its performance against conventional intensity filtering. The generated PDC photons exhibit strong spectral correlations, rendering extraction of pure heralded photons from the pair a challenge. We demonstrate that QPG filtering consistently generates heralded photons with purities above 0.90 regardless of the filter shape. Contrariwise, using spectral intensity filters yields mixed photons. Photon purities are probed with chronocyclic Q-function tomography. Furthermore, we demonstrate the versatility of QPG filtering by extracting structured TMs, including superposition of picosecond time bins. These results establish the QPG as a practical coherent filtering tool for quantum network applications.",
+            "content_hash": "sha256:7143468a7a010c0d472ddf0be416103875f330a61d57d833353ba7c9aed24a76",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260814225041-fa8c5adca8c5"
+          }
+        ],
+        "response_time_ms": 84.43
+      },
+      {
+        "source": "Olhar Digital",
+        "category": "technology",
+        "ok": true,
+        "items": [
+          {
+            "source": "Olhar Digital",
+            "category": "technology",
+            "title": "IA chinesa pode ter superado a Anthropic em teste de segurança cibernética",
+            "link": "https://olhardigital.com.br/2026/08/14/inteligencia-artificial/ia-chinesa-pode-ter-superado-a-anthropic-em-teste-de-seguranca-cibernetica/",
+            "published_at": "Fri, 14 Aug 2026 21:18:32 +0000",
+            "summary": "<p>Z.ai planeja lançar o modelo em cerca de duas semanas, mas manterá recursos mais sensíveis restritos a usuários verificados</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/14/inteligencia-artificial/ia-chinesa-pode-ter-superado-a-anthropic-em-teste-de-seguranca-cibernetica/\">IA chinesa pode ter superado a Anthropic em teste de segurança cibernética</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+            "content_hash": "sha256:5519041890ea41aff6b672e3ae5e92988f67b79bc3301709b558b1751e0f8775",
+            "source_url": "https://olhardigital.com.br/feed/",
+            "evidence_ref": "mem-20260814225041-94e58412793d"
+          },
+          {
+            "source": "Olhar Digital",
+            "category": "technology",
+            "title": "Discord: criptografia dificulta combate a abusos contra menores, alerta ANPD",
+            "link": "https://olhardigital.com.br/2026/08/14/pro/discord-criptografia-dificulta-combate-a-abusos-contra-menores-alerta-anpd/",
+            "published_at": "Fri, 14 Aug 2026 21:05:52 +0000",
+            "summary": "<p>Criptografia torna o conteúdo das comunicações ilegível para qualquer pessoa que não participe diretamente da conversa e tente interceptá-la</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/14/pro/discord-criptografia-dificulta-combate-a-abusos-contra-menores-alerta-anpd/\">Discord: criptografia dificulta combate a abusos contra menores, alerta ANPD</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+            "content_hash": "sha256:9d3fdf8929db479cf9fdb1b2284ca5f5ca936900cca6fbb6b8648219f49af7a3",
+            "source_url": "https://olhardigital.com.br/feed/",
+            "evidence_ref": "mem-20260814225041-865401e1afa4"
+          },
+          {
+            "source": "Olhar Digital",
+            "category": "technology",
+            "title": "NPCs com IA: o fim do multiplayer como conhecemos, ou o começo de mundos vivos de verdade?",
+            "link": "https://olhardigital.com.br/2026/08/14/games-e-consoles/npcs-com-ia-o-fim-do-multiplayer-como-conhecemos-ou-o-comeco-de-mundos-vivos-de-verdade/",
+            "published_at": "Fri, 14 Aug 2026 20:41:57 +0000",
+            "summary": "<p>Do PUBG ao Marvel Rivals, do sucesso ao fracasso. O uso de bots com IA foi um sucesso, mas tem sido um grande problema também, e a linha entre esses extremos se revela cada vez mais clara.</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/14/games-e-consoles/npcs-com-ia-o-fim-do-multiplayer-como-conhecemos-ou-o-comeco-de-mundos-vivos-de-verdade/\">NPCs com IA: o fim do multiplayer como conhecemos, ou o começo de mundos vivos de verdade?</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+            "content_hash": "sha256:9f0a118083b2bbb3d0ed94ce9f04af837fa5ad7e0c378d22b97f128ebac52895",
+            "source_url": "https://olhardigital.com.br/feed/",
+            "evidence_ref": "mem-20260814225041-20e7bb61e83b"
+          },
+          {
+            "source": "Olhar Digital",
+            "category": "technology",
+            "title": "PayPal negocia venda para duas empresas",
+            "link": "https://olhardigital.com.br/2026/08/14/pro/paypal-negocia-venda-para-duas-empresas/",
+            "published_at": "Fri, 14 Aug 2026 20:33:30 +0000",
+            "summary": "<p>Stripe e a empresa de private equity Advent International estão negociando a compra da empresa</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/14/pro/paypal-negocia-venda-para-duas-empresas/\">PayPal negocia venda para duas empresas</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+            "content_hash": "sha256:3f7099ff60b9133887b7ff31c1e9afd417190174573afbc5b8c2491a4b10f6ed",
+            "source_url": "https://olhardigital.com.br/feed/",
+            "evidence_ref": "mem-20260814225041-46e3dcf0443b"
+          },
+          {
+            "source": "Olhar Digital",
+            "category": "technology",
+            "title": "Após 50 anos, físicos encontram pistas sobre o que mantém a matéria unida",
+            "link": "https://olhardigital.com.br/2026/08/14/ciencia-e-espaco/apos-50-anos-fisicos-encontram-pistas-sobre-o-que-mantem-a-materia-unida/",
+            "published_at": "Fri, 14 Aug 2026 20:14:19 +0000",
+            "summary": "<p>Físicos encontraram algumas das evidências experimentais mais fortes até agora de que uma propriedade fundamental dos prótons e nêutrons pode não estar associada aos três quarks que os compõem, como se acreditava antes</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/14/ciencia-e-espaco/apos-50-anos-fisicos-encontram-pistas-sobre-o-que-mantem-a-materia-unida/\">Após 50 anos, físicos encontram pistas sobre o que mantém a matéria unida</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+            "content_hash": "sha256:1c538e6edc0ad2d4a7e24e6ee52e806dee7068e447a771db1fad8691a0cfb36d",
+            "source_url": "https://olhardigital.com.br/feed/",
+            "evidence_ref": "mem-20260814225041-b61b4f641e50"
+          }
+        ],
+        "response_time_ms": 151.34
+      },
+      {
+        "source": "Agência Brasil",
+        "category": "general_news",
+        "ok": true,
+        "items": [
+          {
+            "source": "Agência Brasil",
+            "category": "general_news",
+            "title": "Vôlei brasileiro passa a exigir teste genético para atletas mulheres",
+            "link": "https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/volei-brasileiro-passa-exigir-teste-genetico-para-atletas-mulheres",
+            "published_at": "Fri, 14 Aug 2026 18:52:00 -0300",
+            "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/volei-brasileiro-passa-exigir-teste-genetico-para-atletas-mulheres\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p>A Confederação Brasileira de Voleibol (CBV) anunciou nesta sexta-feira (14) que somente atletas do sexo biológico feminino poderão participar de competições organizadas pela entidade. A nova política de elegibilidade de atletas da categoria feminina foi publicada no final da tarde de hoje no <a href=\"https://cbv.com.br/noticias/CBV/2026-08-14/cbv-divulga-politica-sobre-a-elegibilidade-de-atletas-para-as-competicoes-da-categoria-feminina-no-voleibol\"><strong>site da CBV</strong></a>. Segundo a entidade, o novo critério tem como objetivo estar em conformidade com as regras do Comitê Olímpico Internacional (COI) e da Federação Internacional de Voleibol (FIVB).<img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699715&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699715&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>A verificação será feita por testagem e triagem do gene SRY. Normalmente o exame é realizado por meio de exame de sangue ou esfregaço bucal.</p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-03/coi-veta-participacao-de-mulheres-trans-em-jogos-femininos-oficiais\">COI veta participação de mulheres trans em jogos femininos oficiais.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/grupo-de-direitos-humanos-pede-wta-que-revogue-testes-de-genero\">Grupo de direitos humanos pede à WTA que revogue testes de gênero.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2025-07/comite-olimpico-dos-eua-proibe-mulheres-trans-em-competicoes-fem",
+            "content_hash": "sha256:555d86623059eab1acabf95b3c4b864ed8d0f6a478b414f90b555bdbbbfee2b2",
+            "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+            "evidence_ref": "mem-20260814225041-7bf63a5d788e"
+          },
+          {
+            "source": "Agência Brasil",
+            "category": "general_news",
+            "title": "Pesquisa de polipílula para prevenção do AVC busca 8,5 mil voluntários",
+            "link": "https://agenciabrasil.ebc.com.br/saude/noticia/2026-08/pesquisa-de-polipilula-para-prevencao-do-avc-busca-85-mil-voluntarios",
+            "published_at": "Fri, 14 Aug 2026 17:41:00 -0300",
+            "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/saude/noticia/2026-08/pesquisa-de-polipilula-para-prevencao-do-avc-busca-85-mil-voluntarios\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p>Pesquisadores brasileiros recrutam voluntários desde o fim de 2025 para testes com a primeira polipílula brasileira contra acidentes vasculares cerebrais (AVC) e outras doenças cardiovasculares. <strong>O objetivo é reunir 8,5 mil participantes, que serão acompanhados por entre três e quatro anos</strong>.<img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699708&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699708&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>A polipílula é uma combinação da rosuvastatina 10 mg, contra o colesterol, com dois remédios contra a pressão alta, a valsartana 80 mg<br /> e anlodipina 5 mg. A apresentação permite que eles sejam ingeridos conjuntamente.</p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/politica/noticia/2026-08/apos-AVC-isquemico-lider-do-pt-na-camara-continua-internado\">Após AVC isquêmico, líder do PT na Câmara continua internado.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/saude/noticia/2025-12/calor-pode-aumentar-risco-de-AVC-alerta-medico\">Calor pode aumentar risco de casos de AVC, alerta médico.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/saude/noticia/2026-04/hipertensao-silenciosa-e-hereditaria-doenca-pede-mudanca-de-habitos\">Hipertensão: silenciosa e hereditária, doença pede mudança de hábitos.</a></li></ul><strong>Considerada bem sucedida, a primeira fase de testes em humanos envolveu 370 pessoas em Porto Alegre, no Rio Grande do Sul, entre 2020 e 2023</strong>.</p> <p>A pesquisa é conduzida pelo Hospital Moinhos de Vento, da capital ga",
+            "content_hash": "sha256:3233e54ebcd7b0fc92ef6d63ccf1a26776e34704ea1980ffb5930acc5a6fe6b3",
+            "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+            "evidence_ref": "mem-20260814225041-83e93df504ba"
+          },
+          {
+            "source": "Agência Brasil",
+            "category": "general_news",
+            "title": "Europe Smash: Calderano vence de novo e terá Félix Lebrun nas quartas",
+            "link": "https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/europe-smash-calderano-vence-de-novo-e-tera-felix-lebrun-nas-quartas",
+            "published_at": "Fri, 14 Aug 2026 17:22:00 -0300",
+            "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/europe-smash-calderano-vence-de-novo-e-tera-felix-lebrun-nas-quartas\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p>O mesatenista brasileiro Hugo Calderano encara neste sábado (15) o arquirrival francês Félix Lebrun por uma vaga nas semifinais do Europe Smash, em Malmö (Suécia), um dos principais torneios do circuito mundial. A partida está prevista para às 16h15 (horário de Brasília), com t<a href=\"https://www.youtube.com/@wttglobal/streams\"><strong>ransmissão ao vivo </strong></a>no canal da Federação Internacional de Tênis de Mesa (World Table Tennis) no YouTube. Os torneios Smash distribuiem 2.000 pontos no ranking aos vencedores. <img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699706&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699706&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>Número 8 do mundo, o carioca se classificou às quartas na tarde desta quinta-feira (14), ao derrotar dinamarquês Anders Lind (13º no ranking) por 3 sets a 1, com parciais de 11/7, 11/9, 5/11 e 11/8.</p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/calderano-derrota-japones-e-vai-oitavas-do-europe-smash-na-suecia\">Calderano derrota japonês e vai às oitavas do Europe Smash, na Suécia .</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/calderano-supera-anfitriao-na-estreia-do-europe-smash-na-suecia\">Calderano supera anfitrião na estreia do Europe Smash na Suécia.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-07/calderano-e-campeao-do-wtt-star-contender-e-vice-na-duplas-mistas\">Calderano é campeão do WTT Star Contender e vice na duplas mistas .</a></li>",
+            "content_hash": "sha256:f7700bf63923fa1551862103b4fe1345d31a890164f192b0f98d601e1ce89a4b",
+            "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+            "evidence_ref": "mem-20260814225041-0cc12532135c"
+          },
+          {
+            "source": "Agência Brasil",
+            "category": "general_news",
+            "title": "Multivacinação em São Paulo inclui 20 imunizantes em 645 municípios",
+            "link": "https://agenciabrasil.ebc.com.br/saude/noticia/2026-08/multivacinacao-em-sao-paulo-inclui-20-imunizantes-em-645-municipios",
+            "published_at": "Fri, 14 Aug 2026 17:01:00 -0300",
+            "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/saude/noticia/2026-08/multivacinacao-em-sao-paulo-inclui-20-imunizantes-em-645-municipios\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p><strong>O Governo de São Paulo promove, até 1º de setembro, a Campanha de Multivacinação nos 645 municípios paulistas. Iniciada em 3 de agosto, a ação é voltada a crianças e adolescentes menores de 15 anos e prevê a oferta de 20 imunizantes, conforme a idade, o histórico vacinal e as indicações de cada vacina. </strong><img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699704&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699704&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>Estão sendo oferecidas as vacinas BCG, hepatite B, pentavalente, poliomielite inativada, rotavírus, pneumocócica 10-valente, pneumocócica 20-valente, meningocócica C, influenza, covid-19, febre amarela, meningocócica ACWY, tríplice viral, varicela, DTP, hepatite A, pneumocócica 23-valente, dT, HPV e dengue tetravalente. </p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/saude/noticia/2026-08/campanha-nacional-de-multivacinacao-comeca-nesta-segunda\">Campanha Nacional de Multivacinação começa nesta segunda .</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/saude/noticia/2026-08/sao-paulo-inicia-multivacinacao-partir-desta-segunda-feira\">São Paulo inicia multivacinação a partir desta segunda-feira.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/saude/noticia/2026-08/estado-de-sao-paulo-reforca-necessidade-de-vacinacao-contra-o-sarampo\">Estado de São Paulo reforça necessidade de vacinação contra o sarampo .</a></li></ul>A vacinação é feita de acordo com o histórico vacinal, por isso os pais e responsáveis devem levar a caderneta d",
+            "content_hash": "sha256:bc8d62f88a87449441d49da62eeb10104c32b74d4710a3aa6357c2f33f1dd5b7",
+            "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+            "evidence_ref": "mem-20260814225041-ba1a8f91530c"
+          },
+          {
+            "source": "Agência Brasil",
+            "category": "general_news",
+            "title": "Criptografia do Discord dificulta monitoramento de lives, aponta ANPD",
+            "link": "https://agenciabrasil.ebc.com.br/direitos-humanos/noticia/2026-08/criptografia-do-discord-dificulta-monitoramento-de-lives-aponta-anpd",
+            "published_at": "Fri, 14 Aug 2026 16:37:00 -0300",
+            "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/direitos-humanos/noticia/2026-08/criptografia-do-discord-dificulta-monitoramento-de-lives-aponta-anpd\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p><strong>A empresa Discord, dona do aplicativo de comunicação do mesmo nome, ativou globalmente a chamada criptografia de ponta a ponta para as chamadas de vídeo e voz pouco antes do Estatuto Digital da Criança e do Adolescente (<a href=\"https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/l15211.htm\" target=\"_blank\">ECA Digital</a>) entrar em vigor, em março de 2026.</strong><img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699703&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699703&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>A criptografia codifica o conteúdo de determinadas mensagens, tornando-a ilegível para qualquer pessoa que não esteja participando diretamente da conversa e tente interceptá-la.<strong> Segundo a companhia, a função amplia a privacidade de usuários, impedindo que qualquer pessoa não convidada a participar da conversa – inclusive seus próprios funcionários e sistemas automatizados – possa ouvir as chamadas ou assistir às transmissões de vídeo.</strong></p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/justica/noticia/2026-08/anpd-determina-que-discord-suspenda-transmissoes-ao-vivo-no-brasil\">ANPD determina que Discord suspenda transmissões ao vivo no Brasil.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/justica/noticia/2026-08/operacao-livia-combate-rede-que-induzia-jovens-suicidio-na-internet\">Operação Lívia combate rede que induzia jovens a suicídio na internet.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/politica/noticia/2026-03/eca-digital-co",
+            "content_hash": "sha256:ba1bd050cccc983c6034e279dc4adf0a98895c9cbbfb4d9e3c26fcfc16968d0e",
+            "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+            "evidence_ref": "mem-20260814225041-fb97062be085"
+          }
+        ],
+        "response_time_ms": 576.76
+      },
+      {
+        "source": "MIT Technology Review",
+        "category": "technology",
+        "ok": true,
+        "items": [
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "The Download: Flock’s new rules, cloning’s future, and children’s cells",
+            "link": "https://www.technologyreview.com/2026/08/14/1142033/the-download-flock-new-rules-cloning-future/",
+            "published_at": "Fri, 14 Aug 2026 12:17:21 +0000",
+            "summary": "This is today&#8217;s edition of The Download, our weekday newsletter that provides a daily dose of what&#8217;s going on in the world of technology. Flock is tightening its rules in response to a growing surveillance backlash The police-tech giant Flock is changing officers’ access to its nationwide network of license plate readers. The move comes&#8230;",
+            "content_hash": "sha256:e9a09d8723c3199836fc7056ef80deed770d15691840b98010b33a6eaf9b2b37",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260814225041-42d846e0112b"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "This scientist is helping build a missing map of childhood",
+            "link": "https://www.technologyreview.com/2026/08/14/1141354/deanne-taylor-gene-expression-children/",
+            "published_at": "Fri, 14 Aug 2026 09:00:00 +0000",
+            "summary": "In 2017, Deanne Taylor attended a presentation at the University of Pennsylvania, just a short walk from her office. A researcher was there to unveil the Human Cell Atlas, an ambitious project that aimed to map every cell in the human body. Taylor was floored, and then concerned. As details emerged, she discovered that the&#8230;",
+            "content_hash": "sha256:117e3314b7d2e87a3ad4f7aa1779580801d31ce90b125691402275bfcece5e55",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260814225041-7a930b4f0aca"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "Job titles of the future: Space travel agent",
+            "link": "https://www.technologyreview.com/2026/08/14/1141431/job-titles-space-travel-agent-roman-chiporukha/",
+            "published_at": "Fri, 14 Aug 2026 09:00:00 +0000",
+            "summary": "Roman Chiporukha has long turned wild travel dreams into reality. Over two decades as co-owner of the luxury lifestyle firm Roman &#38; Erica, he has orchestrated everything from the construction of a client’s superyacht to vacations in the Bahamas at a location so private that guests must sign an NDA.&#160; The experiences earned him “the&#8230;",
+            "content_hash": "sha256:5b8a4430c6303c3c10fea847c906e5dcc35e6bafc8583063fbd761cde2935022",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260814225041-1c831eed8b0a"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "Cloning could be used to save species—or make human “organ sacks”",
+            "link": "https://www.technologyreview.com/2026/08/14/1141919/cloning-save-species-or-make-human-organ-sacks/",
+            "published_at": "Fri, 14 Aug 2026 09:00:00 +0000",
+            "summary": "This week I spoke to scientists who have found a way to turn male mouse embryos female. They’ve developed a CRISPR-based approach to essentially cut out the Y chromosome. It allowed them to create female clones of male mice. That’s right: female animals that are genetically identical to males, except for the missing Y chromosome.&#8230;",
+            "content_hash": "sha256:4fde7cc7e9f1ac54ba16280fe5c813287e103c70410859837f457bbf8e7956b6",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260814225041-e9797937363e"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "Roundtables: Inside the “Censorship-Industrial Complex” Idea Shaping US Policy",
+            "link": "https://www.technologyreview.com/2026/08/13/1141399/roundtables-inside-the-censorship-industrial-complex-idea-shaping-us-policy/",
+            "published_at": "Thu, 13 Aug 2026 21:00:00 +0000",
+            "summary": "Listen to the session or watch below The “censorship-industrial complex” is an idea that a network of government, tech, and research groups is collaborating to suppress conservative online speech. This was fodder for the right-wing information sphere for years—then it began making its way into US policy. Watch a conversation exploring how it started, where&#8230;",
+            "content_hash": "sha256:97a9791f5512b0ffa67c50bdecb5630a2be341e2fafaa0f38e61f26a4f180307",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260814225041-38466e1b0e53"
+          }
+        ],
+        "response_time_ms": 17.71
+      }
+    ],
+    "errors": [],
+    "requested_by": "rotation",
+    "intent_id": null
+  },
+  "observations": {
+    "insights": [
+      {
+        "text": "Nenhuma conclusão nova foi confirmada sobre generalização; a lacuna de evidência será investigada antes de consolidar uma memória.",
+        "evidence_refs": [],
+        "type": "limitation",
+        "confidence": 0.0
+      }
+    ],
+    "risks": [],
+    "proposed_changes": [],
+    "next_cycle": [],
+    "quality_gate": {
+      "accepted": true,
+      "reasons": [],
+      "metrics": {
+        "insights": 0,
+        "evidence_refs": 0,
+        "duplicate_ratio": 0.0,
+        "proposals": 0,
+        "risks": 0
+      }
+    },
+    "research_plan": {
+      "topic": "generalização",
+      "question": "Como testar o mesmo princípio em um domínio inédito?",
+      "sources_to_consult": [],
+      "evidence_expected": "comparar pelo menos duas evidências independentes antes de consolidar um fato",
+      "next_test": "verificar uma instância inédita relacionada a generalização",
+      "retrieval": {
+        "source": "sqlite",
+        "episode_limit": 12,
+        "context_chars": 7491
+      }
+    }
+  }
+}
