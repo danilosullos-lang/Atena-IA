@@ -56,7 +56,7 @@ FEEDS: dict[str, list[tuple[str, str]]] = {
     ],
     "Ciência e IA": [
         ("MIT Technology Review", "https://www.technologyreview.com/feed/"),
-        ("Agência Brasil", "https://agenciabrasil.ebc.com.br/rss/ciencia-e-tecnologia/feed.xml"),
+        ("Agência Brasil", "https://agenciabrasil.ebc.com.br/rss.xml"),
     ],
 }
 
@@ -375,7 +375,7 @@ def format_digest(items: Iterable[NewsItem], errors: list[str], *, include_x: bo
     if include_x and not grouped.get("Em alta no X"):
         lines.extend(["<b>Em alta no X</b>", "Nenhum resultado disponível; o token pode não estar configurado.", ""])
     if errors:
-        lines.extend([f"Fontes indisponíveis neste ciclo: {len(errors)}; serão tentadas novamente.", ""])
+        lines.extend([f"Fontes indisponíveis neste ciclo: {len(errors)}; serão tentadas novamente.", f"Detalhes técnicos: {', '.join(errors[:8])}.", ""])
     return "\n".join(lines)[:3900]
 
 
@@ -461,7 +461,8 @@ def main() -> int:
         print(message)
     elif args.no_images:
         send_telegram(message)
-        print(f"Briefing diário enviado com {len(items)} itens e {len(errors)} erros de fonte.")
+        detail = "; ".join(errors[:8]) if errors else "nenhuma"
+        print(f"Briefing diário enviado com {len(items)} itens e {len(errors)} erros de fonte: {detail}.")
     else:
         photos, text_fallbacks = send_telegram_news(items, errors, include_x=args.include_x, max_items_per_category=args.items_per_category)
         print(f"Briefing diário enviado com {len(items)} itens, {photos} imagens e {text_fallbacks} fallbacks de texto.")

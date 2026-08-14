@@ -35,10 +35,10 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configurar Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -98,7 +98,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout da branch de autoevolução
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: atena/autoevolution
           fetch-depth: 0
@@ -126,7 +126,7 @@ jobs:
           python -m py_compile core/episodic_memory.py core/memory_store.py core/research_sources.py core/memory_consolidation.py core/memory_retrieval.py core/atena_llm_router.py core/provider_quota.py core/agent_plan_loop.py core/evolution_quality_gate.py core/identity_state.py core/sensemaking.py scripts/atena_scheduled_cycle.py scripts/rotating_benchmark.py scripts/evaluate_rotating_benchmark.py scripts/run_rotating_benchmark_ollama.py scripts/consolidate_sqlite_memory.py
 
       - name: Configurar Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -136,7 +136,7 @@ jobs:
             pyproject.toml
 
       - name: Restaurar cache do modelo local
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.ollama
           key: ollama-qwen25-3b-${{ runner.os }}-${{ hashFiles('pyproject.toml', 'requirements.txt') }}
@@ -353,7 +353,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Criar proposta de teste
         run: |
@@ -398,13 +398,13 @@ jobs:
       contents: write
     steps:
       - name: Checkout da branch solicitada
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
 
       - name: Configurar Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
