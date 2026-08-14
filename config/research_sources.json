@@ -40,6 +40,16 @@
       "keywords": ["palmeiras", "verdão", "futebol"]
     },
     {
+      "name": "Gazeta Esportiva Santos",
+      "type": "rss",
+      "url": "https://www.gazetaesportiva.com/times/santos/feed/",
+      "category": "santos",
+      "mode": "interactive",
+      "weight": 0.9,
+      "enabled": true,
+      "keywords": ["santos", "santos fc", "peixe", "vila belmiro", "futebol"]
+    },
+    {
       "name": "Google News Santos Palmeiras",
       "type": "rss",
       "url": "https://news.google.com/rss/search?q=Santos+Palmeiras&hl=pt-BR&gl=BR&ceid=BR:pt-419",

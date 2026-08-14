@@ -32,6 +32,7 @@ class NewsItem:
 
 SANTOS_FEEDS: list[tuple[str, str]] = [
     ("Santos FC oficial", "https://www.santosfc.com.br/feed/"),
+    ("Gazeta Esportiva Santos", "https://www.gazetaesportiva.com/times/santos/feed/"),
     ("Google News Santos", "https://news.google.com/rss/search?q=Santos+FC+futebol&hl=pt-BR&gl=BR&ceid=BR:pt-419"),
 ]
 
