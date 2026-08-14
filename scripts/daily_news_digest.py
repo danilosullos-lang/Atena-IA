@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-"""Gera um briefing diário de notícias, sem escrever na memória autônoma."""
+"""Gera um briefing diário de notícias com imagens opcionais, sem escrever na memória autônoma."""
 from __future__ import annotations
 
 import argparse
@@ -12,6 +11,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from typing import Iterable
+from urllib.parse import urljoin
 
 import requests
 
@@ -26,6 +26,7 @@ class NewsItem:
     source: str
     published: str = ""
     summary: str = ""
+    image_url: str = ""
 
 
 FEEDS: dict[str, list[tuple[str, str]]] = {
@@ -73,6 +74,10 @@ def _tokens(text: str) -> set[str]:
     return {x for x in re.findall(r"[a-zA-ZÀ-ÿ0-9]+", text.lower()) if len(x) > 2}
 
 
+def _valid_http_url(value: str) -> bool:
+    return value.strip().startswith(("http://", "https://"))
+
+
 def _published_score(value: str) -> float:
     if not value:
         return 0.0
@@ -91,8 +96,58 @@ def _clean_summary(value: str, limit: int = 280) -> str:
     return value[:limit].rstrip(" .") + ("…" if len(value) > limit else "")
 
 
+def _rss_image_url(node: ET.Element, article_url: str) -> str:
+    """Extrai imagens de enclosure/media RSS sem confiar em HTML arbitrário."""
+    candidates: list[str] = []
+    for child in node.iter():
+        tag = child.tag.rsplit("}", 1)[-1].lower() if isinstance(child.tag, str) else ""
+        if tag in {"content", "thumbnail", "image", "enclosure"}:
+            value = child.attrib.get("url") or child.attrib.get("href") or _text(child)
+            media_type = child.attrib.get("type", "").lower()
+            if value and (not media_type or media_type.startswith("image/")):
+                candidates.append(value)
+    for candidate in candidates:
+        absolute = urljoin(article_url, candidate.strip())
+        if _valid_http_url(absolute):
+            return absolute
+    return ""
+
+
+def _open_graph_image(article_url: str, timeout: int = 8) -> str:
+    """Busca og:image apenas como fallback; falha de imagem nunca aborta o digest."""
+    try:
+        response = requests.get(
+            article_url,
+            headers={"User-Agent": "Atena-IA daily briefing/2.1"},
+            timeout=timeout,
+        )
+        response.raise_for_status()
+        if "text/html" not in response.headers.get("content-type", "").lower():
+            return ""
+        body = response.text[:1_000_000]
+        for match in re.finditer(
+            r'<meta[^>]+(?:property|name)=["\']og:image["\'][^>]+content=["\']([^"\']+)',
+            body,
+            flags=re.IGNORECASE,
+        ):
+            candidate = urljoin(article_url, html.unescape(match.group(1).strip()))
+            if _valid_http_url(candidate):
+                return candidate
+    except (requests.RequestException, UnicodeError):
+        return ""
+    return ""
+
+
+def resolve_image_url(item: NewsItem, *, allow_open_graph: bool = True) -> str:
+    if _valid_http_url(item.image_url):
+        return item.image_url
+    if allow_open_graph:
+        return _open_graph_image(item.url)
+    return ""
+
+
 def fetch_feed(category: str, source: str, url: str, timeout: int = 18) -> list[NewsItem]:
-    response = requests.get(url, headers={"User-Agent": "Atena-IA daily briefing/2.0"}, timeout=timeout)
+    response = requests.get(url, headers={"User-Agent": "Atena-IA daily briefing/2.1"}, timeout=timeout)
     response.raise_for_status()
     root = ET.fromstring(response.content)
     nodes = list(root.findall(".//item")) or list(root.findall(".//{*}entry"))
@@ -105,8 +160,9 @@ def fetch_feed(category: str, source: str, url: str, timeout: int = 18) -> list[
             link = str(link_node.attrib.get("href", "")) if link_node is not None else ""
         published = _text(node.find("pubDate")) or _text(node.find("{*}published")) or _text(node.find("{*}updated"))
         summary = _text(node.find("description")) or _text(node.find("{*}summary")) or _text(node.find("{*}content"))
-        if title and link.startswith(("http://", "https://")):
-            items.append(NewsItem(category, title, link, source, published, _clean_summary(summary)))
+        image_url = _rss_image_url(node, link) if link else ""
+        if title and _valid_http_url(link):
+            items.append(NewsItem(category, title, link, source, published, _clean_summary(summary), image_url))
     return items
 
 
@@ -135,7 +191,8 @@ def _rank(item: NewsItem, query_terms: set[str] | None = None) -> float:
     source = SOURCE_WEIGHT.get(item.source, 0.70)
     freshness = _published_score(item.published)
     substance = min(1.0, len(item.summary) / 220.0)
-    return 0.42 * freshness + 0.28 * source + 0.20 * relevance + 0.10 * substance
+    image_bonus = 0.02 if item.image_url else 0.0
+    return 0.40 * freshness + 0.27 * source + 0.20 * relevance + 0.11 * substance + image_bonus
 
 
 def collect_rss(limit_per_category: int = 4) -> tuple[list[NewsItem], list[str]]:
@@ -181,6 +238,15 @@ def _why_it_matters(category: str) -> str:
     }.get(category, "relevância geral")
 
 
+def _caption(item: NewsItem) -> str:
+    return (
+        f"<b>{html.escape(item.title[:220])}</b> — {html.escape(item.source)}\n"
+        f"<i>{html.escape(item.summary[:420] or 'Resumo indisponível; consulte a fonte original.')}</i>\n"
+        f"<u>Por que importa:</u> {html.escape(_why_it_matters(item.category))}.\n"
+        f"<a href=\"{html.escape(item.url, quote=True)}\">Ler fonte original</a>"
+    )
+
+
 def format_digest(items: Iterable[NewsItem], errors: list[str], *, include_x: bool, max_items_per_category: int = 3) -> str:
     now = dt.datetime.now(dt.timezone.utc).astimezone(dt.timezone(dt.timedelta(hours=-3)))
     grouped: dict[str, list[NewsItem]] = {}
@@ -188,13 +254,12 @@ def format_digest(items: Iterable[NewsItem], errors: list[str], *, include_x: bo
         grouped.setdefault(item.category, []).append(item)
     for category in grouped:
         grouped[category] = sorted(grouped[category], key=lambda item: _rank(item), reverse=True)[:max_items_per_category]
-
     lines = [
         "ATENA — principais notícias do dia | briefing essencial",
         f"Atualizado: {now.strftime('%d/%m/%Y às %H:%M')} (horário de Brasília)",
         "",
         "Critérios: novidade, relevância, confiabilidade da fonte e deduplicação.",
-        "Resumo informativo; notícias importantes devem ser confirmadas na fonte original.",
+        "As imagens são ilustrativas da matéria; confirme notícias importantes na fonte original.",
         "",
     ]
     for category, category_items in grouped.items():
@@ -214,11 +279,16 @@ def format_digest(items: Iterable[NewsItem], errors: list[str], *, include_x: bo
     return "\n".join(lines)[:3900]
 
 
-def send_telegram(message: str) -> None:
+def _telegram_credentials() -> tuple[str, str]:
     token = os.getenv("ATENA_TELEGRAM_BOT_TOKEN", "").strip()
     chat_id = os.getenv("ATENA_TELEGRAM_CHAT_ID", "").strip()
     if not token or not chat_id:
         raise RuntimeError("ATENA_TELEGRAM_BOT_TOKEN e ATENA_TELEGRAM_CHAT_ID são obrigatórios")
+    return token, chat_id
+
+
+def send_telegram(message: str) -> None:
+    token, chat_id = _telegram_credentials()
     response = requests.post(
         f"https://api.telegram.org/bot{token}/sendMessage",
         json={"chat_id": chat_id, "text": message, "parse_mode": "HTML", "disable_web_page_preview": True},
@@ -227,11 +297,42 @@ def send_telegram(message: str) -> None:
     response.raise_for_status()
 
 
+def send_telegram_news(items: Iterable[NewsItem], errors: list[str], *, include_x: bool, max_items_per_category: int = 3) -> tuple[int, int]:
+    """Envia uma foto por notícia quando possível; cai para texto sem interromper o lote."""
+    token, chat_id = _telegram_credentials()
+    selected: list[NewsItem] = []
+    grouped: dict[str, list[NewsItem]] = {}
+    for item in _deduplicate(items):
+        grouped.setdefault(item.category, []).append(item)
+    for category, category_items in grouped.items():
+        selected.extend(sorted(category_items, key=lambda item: _rank(item), reverse=True)[:max_items_per_category])
+
+    header = format_digest([], errors, include_x=include_x, max_items_per_category=max_items_per_category)
+    send_telegram(header)
+    sent_photos = 0
+    sent_text = 0
+    for item in selected:
+        image_url = resolve_image_url(item)
+        if image_url:
+            response = requests.post(
+                f"https://api.telegram.org/bot{token}/sendPhoto",
+                json={"chat_id": chat_id, "photo": image_url, "caption": _caption(item), "parse_mode": "HTML"},
+                timeout=25,
+            )
+            if response.ok:
+                sent_photos += 1
+                continue
+        send_telegram(_caption(item))
+        sent_text += 1
+    return sent_photos, sent_text
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--include-x", action="store_true")
     parser.add_argument("--items-per-category", type=int, default=3)
+    parser.add_argument("--no-images", action="store_true", help="Enviar somente texto")
     args = parser.parse_args()
     items, errors = collect_rss(limit_per_category=max(1, min(args.items_per_category, 8)))
     if args.include_x:
@@ -239,9 +340,12 @@ def main() -> int:
     message = format_digest(items, errors, include_x=args.include_x, max_items_per_category=args.items_per_category)
     if args.dry_run:
         print(message)
-    else:
+    elif args.no_images:
         send_telegram(message)
         print(f"Briefing diário enviado com {len(items)} itens e {len(errors)} erros de fonte.")
+    else:
+        photos, text_fallbacks = send_telegram_news(items, errors, include_x=args.include_x, max_items_per_category=args.items_per_category)
+        print(f"Briefing diário enviado com {len(items)} itens, {photos} imagens e {text_fallbacks} fallbacks de texto.")
     return 0
 
 

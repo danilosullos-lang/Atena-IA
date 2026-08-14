@@ -16,3 +16,20 @@ def test_format_digest_has_categories_links_and_disclaimer():
 def test_format_digest_reports_unavailable_sources():
     message = format_digest([], ["Fonte: Timeout"], include_x=False)
     assert "Fontes indisponíveis neste ciclo: 1" in message
+
+
+from xml.etree import ElementTree as ET
+
+from scripts.daily_news_digest import _rss_image_url, resolve_image_url
+
+
+def test_rss_image_url_extracts_media_content():
+    node = ET.fromstring(
+        '<item xmlns:media="http://search.yahoo.com/mrss/"><media:content url="https://img.example/news.jpg" type="image/jpeg" /></item>'
+    )
+    assert _rss_image_url(node, "https://example.com/news") == "https://img.example/news.jpg"
+
+
+def test_resolve_image_url_rejects_non_http_image():
+    item = NewsItem("Mundo", "Notícia", "https://example.com/news", "Fonte", image_url="file:///tmp/image.jpg")
+    assert resolve_image_url(item, allow_open_graph=False) == ""
