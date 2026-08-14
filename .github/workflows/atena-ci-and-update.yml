@@ -206,11 +206,34 @@ jobs:
           set -euo pipefail
           git fetch origin main --depth=1
           # O checkout do ciclo usa atena/autoevolution, que pode não conter
-          # módulos de runtime recém-publicados na main. Sincronizar o bot e
-          # sua dependência de áudio no workspace antes de iniciar o polling.
-          git show origin/main:scripts/atena_telegram_chat.py > scripts/atena_telegram_chat.py
-          git show origin/main:core/audio_gateway.py > core/audio_gateway.py
-          python -m py_compile scripts/atena_telegram_chat.py core/audio_gateway.py
+          # módulos de runtime recém-publicados na main. Sincronizar todos os
+          # módulos importados pelo ciclo, além do bot e do gateway de áudio.
+          runtime_files=(
+            scripts/atena_telegram_chat.py
+            scripts/atena_scheduled_cycle.py
+            core/atena_llm_router.py
+            core/audio_gateway.py
+            core/evolution_quality_gate.py
+            core/episodic_memory.py
+            core/memory_store.py
+            core/memory_consolidation.py
+            core/memory_retrieval.py
+            core/research_sources.py
+            core/provider_quota.py
+            core/sensemaking.py
+            core/identity_state.py
+            core/agent_plan_loop.py
+            core/universal_task_router.py
+            core/tasker_client.py
+            core/workspace_actions.py
+            core/google_calendar_client.py
+            core/x_news_research.py
+          )
+          for path in "${runtime_files[@]}"; do
+            mkdir -p "$(dirname "$path")"
+            git show "origin/main:$path" > "$path"
+          done
+          python -m py_compile "${runtime_files[@]}"
 
           python scripts/atena_telegram_chat.py --poll-timeout 20 > /tmp/atena_telegram_chat.log 2>&1 &
           TELEGRAM_PID=$!
