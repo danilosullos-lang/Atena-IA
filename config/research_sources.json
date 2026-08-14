@@ -40,6 +40,16 @@
       "keywords": ["palmeiras", "verdão", "futebol"]
     },
     {
+      "name": "Olhar Digital",
+      "type": "rss",
+      "url": "https://olhardigital.com.br/feed/",
+      "category": "technology",
+      "mode": "autonomous",
+      "weight": 0.86,
+      "enabled": true,
+      "keywords": ["tecnologia", "internet", "jogos", "celular", "inteligência artificial", "ciência"]
+    },
+    {
       "name": "Gazeta Esportiva Santos",
       "type": "rss",
       "url": "https://www.gazetaesportiva.com/times/santos/feed/",

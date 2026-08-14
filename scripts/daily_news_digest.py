@@ -44,6 +44,7 @@ FEEDS: dict[str, list[tuple[str, str]]] = {
     "Jogos e tecnologia": [
         ("Tecnoblog", "https://tecnoblog.net/feed/"),
         ("Canaltech", "https://canaltech.com.br/rss/"),
+        ("Olhar Digital", "https://olhardigital.com.br/feed/"),
     ],
     "Política e Brasil": [
         ("Agência Brasil", "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml"),
@@ -86,6 +87,7 @@ SOURCE_WEIGHT = {
     "ge": 0.92,
     "Tecnoblog": 0.88,
     "Canaltech": 0.86,
+    "Olhar Digital": 0.86,
     "X": 0.55,
 }
 
