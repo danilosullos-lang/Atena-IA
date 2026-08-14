@@ -116,13 +116,13 @@ jobs:
           git show origin/main:scripts/rotating_benchmark.py > scripts/rotating_benchmark.py
           git show origin/main:scripts/evaluate_rotating_benchmark.py > scripts/evaluate_rotating_benchmark.py
           git show origin/main:scripts/run_rotating_benchmark_ollama.py > scripts/run_rotating_benchmark_ollama.py
-          git show origin/main/core/atena_llm_router.py > core/atena_llm_router.py
-          git show origin/main/core/provider_quota.py > core/provider_quota.py
-          git show origin/main/core/agent_plan_loop.py > core/agent_plan_loop.py
-          git show origin/main/core/evolution_quality_gate.py > core/evolution_quality_gate.py
-          git show origin/main/core/identity_state.py > core/identity_state.py
-          git show origin/main/core/sensemaking.py > core/sensemaking.py
-          git show origin/main/scripts/consolidate_sqlite_memory.py > scripts/consolidate_sqlite_memory.py
+          git show origin/main:core/atena_llm_router.py > core/atena_llm_router.py
+          git show origin/main:core/provider_quota.py > core/provider_quota.py
+          git show origin/main:core/agent_plan_loop.py > core/agent_plan_loop.py
+          git show origin/main:core/evolution_quality_gate.py > core/evolution_quality_gate.py
+          git show origin/main:core/identity_state.py > core/identity_state.py
+          git show origin/main:core/sensemaking.py > core/sensemaking.py
+          git show origin/main:scripts/consolidate_sqlite_memory.py > scripts/consolidate_sqlite_memory.py
           python -m py_compile core/episodic_memory.py core/memory_store.py core/research_sources.py core/memory_consolidation.py core/memory_retrieval.py core/atena_llm_router.py core/provider_quota.py core/agent_plan_loop.py core/evolution_quality_gate.py core/identity_state.py core/sensemaking.py scripts/atena_scheduled_cycle.py scripts/rotating_benchmark.py scripts/evaluate_rotating_benchmark.py scripts/run_rotating_benchmark_ollama.py scripts/consolidate_sqlite_memory.py
 
       - name: Configurar Python
