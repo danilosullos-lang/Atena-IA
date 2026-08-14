@@ -20,7 +20,7 @@ def test_format_digest_reports_unavailable_sources():
 
 from xml.etree import ElementTree as ET
 
-from scripts.daily_news_digest import _rss_image_url, resolve_image_url
+from scripts.daily_news_digest import _download_image, _open_graph_image, _rss_image_url, resolve_image_url
 
 
 def test_rss_image_url_extracts_media_content():
@@ -28,6 +28,27 @@ def test_rss_image_url_extracts_media_content():
         '<item xmlns:media="http://search.yahoo.com/mrss/"><media:content url="https://img.example/news.jpg" type="image/jpeg" /></item>'
     )
     assert _rss_image_url(node, "https://example.com/news") == "https://img.example/news.jpg"
+
+
+def test_open_graph_image_accepts_both_meta_attribute_orders(monkeypatch):
+    class Response:
+        url = "https://news.example/story"
+        headers = {"content-type": "text/html"}
+        text = '<meta content="/image.jpg" property="og:image">'
+        def raise_for_status(self):
+            pass
+    monkeypatch.setattr("scripts.daily_news_digest.requests.get", lambda *args, **kwargs: Response())
+    assert _open_graph_image("https://news.example/story") == "https://news.example/image.jpg"
+
+
+def test_download_image_rejects_non_image_content(monkeypatch):
+    class Response:
+        headers = {"content-type": "text/html"}
+        content = b"not an image"
+        def raise_for_status(self):
+            pass
+    monkeypatch.setattr("scripts.daily_news_digest.requests.get", lambda *args, **kwargs: Response())
+    assert _download_image("https://news.example/image") is None
 
 
 def test_resolve_image_url_rejects_non_http_image():

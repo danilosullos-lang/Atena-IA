@@ -8,6 +8,7 @@ import html
 import os
 import re
 import xml.etree.ElementTree as ET
+from io import BytesIO
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from typing import Iterable
@@ -139,28 +140,51 @@ def _rss_image_url(node: ET.Element, article_url: str) -> str:
 
 
 def _open_graph_image(article_url: str, timeout: int = 8) -> str:
-    """Busca og:image apenas como fallback; falha de imagem nunca aborta o digest."""
+    """Busca imagem na página final, aceitando redirecionamentos e ordem variável dos metadados."""
     try:
         response = requests.get(
             article_url,
-            headers={"User-Agent": "Atena-IA daily briefing/2.1"},
+            headers={"User-Agent": "Mozilla/5.0 Atena-IA daily briefing/2.2"},
             timeout=timeout,
+            allow_redirects=True,
         )
         response.raise_for_status()
         if "text/html" not in response.headers.get("content-type", "").lower():
             return ""
-        body = response.text[:1_000_000]
-        for match in re.finditer(
-            r'<meta[^>]+(?:property|name)=["\']og:image["\'][^>]+content=["\']([^"\']+)',
-            body,
-            flags=re.IGNORECASE,
-        ):
-            candidate = urljoin(article_url, html.unescape(match.group(1).strip()))
-            if _valid_http_url(candidate):
-                return candidate
+        body = response.text[:1_500_000]
+        final_url = response.url or article_url
+        patterns = (
+            r'<meta[^>]+(?:property|name)=["\'](?:og:image|twitter:image)["\'][^>]+content=["\']([^"\']+)',
+            r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+(?:property|name)=["\'](?:og:image|twitter:image)["\']',
+        )
+        for pattern in patterns:
+            match = re.search(pattern, body, flags=re.IGNORECASE)
+            if match:
+                candidate = urljoin(final_url, html.unescape(match.group(1).strip()))
+                if _valid_http_url(candidate):
+                    return candidate
     except (requests.RequestException, UnicodeError):
         return ""
     return ""
+
+
+def _download_image(url: str, timeout: int = 20) -> tuple[BytesIO, str] | None:
+    """Baixa imagem validando conteúdo antes de enviar ao Telegram."""
+    try:
+        response = requests.get(
+            url,
+            headers={"User-Agent": "Mozilla/5.0 Atena-IA Telegram image relay/2.2"},
+            timeout=timeout,
+            allow_redirects=True,
+        )
+        response.raise_for_status()
+        content_type = response.headers.get("content-type", "").split(";", 1)[0].lower()
+        data = response.content
+        if not content_type.startswith("image/") or not data or len(data) > 10 * 1024 * 1024:
+            return None
+        return BytesIO(data), content_type
+    except (requests.RequestException, ValueError):
+        return None
 
 
 def resolve_image_url(item: NewsItem, *, allow_open_graph: bool = True) -> str:
@@ -387,11 +411,23 @@ def send_telegram_news(items: Iterable[NewsItem], errors: list[str], *, include_
     for item in selected:
         image_url = resolve_image_url(item)
         if image_url:
-            response = requests.post(
-                f"https://api.telegram.org/bot{token}/sendPhoto",
-                json={"chat_id": chat_id, "photo": image_url, "caption": _caption(item), "parse_mode": "HTML"},
-                timeout=25,
-            )
+            # Matérias do Santos frequentemente usam URLs intermediárias do Google News
+            # ou bloqueiam o fetch do Telegram; nesse caso retransmitimos bytes validados.
+            downloaded = _download_image(image_url) if item.category == "Santos FC" else None
+            if downloaded:
+                image_file, content_type = downloaded
+                response = requests.post(
+                    f"https://api.telegram.org/bot{token}/sendPhoto",
+                    data={"chat_id": chat_id, "caption": _caption(item), "parse_mode": "HTML"},
+                    files={"photo": ("santos-news.jpg", image_file, content_type)},
+                    timeout=30,
+                )
+            else:
+                response = requests.post(
+                    f"https://api.telegram.org/bot{token}/sendPhoto",
+                    json={"chat_id": chat_id, "photo": image_url, "caption": _caption(item), "parse_mode": "HTML"},
+                    timeout=25,
+                )
             if response.ok:
                 sent_photos += 1
                 continue
