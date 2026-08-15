@@ -9931,5 +9931,260 @@
         }
       }
     }
+  },
+  {
+    "timestamp": "2026-08-15T08:57:33.970322+00:00",
+    "model": "qwen2.5:3b-instruct",
+    "provider": "local",
+    "task_type": "github_evolution",
+    "duration_limit_seconds": 300,
+    "research": {
+      "topic": "deduplicação",
+      "question": "Como detectar memórias repetidas e preservar apenas novas evidências?",
+      "query": "ATENA deduplicação: Como detectar memórias repetidas e preservar apenas novas evidências?",
+      "mode": "autonomous",
+      "sources": [],
+      "rss_sources": [
+        {
+          "source": "ArXiv Quantum Physics",
+          "category": "quantum_technology",
+          "ok": true,
+          "items": [],
+          "response_time_ms": 126.83
+        },
+        {
+          "source": "Olhar Digital",
+          "category": "technology",
+          "ok": true,
+          "items": [
+            {
+              "source": "Olhar Digital",
+              "category": "technology",
+              "title": "São Paulo x Coritiba: onde assistir, horário e escalação do jogo do Brasileirão",
+              "link": "https://olhardigital.com.br/2026/08/15/internet-e-redes-sociais/sao-paulo-x-coritiba-onde-assistir-horario-e-escalacao-do-jogo-do-brasileirao/",
+              "published_at": "Sat, 15 Aug 2026 08:30:00 +0000",
+              "summary": "<p>Confira onde assistir, horário e prováveis escalações de São Paulo e Coritiba; duelo é válido pela 23ª rodada do Brasileirão</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/15/internet-e-redes-sociais/sao-paulo-x-coritiba-onde-assistir-horario-e-escalacao-do-jogo-do-brasileirao/\">São Paulo x Coritiba: onde assistir, horário e escalação do jogo do Brasileirão</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+              "content_hash": "sha256:41aa8dee41eb62b6a7edea0ae43853e30d27246019e9aa3c47ee814c5881dd75",
+              "source_url": "https://olhardigital.com.br/feed/",
+              "evidence_ref": "mem-20260815085735-5e8454e7a7f2"
+            },
+            {
+              "source": "Olhar Digital",
+              "category": "technology",
+              "title": "Athletico PR x Bragantino: onde assistir, horário e escalação do jogo do Brasileirão",
+              "link": "https://olhardigital.com.br/2026/08/15/internet-e-redes-sociais/athletico-pr-x-bragantino-onde-assistir-horario-e-escalacao-do-jogo-do-brasileirao/",
+              "published_at": "Sat, 15 Aug 2026 08:10:00 +0000",
+              "summary": "<p>Confira onde assistir, horário e prováveis escalações de Athletico PR e Bragantino; duelo é válido pela 23ª rodada do Brasileirão</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/15/internet-e-redes-sociais/athletico-pr-x-bragantino-onde-assistir-horario-e-escalacao-do-jogo-do-brasileirao/\">Athletico PR x Bragantino: onde assistir, horário e escalação do jogo do Brasileirão</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+              "content_hash": "sha256:06e4a7715bad788ee97be39b508b53e5573c696d4ef2a441baeaa55f2fa52595",
+              "source_url": "https://olhardigital.com.br/feed/",
+              "evidence_ref": "mem-20260815085735-2fd50e81cb81"
+            },
+            {
+              "source": "Olhar Digital",
+              "category": "technology",
+              "title": "Fluminense x Palmeiras: onde assistir, horário e escalação do jogo do Brasileirão",
+              "link": "https://olhardigital.com.br/2026/08/15/internet-e-redes-sociais/fluminense-x-palmeiras-onde-assistir-horario-e-escalacao-do-jogo-do-brasileirao/",
+              "published_at": "Sat, 15 Aug 2026 08:00:00 +0000",
+              "summary": "<p>Confira onde assistir, horário e prováveis escalações de Fluminense e Palmeiras; duelo é válido pela 23ª rodada do Brasileirão</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/15/internet-e-redes-sociais/fluminense-x-palmeiras-onde-assistir-horario-e-escalacao-do-jogo-do-brasileirao/\">Fluminense x Palmeiras: onde assistir, horário e escalação do jogo do Brasileirão</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+              "content_hash": "sha256:7fedf5808823592d0c7b2b257524db9d63af3015520124cae68921d89242782b",
+              "source_url": "https://olhardigital.com.br/feed/",
+              "evidence_ref": "mem-20260815085735-91df37a9e498"
+            },
+            {
+              "source": "Olhar Digital",
+              "category": "technology",
+              "title": "EUA: estados vão pedir R$ 1,05 trilhão da Meta em julgamento",
+              "link": "https://olhardigital.com.br/2026/08/14/pro/eua-estados-vao-pedir-r-1-05-trilhao-da-meta-em-julgamento/",
+              "published_at": "Sat, 15 Aug 2026 01:12:42 +0000",
+              "summary": "<p>Julgamento será realizado em Oakland, na Califórnia (EUA), e terá duração prevista de seis semanas</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/14/pro/eua-estados-vao-pedir-r-1-05-trilhao-da-meta-em-julgamento/\">EUA: estados vão pedir R$ 1,05 trilhão da Meta em julgamento</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+              "content_hash": "sha256:b69477af95ef23ae7a81e5d8ba24c20d9e9c784a5e402c68deca191e682801c7",
+              "source_url": "https://olhardigital.com.br/feed/",
+              "evidence_ref": "mem-20260815085735-f983c57bdc85"
+            },
+            {
+              "source": "Olhar Digital",
+              "category": "technology",
+              "title": "Nvidia reduz garantia de financiamento de data center da OpenAI",
+              "link": "https://olhardigital.com.br/2026/08/14/pro/nvidia-reduz-garantia-de-financiamento-de-data-center-da-openai/",
+              "published_at": "Sat, 15 Aug 2026 00:46:15 +0000",
+              "summary": "<p>Revisão foi feita para responder às preocupações de investidores sobre a exposição financeira da Nvidia</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/14/pro/nvidia-reduz-garantia-de-financiamento-de-data-center-da-openai/\">Nvidia reduz garantia de financiamento de data center da OpenAI</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+              "content_hash": "sha256:2957469142b8c2defe6db1e20e9915de4d8a27957e5d9f6b9c8dc404b74452c0",
+              "source_url": "https://olhardigital.com.br/feed/",
+              "evidence_ref": "mem-20260815085735-a6096907100b"
+            }
+          ],
+          "response_time_ms": 401.49
+        },
+        {
+          "source": "Agência Brasil",
+          "category": "general_news",
+          "ok": true,
+          "items": [
+            {
+              "source": "Agência Brasil",
+              "category": "general_news",
+              "title": "PF prende no Rio suspeito de golpe que fez idosa perder R$ 37 milhões",
+              "link": "https://agenciabrasil.ebc.com.br/geral/noticia/2026-08/pf-prende-no-rio-suspeito-de-golpe-que-fez-idosa-perder-r-37-milhoes",
+              "published_at": "Fri, 14 Aug 2026 21:00:00 -0300",
+              "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/geral/noticia/2026-08/pf-prende-no-rio-suspeito-de-golpe-que-fez-idosa-perder-r-37-milhoes\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p><strong>A Polícia Federal prendeu nesta sexta-feira (14), no Aeroporto Santos Dumont, no Rio de Janeiro, um homem acusado de participar do esquema fraudulento que fez uma mulher de 70 anos ter prejuízo superior a R$ 37 milhões.</strong><img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699726&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699726&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>A prisão ocorreu no âmbito da Operação Criptoabate, deflagrada pela Polícia Civil do Rio Grande do Sul nessa quinta-feira (13), com o objetivo de desarticular um esquema de fraude eletrônica estruturado por meio de uma falsa plataforma de investimentos. O valor das fraudes pode chegar a R$ 50 milhões.</p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/justica/noticia/2026-08/mprj-investiga-empresas-de-apostas-online-por-golpes-de-r-14-bilhao\">MPRJ investiga empresas de apostas online por golpes de R$ 1,4 bilhão.</a></li></ul>De acordo com as investigações, a organização criminosa usava a prática conhecida como “pig butchering” (golpe do abate de porcos), quando os criminosos estabelecem uma relação com as vítimas, por meio de mentorias, para induzi-las a realizar investimentos financeiros em plataformas falsas com promessa de alta rentabilidade.</p> <p>Natural de Presidente Prudente (SP) e morador de Balneário Camboriú (SC), o homem é apontado como dono de instituição financeira ligada ao esquema. Ele responderá pelos crimes de estelionato, lavagem de dinheiro e organização criminosa.</p>",
+              "content_hash": "sha256:42211b6beb648529b21f9814b5c0eab69e8e6190a7389cdf36d44ec63befe896",
+              "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+              "evidence_ref": "mem-20260815085735-d53df8986a71"
+            },
+            {
+              "source": "Agência Brasil",
+              "category": "general_news",
+              "title": "Petrobras anuncia descoberta de petróleo na Foz do Amazonas",
+              "link": "https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/petrobras-anuncia-descoberta-de-petroleo-na-foz-do-amazonas",
+              "published_at": "Fri, 14 Aug 2026 20:28:00 -0300",
+              "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/petrobras-anuncia-descoberta-de-petroleo-na-foz-do-amazonas\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p>A Petrobras informou nesta sexta-feira (14) que identificou a presença de hidrocarbonetos em poço exploratório em perfuração no bloco FZA-M-59, em águas profundas do Amapá, na bacia sedimentar da Foz do Amazonas, na margem equatorial brasileira. <img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699724&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699724&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p><strong>Os hidrocarbonetos são obtidos principalmente do petróleo e do gás natural, servindo como matéria-prima essencial para combustíveis, plásticos e borrachas.</strong></p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/petroleiros-pedem-petrobras-mais-estatal-e-menor-repasse-acionistas\">Petroleiros pedem Petrobras mais estatal e menor repasse a acionistas.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/petrobras-tem-lucro-liquido-de-r-524-bi-no-segundo-trimestre\">Petrobras tem lucro líquido de R$ 52,4 bi no segundo trimestre.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/petrobras-descobre-novo-poco-de-gas-na-margem-equatorial-da-colombia\">Petrobras descobre novo poço de gás na margem equatorial da Colômbia.</a></li></ul>O poço Morpho (1-BRSA-1405-APS) está localizado a cerca de 175 km da costa do estado do Amapá, em lâmina d'água de 2.886 metros.</p> <blockquote> <p>“Nosso otimismo em relação à margem equatorial brasileira se confirma hoje [sexta-feira]. Essa primeira descoberta na costa do Amapá é resultado da dedicação e ",
+              "content_hash": "sha256:4d983346d6f3b5160dc84e65e462f0f61831d3b260513e5662898470439fcf68",
+              "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+              "evidence_ref": "mem-20260815085735-a64332821d38"
+            },
+            {
+              "source": "Agência Brasil",
+              "category": "general_news",
+              "title": "Bolsonaro pede ao STF para se consultar com a nora, que é dentista",
+              "link": "https://agenciabrasil.ebc.com.br/justica/noticia/2026-08/bolsonaro-pede-ao-stf-para-se-consultar-com-nora-que-e-dentista",
+              "published_at": "Fri, 14 Aug 2026 19:40:00 -0300",
+              "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/justica/noticia/2026-08/bolsonaro-pede-ao-stf-para-se-consultar-com-nora-que-e-dentista\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p>O ex-presidente Jair Bolsonaro pediu nesta sexta-feira (14) ao Supremo Tribunal Federal (STF) autorização para deixar a prisão domiciliar e ir ao dentista.<img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699721&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699721&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>Na solicitação enviada ao ministro Alexandre de Moraes, <strong>a defesa do ex-presidente pede que ele seja atendido pela dentista Fernanda Antunes Figueira Bolsonaro, casada com o senador Flávio Bolsonaro (PL-RJ)</strong>. A consulta foi marcada para sexta-feira (21), às 14h.</p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/justica/noticia/2026-08/moraes-nega-pedido-para-que-bolsonaro-receba-filhos-no-dia-dos-pais\">Moraes nega pedido para que Bolsonaro receba filhos no Dia dos Pais.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/justica/noticia/2026-08/pgr-e-contra-recurso-de-bolsonaro-para-voltar-receber-visitas\">PGR é contra recurso de Bolsonaro para voltar a receber visitas.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/justica/noticia/2026-07/defesa-diz-que-bolsonaro-nao-autorizou-uso-de-video-de-ia-em-convencao\">Defesa diz que Bolsonaro não autorizou uso de vídeo de IA em convenção.</a></li></ul>“Requer, portanto, seja autorizada a saída do peticionário de sua residência, exclusivamente para a realização da referida consulta odontológica, pelo período necessário ao deslocamento, atendimento e retorno, observadas as medidas de fiscalização pertinentes”, solicitou a defesa.</p> <p><a",
+              "content_hash": "sha256:012ebadfb685acec49470bce78192d8e4804631896c0470cd462b14b569ddc4f",
+              "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+              "evidence_ref": "mem-20260815085735-555ed1c3e5ee"
+            },
+            {
+              "source": "Agência Brasil",
+              "category": "general_news",
+              "title": "Amcham defende que adoção de reciprocidade contra os EUA seja evitada",
+              "link": "https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/amcham-defende-que-adocao-de-reciprocidade-contra-os-eua-seja-evitada",
+              "published_at": "Fri, 14 Aug 2026 19:33:00 -0300",
+              "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/amcham-defende-que-adocao-de-reciprocidade-contra-os-eua-seja-evitada\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p><strong>A Câmara Americana de Comércio no Brasil (Amcham) defende que a posição adoção de medidas de retaliações por parte do Brasil em relação às tarifas comerciais impostas pelos Estados Unidos seja evitada.</strong><img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699720&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699720&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>Nessa quinta-feira (13), <a href=\"https://agenciabrasil.ebc.com.br/politica/noticia/2026-08/governo-abre-processo-de-reciprocidade-contra-tarifas-dos-eua\" target=\"_blank\">o governo federal anunciou a abertura formal do processo</a> para avaliar se a imposição das tarifas contra exportações brasileiras será respondida com base na Lei da Reciprocidade Econômica. A abertura do processo não significa que o Brasil tenha decidido aplicar imediatamente contratarifas ou outras medidas de retaliação contra produtos norte-americanos. Neste momento, o governo inicia uma análise formal para verificar se as medidas dos EUA justificam a adoção de respostas previstas na legislação brasileira.</p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/governo-ouvira-empresarios-para-decidir-se-aplicara-lei-contra-eua\">Governo ouvirá empresários para decidir se aplicará lei contra EUA.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/politica/noticia/2026-08/governo-abre-processo-de-reciprocidade-contra-tarifas-dos-eua\">Governo abre processo de reciprocidade contra tarifas dos EUA.</a></li></ul>Diante da abertura do processo, <str",
+              "content_hash": "sha256:cf137d7698518c07473ed4910eb263d3ea70cc47b01f9cfbc13c5493ce21a09b",
+              "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+              "evidence_ref": "mem-20260815085735-238df2320d80"
+            },
+            {
+              "source": "Agência Brasil",
+              "category": "general_news",
+              "title": "Vôlei brasileiro passa a exigir teste genético para atletas mulheres",
+              "link": "https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/volei-brasileiro-passa-exigir-teste-genetico-para-atletas-mulheres",
+              "published_at": "Fri, 14 Aug 2026 18:52:00 -0300",
+              "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/volei-brasileiro-passa-exigir-teste-genetico-para-atletas-mulheres\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p>A Confederação Brasileira de Voleibol (CBV) anunciou nesta sexta-feira (14) que somente atletas do sexo biológico feminino poderão participar de competições organizadas pela entidade. A nova política de elegibilidade de atletas da categoria feminina foi publicada no final da tarde de hoje no <a href=\"https://cbv.com.br/noticias/CBV/2026-08-14/cbv-divulga-politica-sobre-a-elegibilidade-de-atletas-para-as-competicoes-da-categoria-feminina-no-voleibol\"><strong>site da CBV</strong></a>. Segundo a entidade, o novo critério tem como objetivo estar em conformidade com as regras do Comitê Olímpico Internacional (COI) e da Federação Internacional de Voleibol (FIVB).<img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699715&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699715&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>A verificação será feita por testagem e triagem do gene SRY. Normalmente o exame é realizado por meio de exame de sangue ou esfregaço bucal.</p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-03/coi-veta-participacao-de-mulheres-trans-em-jogos-femininos-oficiais\">COI veta participação de mulheres trans em jogos femininos oficiais.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/grupo-de-direitos-humanos-pede-wta-que-revogue-testes-de-genero\">Grupo de direitos humanos pede à WTA que revogue testes de gênero.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2025-07/comite-olimpico-dos-eua-proibe-mulheres-trans-em-competicoes-fem",
+              "content_hash": "sha256:555d86623059eab1acabf95b3c4b864ed8d0f6a478b414f90b555bdbbbfee2b2",
+              "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+              "evidence_ref": "mem-20260815085735-7bf63a5d788e"
+            }
+          ],
+          "response_time_ms": 877.03
+        },
+        {
+          "source": "MIT Technology Review",
+          "category": "technology",
+          "ok": true,
+          "items": [
+            {
+              "source": "MIT Technology Review",
+              "category": "technology",
+              "title": "The Download: Flock’s new rules, cloning’s future, and children’s cells",
+              "link": "https://www.technologyreview.com/2026/08/14/1142033/the-download-flock-new-rules-cloning-future/",
+              "published_at": "Fri, 14 Aug 2026 12:17:21 +0000",
+              "summary": "This is today&#8217;s edition of The Download, our weekday newsletter that provides a daily dose of what&#8217;s going on in the world of technology. Flock is tightening its rules in response to a growing surveillance backlash The police-tech giant Flock is changing officers’ access to its nationwide network of license plate readers. The move comes&#8230;",
+              "content_hash": "sha256:e9a09d8723c3199836fc7056ef80deed770d15691840b98010b33a6eaf9b2b37",
+              "source_url": "https://www.technologyreview.com/feed/",
+              "evidence_ref": "mem-20260815085735-42d846e0112b"
+            },
+            {
+              "source": "MIT Technology Review",
+              "category": "technology",
+              "title": "This scientist is helping build a missing map of childhood",
+              "link": "https://www.technologyreview.com/2026/08/14/1141354/deanne-taylor-gene-expression-children/",
+              "published_at": "Fri, 14 Aug 2026 09:00:00 +0000",
+              "summary": "In 2017, Deanne Taylor attended a presentation at the University of Pennsylvania, just a short walk from her office. A researcher was there to unveil the Human Cell Atlas, an ambitious project that aimed to map every cell in the human body. Taylor was floored, and then concerned. As details emerged, she discovered that the&#8230;",
+              "content_hash": "sha256:117e3314b7d2e87a3ad4f7aa1779580801d31ce90b125691402275bfcece5e55",
+              "source_url": "https://www.technologyreview.com/feed/",
+              "evidence_ref": "mem-20260815085735-7a930b4f0aca"
+            },
+            {
+              "source": "MIT Technology Review",
+              "category": "technology",
+              "title": "Job titles of the future: Space travel agent",
+              "link": "https://www.technologyreview.com/2026/08/14/1141431/job-titles-space-travel-agent-roman-chiporukha/",
+              "published_at": "Fri, 14 Aug 2026 09:00:00 +0000",
+              "summary": "Roman Chiporukha has long turned wild travel dreams into reality. Over two decades as co-owner of the luxury lifestyle firm Roman &#38; Erica, he has orchestrated everything from the construction of a client’s superyacht to vacations in the Bahamas at a location so private that guests must sign an NDA.&#160; The experiences earned him “the&#8230;",
+              "content_hash": "sha256:5b8a4430c6303c3c10fea847c906e5dcc35e6bafc8583063fbd761cde2935022",
+              "source_url": "https://www.technologyreview.com/feed/",
+              "evidence_ref": "mem-20260815085735-1c831eed8b0a"
+            },
+            {
+              "source": "MIT Technology Review",
+              "category": "technology",
+              "title": "Cloning could be used to save species—or make human “organ sacks”",
+              "link": "https://www.technologyreview.com/2026/08/14/1141919/cloning-save-species-or-make-human-organ-sacks/",
+              "published_at": "Fri, 14 Aug 2026 09:00:00 +0000",
+              "summary": "This week I spoke to scientists who have found a way to turn male mouse embryos female. They’ve developed a CRISPR-based approach to essentially cut out the Y chromosome. It allowed them to create female clones of male mice. That’s right: female animals that are genetically identical to males, except for the missing Y chromosome.&#8230;",
+              "content_hash": "sha256:4fde7cc7e9f1ac54ba16280fe5c813287e103c70410859837f457bbf8e7956b6",
+              "source_url": "https://www.technologyreview.com/feed/",
+              "evidence_ref": "mem-20260815085735-e9797937363e"
+            },
+            {
+              "source": "MIT Technology Review",
+              "category": "technology",
+              "title": "Roundtables: Inside the “Censorship-Industrial Complex” Idea Shaping US Policy",
+              "link": "https://www.technologyreview.com/2026/08/13/1141399/roundtables-inside-the-censorship-industrial-complex-idea-shaping-us-policy/",
+              "published_at": "Thu, 13 Aug 2026 21:00:00 +0000",
+              "summary": "Listen to the session or watch below The “censorship-industrial complex” is an idea that a network of government, tech, and research groups is collaborating to suppress conservative online speech. This was fodder for the right-wing information sphere for years—then it began making its way into US policy. Watch a conversation exploring how it started, where&#8230;",
+              "content_hash": "sha256:97a9791f5512b0ffa67c50bdecb5630a2be341e2fafaa0f38e61f26a4f180307",
+              "source_url": "https://www.technologyreview.com/feed/",
+              "evidence_ref": "mem-20260815085735-38466e1b0e53"
+            }
+          ],
+          "response_time_ms": 102.5
+        }
+      ],
+      "errors": [],
+      "requested_by": "rotation",
+      "intent_id": null
+    },
+    "observations": {
+      "insights": [
+        {
+          "text": "Físicos encontraram pistas sobre uma propriedade fundamental dos prótons e nêutrons que não está associada aos três quarks que os compõem, o que contradiz acreditação anterior. Esta descoberta é baseada em evidências experimentais fortes, após 50 anos de pesquisa.",
+          "evidence_refs": [
+            "https://olhardigital.com.br/2026/08/14/ciencia-e-espaco/apos-50-anos-fisicos-encontram-pistas-sobre-o-que-mantem-a-materia-unida/"
+          ],
+          "type": "new_information",
+          "confidence": 1.0
+        }
+      ],
+      "risks": [],
+      "proposed_changes": [],
+      "next_cycle": [
+        "verificar uma instância inédita relacionada a deduplicação"
+      ],
+      "quality_gate": {
+        "accepted": true,
+        "reasons": [],
+        "metrics": {
+          "insights": 1,
+          "evidence_refs": 1,
+          "duplicate_ratio": 0.0,
+          "proposals": 0,
+          "risks": 0
+        }
+      },
+      "research_plan": {
+        "topic": "deduplicação",
+        "question": "Como detectar memórias repetidas e preservar apenas novas evidências?",
+        "sources_to_consult": [],
+        "evidence_expected": "comparar pelo menos duas evidências independentes antes de consolidar um fato",
+        "next_test": "verificar uma instância inédita relacionada a deduplicação",
+        "retrieval": {
+          "source": "sqlite",
+          "episode_limit": 12,
+          "context_chars": 8474
+        }
+      }
+    }
   }
 ]
