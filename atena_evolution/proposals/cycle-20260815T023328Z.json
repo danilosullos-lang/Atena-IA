@@ -1,0 +1,355 @@
+{
+  "timestamp": "2026-08-15T02:33:28.616180+00:00",
+  "model": "qwen2.5:3b-instruct",
+  "provider": "local",
+  "task_type": "github_evolution",
+  "duration_limit_seconds": 300,
+  "research": {
+    "topic": "memória histórica",
+    "question": "Como recuperar evidências antigas sem confundir hipótese com fato?",
+    "query": "ATENA memória histórica: Como recuperar evidências antigas sem confundir hipótese com fato?",
+    "mode": "autonomous",
+    "sources": [],
+    "rss_sources": [
+      {
+        "source": "ArXiv Quantum Physics",
+        "category": "quantum_technology",
+        "ok": true,
+        "items": [
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Embedding Stabilizer Codes and Leakage Correction in Multilevel Quantum Systems",
+            "link": "https://arxiv.org/abs/2608.12450",
+            "published_at": "Fri, 14 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.12450v1 Announce Type: new Abstract: Leakage beyond the computational subspace is a major source of error in multilevel quantum hardware. We show that any \\( [[n,k,d]] \\) stabilizer code can be embedded isometrically into a single \\(D\\)-dimensional system while preserving its complete error-correcting structure. We further derive a necessary and sufficient condition for exact leakage correction, proving that leakage is correctable precisely when it does not distinguish between logical states. These results establish a unified framework for quantum error correction in multilevel quantum systems.",
+            "content_hash": "sha256:65e26120c8e8863d8b7d4e68ba954ae58da6064c66208ea3c5fa7cf8a7070a71",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260815023329-e0196cf1b868"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Spatially Dense, Continuous-Variable Quantum Computing with Solid State Spin Nonlinearities",
+            "link": "https://arxiv.org/abs/2608.12504",
+            "published_at": "Fri, 14 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.12504v1 Announce Type: new Abstract: Nanomechanical structures have been investigated as a method of achieving long-lived quantum excitations at radio frequencies. Their high quality factors are especially intriguing as a medium for bosonic encoding of quantum information. However, to leading order, mechanical modes typically lack the nonlinearities necessary to achieve interaction between bosonic channels and thus are limited in their ability to scale to the many-qubit regime necessary for practical quantum computing. In this work, we propose and describe an approach for bosonic quantum information processing that uses strain-sensitive solid-state spins as nonlinear elements to produce the relevant nonclassical mechanical states. We outline the architecture required to achieve nearest-neighbor connectivity between mechanical cat-state qubits on-chip, as well as the control and readout architecture required for universal quantum computation. In addition, we show that this architecture can allow for a high spatial density of logical qubits by leveraging both the efficiency of bosonic error correction schemes and the small sizes of the constituent nanomechanical resonators and spin qubits. Finally, we identify the necessary performance metrics that will enable error-correction thresholds at high qubit densities, illuminating a path towards scalable quantum information processing.",
+            "content_hash": "sha256:3205fb122628fd17495557c9f93ab8d97fb8fdbb1a450f5893b7f2cd53b63c26",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260815023329-68fb5b26e9e1"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Quantum Tanner Codes at Moderate Blocklength",
+            "link": "https://arxiv.org/abs/2608.12509",
+            "published_at": "Fri, 14 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.12509v1 Announce Type: new Abstract: We present explicit constructions of quantum Tanner (QT) codes with good rate and distance, obtained through two complementary approaches: the left-right Cayley complex (LRCC) description and the \"lifting\" perspective, in which a seed Calderbank-Shor-Steane (CSS) code is lifted by commuting left-right regular actions of a finite group $\\mathcal{G}$. Through an extensive search over non-abelian groups from GAP's SmallGrp library, we investigate the moderate-blocklength regime ($n \\in [500,1000]$) and identify several new code instances with distance upper bounds exceeding $20$. These include $[[480,8,(\\leq 21,\\leq 21)]]$, $[[504,4,(\\leq 36,\\leq 27)]]$, $[[672,4,(\\leq 48,\\leq 28)]]$, $[[720,6,(\\leq 30,\\leq 30)]]$, and $[[864,8,(\\leq 39,\\leq 31)]]$, with these bounds obtained using up to $350$ million trials of sQetch, a randomized distance estimator. The code instances presented have check weights ranging from $9$ to $20$. Using the Tesseract decoder, we estimate pseudo-thresholds of $3.6\\%$-$4.6\\%$ under phenomenological noise and $0.14\\%$-$0.27\\%$ under circuit-level noise, comparable to prior results at shorter code lengths. We also provide QuantumExpanders.jl, an open-source Julia library for constructing QT codes and explicit constructions of Ramanujan graphs.",
+            "content_hash": "sha256:b74ba7ac3613c1ced4c026d70bed68fef280d4acd1d72ece671476a46dadb158",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260815023329-01c4bd39fb92"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Flux control of measurement back-action and Leggett-Garg correlations in chiral quantum walks",
+            "link": "https://arxiv.org/abs/2608.12519",
+            "published_at": "Fri, 14 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.12519v1 Announce Type: new Abstract: Gauge-invariant fluxes control interference in chiral continuous-time quantum walks. We investigate how they affect sequential measurements at a single vertex, using a dichotomic observable that distinguishes return to that vertex from occupation of its complement. For a walker initially localized at the measured vertex, the complete two-time statistics, including measurement back-action and Leggett--Garg correlators, are determined exactly by the return amplitude, connecting temporal correlations to the local spectral measure and gauge-invariant closed-walk interference. At short times, the leading disturbance is independent of the Peierls phases, whereas flux sensitivity enters at higher orders through interference among closed walks. We further identify a graph-independent sufficient mechanism for saturating the L\\\"uders bound: flux can reduce the rooted dynamics to a balanced two-dimensional Krylov subspace with equal spectral weights, yielding a constructive flux-engineering criterion for attaining the L\\\"uders bound of $3/2$ at finite times. The mechanism is realized exactly on a two-flux diamond graph, where destructive interference renders additional rooted modes dark and the local back-action depends on relative combinations of the two independent fluxes. For flux-threaded cycles, an exact winding-number expansion reveals a parity-dependent onset: the leading flux contrast occurs generically at order $t^N$ for even cycles and $t^{2N}$ for odd cycles. Across the cycles examined, flux can either enhance the maximal Leggett--Garg violation or shift strong violations to earlier measurement times, with half flux driving the four-site cycle to the L\\\"uders bound. These results establish gauge-invariant flux as a resource for engineering local measurement back-action and temporal quantum correlations.",
+            "content_hash": "sha256:d955d0be2358d6a9f6b56024884566bd46429d4f0c97f69db7980709340af51e",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260815023329-752721d4d0e1"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Coherent temporal filtering of multimode parametric down-conversion using a quantum pulse gate",
+            "link": "https://arxiv.org/abs/2608.12544",
+            "published_at": "Fri, 14 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.12544v1 Announce Type: new Abstract: Spectrally pure and indistinguishable single photons are essential for quantum network platforms, where high-visibility interference underpins many quantum information protocols. However, most practical single-photon sources emit spectrally multimode states with reduced purity. Conventional spectral intensity filtering can partially improve purity but cannot select a well-defined temporal mode (TM). Here, we demonstrate coherent temporal filtering of a multimode parametric down-conversion (PDC) source using a quantum pulse gate (QPG) and benchmark its performance against conventional intensity filtering. The generated PDC photons exhibit strong spectral correlations, rendering extraction of pure heralded photons from the pair a challenge. We demonstrate that QPG filtering consistently generates heralded photons with purities above 0.90 regardless of the filter shape. Contrariwise, using spectral intensity filters yields mixed photons. Photon purities are probed with chronocyclic Q-function tomography. Furthermore, we demonstrate the versatility of QPG filtering by extracting structured TMs, including superposition of picosecond time bins. These results establish the QPG as a practical coherent filtering tool for quantum network applications.",
+            "content_hash": "sha256:7143468a7a010c0d472ddf0be416103875f330a61d57d833353ba7c9aed24a76",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260815023329-fa8c5adca8c5"
+          }
+        ],
+        "response_time_ms": 84.33
+      },
+      {
+        "source": "Olhar Digital",
+        "category": "technology",
+        "ok": true,
+        "items": [
+          {
+            "source": "Olhar Digital",
+            "category": "technology",
+            "title": "EUA: estados vão pedir R$ 1,05 trilhão da Meta em julgamento",
+            "link": "https://olhardigital.com.br/2026/08/14/pro/eua-estados-vao-pedir-r-1-05-trilhao-da-meta-em-julgamento/",
+            "published_at": "Sat, 15 Aug 2026 01:12:42 +0000",
+            "summary": "<p>Julgamento será realizado em Oakland, na Califórnia (EUA), e terá duração prevista de seis semanas</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/14/pro/eua-estados-vao-pedir-r-1-05-trilhao-da-meta-em-julgamento/\">EUA: estados vão pedir R$ 1,05 trilhão da Meta em julgamento</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+            "content_hash": "sha256:b69477af95ef23ae7a81e5d8ba24c20d9e9c784a5e402c68deca191e682801c7",
+            "source_url": "https://olhardigital.com.br/feed/",
+            "evidence_ref": "mem-20260815023329-f983c57bdc85"
+          },
+          {
+            "source": "Olhar Digital",
+            "category": "technology",
+            "title": "Nvidia reduz garantia de financiamento de data center da OpenAI",
+            "link": "https://olhardigital.com.br/2026/08/14/pro/nvidia-reduz-garantia-de-financiamento-de-data-center-da-openai/",
+            "published_at": "Sat, 15 Aug 2026 00:46:15 +0000",
+            "summary": "<p>Revisão foi feita para responder às preocupações de investidores sobre a exposição financeira da Nvidia</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/14/pro/nvidia-reduz-garantia-de-financiamento-de-data-center-da-openai/\">Nvidia reduz garantia de financiamento de data center da OpenAI</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+            "content_hash": "sha256:2957469142b8c2defe6db1e20e9915de4d8a27957e5d9f6b9c8dc404b74452c0",
+            "source_url": "https://olhardigital.com.br/feed/",
+            "evidence_ref": "mem-20260815023329-a6096907100b"
+          },
+          {
+            "source": "Olhar Digital",
+            "category": "technology",
+            "title": "Confira o Olhar Digital News na íntegra (14/08/2026)",
+            "link": "https://olhardigital.com.br/2026/08/14/videos/confira-o-olhar-digital-news-na-integra-14-08-2026/",
+            "published_at": "Sat, 15 Aug 2026 00:17:00 +0000",
+            "summary": "<p>Confira as principais notícias do mundo da tecnologia e da ciência no programa Olhar Digital News de hoje</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/14/videos/confira-o-olhar-digital-news-na-integra-14-08-2026/\">Confira o Olhar Digital News na íntegra (14/08/2026)</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+            "content_hash": "sha256:0b0e2440c5e9941e73440703a75c3bea5465d76258a855647371b642a4617108",
+            "source_url": "https://olhardigital.com.br/feed/",
+            "evidence_ref": "mem-20260815023329-2e13d666857a"
+          },
+          {
+            "source": "Olhar Digital",
+            "category": "technology",
+            "title": "Olhar Espacial: eclipses que ajudam a contar nossa própria história",
+            "link": "https://olhardigital.com.br/2026/08/14/colunistas/olhar-espacial-eclipses-que-ajudam-a-contar-nossa-propria-historia/",
+            "published_at": "Sat, 15 Aug 2026 00:12:08 +0000",
+            "summary": "<p>Esses fenômenos vão muito além de simples espetáculos astronômicos, sendo alvo de uma série de estudos</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/14/colunistas/olhar-espacial-eclipses-que-ajudam-a-contar-nossa-propria-historia/\">Olhar Espacial: eclipses que ajudam a contar nossa própria história</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+            "content_hash": "sha256:254824777b2de1184d6dba6aa4867f05c38ddeb2f20ec5c06d515393a40316c7",
+            "source_url": "https://olhardigital.com.br/feed/",
+            "evidence_ref": "mem-20260815023329-f3c9dfd51263"
+          },
+          {
+            "source": "Olhar Digital",
+            "category": "technology",
+            "title": "Terremotos atingem Indonésia e Espanha nesta sexta-feira (14)",
+            "link": "https://olhardigital.com.br/2026/08/14/ciencia-e-espaco/terremotos-atingem-indonesia-e-espanha-nesta-sexta-feira-14/",
+            "published_at": "Fri, 14 Aug 2026 23:54:14 +0000",
+            "summary": "<p>Epicentro foi localizado próximo à ilha de Flores, na província de Nusa Tenggara Oriental, região conhecida pela intensa atividade sísmica</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/14/ciencia-e-espaco/terremotos-atingem-indonesia-e-espanha-nesta-sexta-feira-14/\">Terremotos atingem Indonésia e Espanha nesta sexta-feira (14)</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+            "content_hash": "sha256:4b1c5e37b16b6a5931060ee97e1d14f1dcd33104da20537941b2bd854d14fd12",
+            "source_url": "https://olhardigital.com.br/feed/",
+            "evidence_ref": "mem-20260815023329-6f1cf1c1f625"
+          }
+        ],
+        "response_time_ms": 181.35
+      },
+      {
+        "source": "Agência Brasil",
+        "category": "general_news",
+        "ok": true,
+        "items": [
+          {
+            "source": "Agência Brasil",
+            "category": "general_news",
+            "title": "PF prende no Rio suspeito de golpe que fez idosa perder R$ 37 milhões",
+            "link": "https://agenciabrasil.ebc.com.br/geral/noticia/2026-08/pf-prende-no-rio-suspeito-de-golpe-que-fez-idosa-perder-r-37-milhoes",
+            "published_at": "Fri, 14 Aug 2026 21:00:00 -0300",
+            "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/geral/noticia/2026-08/pf-prende-no-rio-suspeito-de-golpe-que-fez-idosa-perder-r-37-milhoes\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p><strong>A Polícia Federal prendeu nesta sexta-feira (14), no Aeroporto Santos Dumont, no Rio de Janeiro, um homem acusado de participar do esquema fraudulento que fez uma mulher de 70 anos ter prejuízo superior a R$ 37 milhões.</strong><img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699726&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699726&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>A prisão ocorreu no âmbito da Operação Criptoabate, deflagrada pela Polícia Civil do Rio Grande do Sul nessa quinta-feira (13), com o objetivo de desarticular um esquema de fraude eletrônica estruturado por meio de uma falsa plataforma de investimentos. O valor das fraudes pode chegar a R$ 50 milhões.</p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/justica/noticia/2026-08/mprj-investiga-empresas-de-apostas-online-por-golpes-de-r-14-bilhao\">MPRJ investiga empresas de apostas online por golpes de R$ 1,4 bilhão.</a></li></ul>De acordo com as investigações, a organização criminosa usava a prática conhecida como “pig butchering” (golpe do abate de porcos), quando os criminosos estabelecem uma relação com as vítimas, por meio de mentorias, para induzi-las a realizar investimentos financeiros em plataformas falsas com promessa de alta rentabilidade.</p> <p>Natural de Presidente Prudente (SP) e morador de Balneário Camboriú (SC), o homem é apontado como dono de instituição financeira ligada ao esquema. Ele responderá pelos crimes de estelionato, lavagem de dinheiro e organização criminosa.</p>",
+            "content_hash": "sha256:42211b6beb648529b21f9814b5c0eab69e8e6190a7389cdf36d44ec63befe896",
+            "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+            "evidence_ref": "mem-20260815023329-d53df8986a71"
+          },
+          {
+            "source": "Agência Brasil",
+            "category": "general_news",
+            "title": "Petrobras anuncia descoberta de petróleo na Foz do Amazonas",
+            "link": "https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/petrobras-anuncia-descoberta-de-petroleo-na-foz-do-amazonas",
+            "published_at": "Fri, 14 Aug 2026 20:28:00 -0300",
+            "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/petrobras-anuncia-descoberta-de-petroleo-na-foz-do-amazonas\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p>A Petrobras informou nesta sexta-feira (14) que identificou a presença de hidrocarbonetos em poço exploratório em perfuração no bloco FZA-M-59, em águas profundas do Amapá, na bacia sedimentar da Foz do Amazonas, na margem equatorial brasileira. <img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699724&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699724&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p><strong>Os hidrocarbonetos são obtidos principalmente do petróleo e do gás natural, servindo como matéria-prima essencial para combustíveis, plásticos e borrachas.</strong></p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/petroleiros-pedem-petrobras-mais-estatal-e-menor-repasse-acionistas\">Petroleiros pedem Petrobras mais estatal e menor repasse a acionistas.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/petrobras-tem-lucro-liquido-de-r-524-bi-no-segundo-trimestre\">Petrobras tem lucro líquido de R$ 52,4 bi no segundo trimestre.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/petrobras-descobre-novo-poco-de-gas-na-margem-equatorial-da-colombia\">Petrobras descobre novo poço de gás na margem equatorial da Colômbia.</a></li></ul>O poço Morpho (1-BRSA-1405-APS) está localizado a cerca de 175 km da costa do estado do Amapá, em lâmina d'água de 2.886 metros.</p> <blockquote> <p>“Nosso otimismo em relação à margem equatorial brasileira se confirma hoje [sexta-feira]. Essa primeira descoberta na costa do Amapá é resultado da dedicação e ",
+            "content_hash": "sha256:4d983346d6f3b5160dc84e65e462f0f61831d3b260513e5662898470439fcf68",
+            "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+            "evidence_ref": "mem-20260815023329-a64332821d38"
+          },
+          {
+            "source": "Agência Brasil",
+            "category": "general_news",
+            "title": "Bolsonaro pede ao STF para se consultar com a nora, que é dentista",
+            "link": "https://agenciabrasil.ebc.com.br/justica/noticia/2026-08/bolsonaro-pede-ao-stf-para-se-consultar-com-nora-que-e-dentista",
+            "published_at": "Fri, 14 Aug 2026 19:40:00 -0300",
+            "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/justica/noticia/2026-08/bolsonaro-pede-ao-stf-para-se-consultar-com-nora-que-e-dentista\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p>O ex-presidente Jair Bolsonaro pediu nesta sexta-feira (14) ao Supremo Tribunal Federal (STF) autorização para deixar a prisão domiciliar e ir ao dentista.<img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699721&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699721&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>Na solicitação enviada ao ministro Alexandre de Moraes, <strong>a defesa do ex-presidente pede que ele seja atendido pela dentista Fernanda Antunes Figueira Bolsonaro, casada com o senador Flávio Bolsonaro (PL-RJ)</strong>. A consulta foi marcada para sexta-feira (21), às 14h.</p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/justica/noticia/2026-08/moraes-nega-pedido-para-que-bolsonaro-receba-filhos-no-dia-dos-pais\">Moraes nega pedido para que Bolsonaro receba filhos no Dia dos Pais.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/justica/noticia/2026-08/pgr-e-contra-recurso-de-bolsonaro-para-voltar-receber-visitas\">PGR é contra recurso de Bolsonaro para voltar a receber visitas.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/justica/noticia/2026-07/defesa-diz-que-bolsonaro-nao-autorizou-uso-de-video-de-ia-em-convencao\">Defesa diz que Bolsonaro não autorizou uso de vídeo de IA em convenção.</a></li></ul>“Requer, portanto, seja autorizada a saída do peticionário de sua residência, exclusivamente para a realização da referida consulta odontológica, pelo período necessário ao deslocamento, atendimento e retorno, observadas as medidas de fiscalização pertinentes”, solicitou a defesa.</p> <p><a",
+            "content_hash": "sha256:012ebadfb685acec49470bce78192d8e4804631896c0470cd462b14b569ddc4f",
+            "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+            "evidence_ref": "mem-20260815023329-555ed1c3e5ee"
+          },
+          {
+            "source": "Agência Brasil",
+            "category": "general_news",
+            "title": "Amcham defende que adoção de reciprocidade contra os EUA seja evitada",
+            "link": "https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/amcham-defende-que-adocao-de-reciprocidade-contra-os-eua-seja-evitada",
+            "published_at": "Fri, 14 Aug 2026 19:33:00 -0300",
+            "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/amcham-defende-que-adocao-de-reciprocidade-contra-os-eua-seja-evitada\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p><strong>A Câmara Americana de Comércio no Brasil (Amcham) defende que a posição adoção de medidas de retaliações por parte do Brasil em relação às tarifas comerciais impostas pelos Estados Unidos seja evitada.</strong><img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699720&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699720&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>Nessa quinta-feira (13), <a href=\"https://agenciabrasil.ebc.com.br/politica/noticia/2026-08/governo-abre-processo-de-reciprocidade-contra-tarifas-dos-eua\" target=\"_blank\">o governo federal anunciou a abertura formal do processo</a> para avaliar se a imposição das tarifas contra exportações brasileiras será respondida com base na Lei da Reciprocidade Econômica. A abertura do processo não significa que o Brasil tenha decidido aplicar imediatamente contratarifas ou outras medidas de retaliação contra produtos norte-americanos. Neste momento, o governo inicia uma análise formal para verificar se as medidas dos EUA justificam a adoção de respostas previstas na legislação brasileira.</p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/economia/noticia/2026-08/governo-ouvira-empresarios-para-decidir-se-aplicara-lei-contra-eua\">Governo ouvirá empresários para decidir se aplicará lei contra EUA.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/politica/noticia/2026-08/governo-abre-processo-de-reciprocidade-contra-tarifas-dos-eua\">Governo abre processo de reciprocidade contra tarifas dos EUA.</a></li></ul>Diante da abertura do processo, <str",
+            "content_hash": "sha256:cf137d7698518c07473ed4910eb263d3ea70cc47b01f9cfbc13c5493ce21a09b",
+            "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+            "evidence_ref": "mem-20260815023329-238df2320d80"
+          },
+          {
+            "source": "Agência Brasil",
+            "category": "general_news",
+            "title": "Vôlei brasileiro passa a exigir teste genético para atletas mulheres",
+            "link": "https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/volei-brasileiro-passa-exigir-teste-genetico-para-atletas-mulheres",
+            "published_at": "Fri, 14 Aug 2026 18:52:00 -0300",
+            "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/volei-brasileiro-passa-exigir-teste-genetico-para-atletas-mulheres\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p>A Confederação Brasileira de Voleibol (CBV) anunciou nesta sexta-feira (14) que somente atletas do sexo biológico feminino poderão participar de competições organizadas pela entidade. A nova política de elegibilidade de atletas da categoria feminina foi publicada no final da tarde de hoje no <a href=\"https://cbv.com.br/noticias/CBV/2026-08-14/cbv-divulga-politica-sobre-a-elegibilidade-de-atletas-para-as-competicoes-da-categoria-feminina-no-voleibol\"><strong>site da CBV</strong></a>. Segundo a entidade, o novo critério tem como objetivo estar em conformidade com as regras do Comitê Olímpico Internacional (COI) e da Federação Internacional de Voleibol (FIVB).<img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699715&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699715&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>A verificação será feita por testagem e triagem do gene SRY. Normalmente o exame é realizado por meio de exame de sangue ou esfregaço bucal.</p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-03/coi-veta-participacao-de-mulheres-trans-em-jogos-femininos-oficiais\">COI veta participação de mulheres trans em jogos femininos oficiais.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/grupo-de-direitos-humanos-pede-wta-que-revogue-testes-de-genero\">Grupo de direitos humanos pede à WTA que revogue testes de gênero.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2025-07/comite-olimpico-dos-eua-proibe-mulheres-trans-em-competicoes-fem",
+            "content_hash": "sha256:555d86623059eab1acabf95b3c4b864ed8d0f6a478b414f90b555bdbbbfee2b2",
+            "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+            "evidence_ref": "mem-20260815023329-7bf63a5d788e"
+          }
+        ],
+        "response_time_ms": 422.11
+      },
+      {
+        "source": "MIT Technology Review",
+        "category": "technology",
+        "ok": true,
+        "items": [
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "The Download: Flock’s new rules, cloning’s future, and children’s cells",
+            "link": "https://www.technologyreview.com/2026/08/14/1142033/the-download-flock-new-rules-cloning-future/",
+            "published_at": "Fri, 14 Aug 2026 12:17:21 +0000",
+            "summary": "This is today&#8217;s edition of The Download, our weekday newsletter that provides a daily dose of what&#8217;s going on in the world of technology. Flock is tightening its rules in response to a growing surveillance backlash The police-tech giant Flock is changing officers’ access to its nationwide network of license plate readers. The move comes&#8230;",
+            "content_hash": "sha256:e9a09d8723c3199836fc7056ef80deed770d15691840b98010b33a6eaf9b2b37",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260815023329-42d846e0112b"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "This scientist is helping build a missing map of childhood",
+            "link": "https://www.technologyreview.com/2026/08/14/1141354/deanne-taylor-gene-expression-children/",
+            "published_at": "Fri, 14 Aug 2026 09:00:00 +0000",
+            "summary": "In 2017, Deanne Taylor attended a presentation at the University of Pennsylvania, just a short walk from her office. A researcher was there to unveil the Human Cell Atlas, an ambitious project that aimed to map every cell in the human body. Taylor was floored, and then concerned. As details emerged, she discovered that the&#8230;",
+            "content_hash": "sha256:117e3314b7d2e87a3ad4f7aa1779580801d31ce90b125691402275bfcece5e55",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260815023329-7a930b4f0aca"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "Job titles of the future: Space travel agent",
+            "link": "https://www.technologyreview.com/2026/08/14/1141431/job-titles-space-travel-agent-roman-chiporukha/",
+            "published_at": "Fri, 14 Aug 2026 09:00:00 +0000",
+            "summary": "Roman Chiporukha has long turned wild travel dreams into reality. Over two decades as co-owner of the luxury lifestyle firm Roman &#38; Erica, he has orchestrated everything from the construction of a client’s superyacht to vacations in the Bahamas at a location so private that guests must sign an NDA.&#160; The experiences earned him “the&#8230;",
+            "content_hash": "sha256:5b8a4430c6303c3c10fea847c906e5dcc35e6bafc8583063fbd761cde2935022",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260815023329-1c831eed8b0a"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "Cloning could be used to save species—or make human “organ sacks”",
+            "link": "https://www.technologyreview.com/2026/08/14/1141919/cloning-save-species-or-make-human-organ-sacks/",
+            "published_at": "Fri, 14 Aug 2026 09:00:00 +0000",
+            "summary": "This week I spoke to scientists who have found a way to turn male mouse embryos female. They’ve developed a CRISPR-based approach to essentially cut out the Y chromosome. It allowed them to create female clones of male mice. That’s right: female animals that are genetically identical to males, except for the missing Y chromosome.&#8230;",
+            "content_hash": "sha256:4fde7cc7e9f1ac54ba16280fe5c813287e103c70410859837f457bbf8e7956b6",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260815023329-e9797937363e"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "Roundtables: Inside the “Censorship-Industrial Complex” Idea Shaping US Policy",
+            "link": "https://www.technologyreview.com/2026/08/13/1141399/roundtables-inside-the-censorship-industrial-complex-idea-shaping-us-policy/",
+            "published_at": "Thu, 13 Aug 2026 21:00:00 +0000",
+            "summary": "Listen to the session or watch below The “censorship-industrial complex” is an idea that a network of government, tech, and research groups is collaborating to suppress conservative online speech. This was fodder for the right-wing information sphere for years—then it began making its way into US policy. Watch a conversation exploring how it started, where&#8230;",
+            "content_hash": "sha256:97a9791f5512b0ffa67c50bdecb5630a2be341e2fafaa0f38e61f26a4f180307",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260815023329-38466e1b0e53"
+          }
+        ],
+        "response_time_ms": 57.23
+      }
+    ],
+    "errors": [],
+    "requested_by": "rotation",
+    "intent_id": null
+  },
+  "observations": {
+    "insights": [
+      {
+        "text": "A episódio mem-20260813100047-f2ab6871d09a contém links e resumos idênticos aos de mem-20260813070634-ec3757164dea e mem-20260813095724-ec3757164dea, indicando que estão provavelmente se referindo ao mesmo conteúdo.",
+        "evidence_refs": [
+          "mem-20260813100047-f2ab6871d09a",
+          "mem-20260813070634-ec3757164dea",
+          "mem-20260813095724-ec3757164dea"
+        ],
+        "type": "redundant_content_identification",
+        "confidence": 0.9
+      },
+      {
+        "text": "O artigo em mem-20260813095724-b8534e273fb1 discute um avanço científico significativo: cientistas criando clones de coelhos do sexo masculino.",
+        "evidence_refs": [
+          "mem-20260813095724-b8534e273fb1"
+        ],
+        "type": "scientific_breakthrough_identification",
+        "confidence": 0.8
+      },
+      {
+        "text": "O artigo em mem-20260813095724-37a1f8bfc830 aborda como crianças se sentem sobre a IA, compartilhando suas próprias palavras sobre o tema.",
+        "evidence_refs": [
+          "mem-20260813095724-37a1f8bfc830"
+        ],
+        "type": "child_views_on_technology",
+        "confidence": 0.7
+      },
+      {
+        "text": "O artigo em mem-20260813070634-1979e18c71d2 discute o conceito de um 'complexo industrial de censura' e seu impacto na internet e na política americana.",
+        "evidence_refs": [
+          "mem-20260813070634-1979e18c71d2"
+        ],
+        "type": "internet_censorship_discussion",
+        "confidence": 0.9
+      },
+      {
+        "text": "O artigo em mem-20260813095724-ec3757164dea contém o mesmo conteúdo que o de mem-20260813070634-ec3757164dea, sugerindo que estão se referindo ao mesmo artigo.",
+        "evidence_refs": [
+          "mem-20260813095724-ec3757164dea",
+          "mem-20260813070634-ec3757164dea"
+        ],
+        "type": "redundant_content_identification",
+        "confidence": 0.9
+      }
+    ],
+    "risks": [
+      "Verificar a precisão da informação em mem-20260813095724-b8534e273fb1 para a validade científica.",
+      "Monitorar a discussão sobre censura na internet em mem-20260813070634-1979e18c71d2 para garantir que não se espalhe fake news.",
+      "Reformular as propostas de alteração no esquema obrigatório em face do"
+    ],
+    "proposed_changes": [],
+    "next_cycle": [
+      "Verificar a precisão da informação em mem-20260813095724-b8534e273fb1 para a validade científica.",
+      "Monitorar a discussão sobre censura na internet em mem-20260813070634-1979e18c71d2 para garantir que não se espalhe fake news.",
+      "Reformular propostas de alteração no esquema obrigatório ante"
+    ],
+    "quality_gate": {
+      "accepted": false,
+      "reasons": [
+        "insight com confidence positiva sem evidência válida",
+        "evidência insuficiente para o ciclo"
+      ],
+      "metrics": {
+        "insights": 5,
+        "evidence_refs": 0,
+        "duplicate_ratio": 0.0,
+        "proposals": 0,
+        "risks": 3
+      }
+    },
+    "research_plan": {
+      "topic": "memória histórica",
+      "question": "Como recuperar evidências antigas sem confundir hipótese com fato?",
+      "sources_to_consult": [],
+      "evidence_expected": "comparar pelo menos duas evidências independentes antes de consolidar um fato",
+      "next_test": "verificar uma instância inédita relacionada a memória histórica",
+      "retrieval": {
+        "source": "sqlite",
+        "episode_limit": 12,
+        "context_chars": 7544
+      }
+    }
+  }
+}
