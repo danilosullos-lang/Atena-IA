@@ -15305,5 +15305,300 @@
         }
       }
     }
+  },
+  {
+    "timestamp": "2026-08-15T20:21:51.767401+00:00",
+    "model": "qwen2.5:3b-instruct",
+    "provider": "local",
+    "task_type": "github_evolution",
+    "duration_limit_seconds": 300,
+    "research": {
+      "topic": "FAISS e recuperação",
+      "question": "Como melhorar a busca semântica e a diversidade do contexto?",
+      "query": "ATENA FAISS e recuperação: Como melhorar a busca semântica e a diversidade do contexto?",
+      "mode": "autonomous",
+      "sources": [],
+      "rss_sources": [
+        {
+          "source": "ArXiv Quantum Physics",
+          "category": "quantum_technology",
+          "ok": true,
+          "items": [],
+          "response_time_ms": 278.07
+        },
+        {
+          "source": "Olhar Digital",
+          "category": "technology",
+          "ok": true,
+          "items": [
+            {
+              "source": "Olhar Digital",
+              "category": "technology",
+              "title": "Smartwatch em promoção: veja uma seleção de relógios inteligentes para não perder",
+              "link": "https://olhardigital.com.br/2026/08/15/reviews/smartwatch-em-promocao-veja-uma-selecao-de-relogios-inteligentes-para-nao-perder/",
+              "published_at": "Sat, 15 Aug 2026 19:40:00 +0000",
+              "summary": "<p>Está pensando em renovar o pulso com um smartwatch? Reunimos três ótimas opções em oferta na Amazon para quem quer monitorar saúde, notificações e muito mais sem complicação. Confira as escolhas e aproveite antes que acabem. Smartwatch Samsung Galaxy Fit3 Display 1.6&#8243; Grafite O Samsung Galaxy Fit3 na cor Grafite trouxe uma tela AMOLED de [&#8230;]</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/15/reviews/smartwatch-em-promocao-veja-uma-selecao-de-relogios-inteligentes-para-nao-perder/\">Smartwatch em promoção: veja uma seleção de relógios inteligentes para não perder</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+              "content_hash": "sha256:71efa3a8c3cfc93852a31d4527407d5ec8f0b17e131346329e5d219de85f8b2a",
+              "source_url": "https://olhardigital.com.br/feed/",
+              "evidence_ref": "mem-20260815202152-5bc9a0db6cb2"
+            },
+            {
+              "source": "Olhar Digital",
+              "category": "technology",
+              "title": "Halo, LEGO e mais: uma seleção de jogos Xbox que estão em promoção na Amazon",
+              "link": "https://olhardigital.com.br/2026/08/15/reviews/halo-lego-e-mais-uma-selecao-de-jogos-xbox-que-estao-em-promocao-na-amazon-2/",
+              "published_at": "Sat, 15 Aug 2026 19:20:00 +0000",
+              "summary": "<p>Se você é fã de Xbox e está de olho em boas opções para expandir sua biblioteca, a Amazon reuniu algumas ofertas interessantes em jogos para Xbox One e Xbox Series X. Confira a seleção que preparamos e aproveite para garantir títulos clássicos e modernos com boas condições. Halo Infinite para Xbox One e Xbox [&#8230;]</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/15/reviews/halo-lego-e-mais-uma-selecao-de-jogos-xbox-que-estao-em-promocao-na-amazon-2/\">Halo, LEGO e mais: uma seleção de jogos Xbox que estão em promoção na Amazon</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+              "content_hash": "sha256:4cfa5e57e759968c2f1dff948805b4854713a483e3a2b93d0cbb9d8de351e1cc",
+              "source_url": "https://olhardigital.com.br/feed/",
+              "evidence_ref": "mem-20260815202152-a27ab3306315"
+            },
+            {
+              "source": "Olhar Digital",
+              "category": "technology",
+              "title": "Conheça o telescópio da NASA feito para caçar vida alienígena",
+              "link": "https://olhardigital.com.br/2026/08/15/ciencia-e-espaco/o-telescopio-da-nasa-que-vai-atras-de-vida-alienigena/",
+              "published_at": "Sat, 15 Aug 2026 19:07:23 +0000",
+              "summary": "<p>Em entrevista ao Olhar Digital, a astrobióloga Raíssa Estrela detalha o projeto focado em \"Terras 2.0\" e a busca por vida no espaço</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/15/ciencia-e-espaco/o-telescopio-da-nasa-que-vai-atras-de-vida-alienigena/\">Conheça o telescópio da NASA feito para caçar vida alienígena</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+              "content_hash": "sha256:7f04d7651c663e2c8dcb06f8a6d0f69508a37531754354765fcc1ac43576a7a4",
+              "source_url": "https://olhardigital.com.br/feed/",
+              "evidence_ref": "mem-20260815202152-a2d735e84a47"
+            },
+            {
+              "source": "Olhar Digital",
+              "category": "technology",
+              "title": "GTA VI chegou e a lista de jogos PS5 em promoção está imperdível",
+              "link": "https://olhardigital.com.br/2026/08/15/reviews/gta-vi-chegou-e-a-lista-de-jogos-ps5-em-promocao-esta-imperdivel/",
+              "published_at": "Sat, 15 Aug 2026 19:00:00 +0000",
+              "summary": "<p>Se você tem um PlayStation 5 e está de olho em títulos para expandir sua biblioteca, este é o momento certo. Reunimos três jogos em oferta na Amazon que vão do esporte à ação em mundo aberto — tem opção para todos os gostos. Confira a seleção e aproveite antes que os estoques mudem. Grand [&#8230;]</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/15/reviews/gta-vi-chegou-e-a-lista-de-jogos-ps5-em-promocao-esta-imperdivel/\">GTA VI chegou e a lista de jogos PS5 em promoção está imperdível</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+              "content_hash": "sha256:be099565067ab5ea303cce700c7477018e38e5b02bd888d5e78738bfe00e5e40",
+              "source_url": "https://olhardigital.com.br/feed/",
+              "evidence_ref": "mem-20260815202152-5e36568c9f6d"
+            },
+            {
+              "source": "Olhar Digital",
+              "category": "technology",
+              "title": "Hora de renovar o home office: selecionamos impressoras em promoção na Amazon",
+              "link": "https://olhardigital.com.br/2026/08/15/reviews/hora-de-renovar-o-home-office-selecionamos-impressoras-em-promocao-na-amazon-2/",
+              "published_at": "Sat, 15 Aug 2026 18:40:00 +0000",
+              "summary": "<p>Se você está pensando em trocar a impressora antiga ou finalmente adquirir uma para casa ou o escritório, este é um bom momento para pesquisar. Reunimos três opções multifuncionais em oferta na Amazon — modelos que combinam impressão, cópia e digitalização em um único aparelho. Confira a seleção. Impressora Multifuncional Colorida HP DeskJet Ink Advantage [&#8230;]</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/15/reviews/hora-de-renovar-o-home-office-selecionamos-impressoras-em-promocao-na-amazon-2/\">Hora de renovar o home office: selecionamos impressoras em promoção na Amazon</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+              "content_hash": "sha256:456baf4b4908e4bd06a3c8a7df1eabfffce5d4cc7b2c78eb867312aa3a440382",
+              "source_url": "https://olhardigital.com.br/feed/",
+              "evidence_ref": "mem-20260815202152-1669b5e356cc"
+            }
+          ],
+          "response_time_ms": 169.91
+        },
+        {
+          "source": "Agência Brasil",
+          "category": "general_news",
+          "ok": true,
+          "items": [
+            {
+              "source": "Agência Brasil",
+              "category": "general_news",
+              "title": "Ginástica rítmica: Brasil é bronze e garante vaga em Los Angeles 2028",
+              "link": "https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/ginastica-ritmica-brasil-e-bronze-e-garante-vaga-em-los-angeles-2028",
+              "published_at": "Sat, 15 Aug 2026 16:04:00 -0300",
+              "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/ginastica-ritmica-brasil-e-bronze-e-garante-vaga-em-los-angeles-2028\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p>O conjunto brasileiro de ginástica rítmica está classificado para os Jogos Olímpicos de Los Angeles, nos Estados Unidos, em 2028. Neste sábado (15), a equipe conquistou a medalha de bronze no conjunto geral do Campeonato Mundial da modalidade, em Frankfurt, na Alemanha.<img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699743&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699743&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>A formação é composta pela alagoana Maria Eduarda Arakaki, pela paulista Nicole Pírcio, pela capixaba Sofia Madeira, pelas paranaenses Julia Kurunczi e Mariana Gonçalves e pela amazonense Maria Paula Caminha.<br /> </p> <div class=\"dnd-widget-wrapper context-cheio_8colunas type-image\"><div class=\"dnd-atom-rendered\"><!-- scald=471869:cheio_8colunas --> <img src=\"/sites/default/files/thumbnails/image/loading_v2.gif\" data-echo=\"https://imagens.ebc.com.br/jKIINcHfsjmgX4RpOJlgGDbArYQ=/754x0/smart/https://agenciabrasil.ebc.com.br/sites/default/files/thumbnails/image/2026/08/15/whatsapp_image_2026-08-15_at_13.47.56.jpeg?itok=jLQjUG2X\" alt=\" Ginástica rítmica: Brasil é bronze no Mundial e garante vaga olímpica. Foto: MeloGym/CBG\" title=\"MeloGym/CBG\"> <noscript><img src=\"https://imagens.ebc.com.br/jKIINcHfsjmgX4RpOJlgGDbArYQ=/754x0/smart/https://agenciabrasil.ebc.com.br/sites/default/files/thumbnails/image/2026/08/15/whatsapp_image_2026-08-15_at_13.47.56.jpeg?itok=jLQjUG2X\" alt=\" Ginástica rítmica: Brasil é bronze no Mundial e garante vaga olímpica. Foto: MeloGym/CBG\" title=\"MeloGym/CBG\"></noscript> <!-- END scald=471869 --></div>",
+              "content_hash": "sha256:7e108bdc0ad6e8e3c7b574ec9d65aec1750bfc14e6abe41c647b25bd4327f485",
+              "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+              "evidence_ref": "mem-20260815202152-5bb947c5973f"
+            },
+            {
+              "source": "Agência Brasil",
+              "category": "general_news",
+              "title": "Exposição imersiva celebra 140 anos do nascimento de Tarsila do Amaral",
+              "link": "https://agenciabrasil.ebc.com.br/cultura/noticia/2026-08/exposicao-imersiva-celebra-140-anos-de-nascimento-de-tarsila-do-amaral",
+              "published_at": "Sat, 15 Aug 2026 14:48:00 -0300",
+              "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/cultura/noticia/2026-08/exposicao-imersiva-celebra-140-anos-de-nascimento-de-tarsila-do-amaral\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p>Em setembro deste ano, o nascimento da pintora brasileira Tarsila do Amaral completa 140 anos. Para celebrar a data, uma exposição imersiva será aberta neste sábado (15) em um novo espaço cultural que foi inaugurado na Avenida Paulista, em São Paulo: o Nubank Art Lab, instalado dentro do Conjunto Nacional.<img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699698&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699698&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>Depois do sucesso da exposição <em>Tarsila Popular</em>, que atraiu mais de 400 mil pessoas e foi uma das mais visitadas da história do Museu de Arte de São Paulo (Masp), <strong>a mostra <em>O Brasil de Tarsila </em>aposta na interatividade e ficará em cartaz até 31 de outubro</strong><em>. </em></p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/cultura/noticia/2026-08/criatividade-de-ambulantes-e-tema-de-exposicao-fotografica-no-rio\">Criatividade de ambulantes é tema de exposição fotográfica no Rio.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/cultura/noticia/2026-07/exposicao-reelabora-terror-com-obras-de-artistas-lgbt-em-fortaleza\">Exposição reelabora terror com obras de artistas LGBT+ em Fortaleza.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/cultura/noticia/2026-08/nunca-vai-ser-o-suficiente-diz-gagliasso-de-filmes-sobre-ditadura\">“Nunca vai ser o suficiente”, diz Gagliasso de filmes sobre a ditadura.</a></li></ul>O visitante poderá sentir cheiros, repousar em frente a uma paisagem desenhada pela artista, viajar em um trem ",
+              "content_hash": "sha256:966c2597fadc6c1d5723870623eaff5accffabf2aaaf5e923ada8fdfc64f4a52",
+              "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+              "evidence_ref": "mem-20260815202152-425a3632f31e"
+            },
+            {
+              "source": "Agência Brasil",
+              "category": "general_news",
+              "title": "Terremoto na Indonésia deixa pelo menos 47 mortos",
+              "link": "https://agenciabrasil.ebc.com.br/internacional/noticia/2026-08/terremoto-na-indonesia-deixa-pelo-menos-47-mortos",
+              "published_at": "Sat, 15 Aug 2026 11:52:00 -0300",
+              "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/internacional/noticia/2026-08/terremoto-na-indonesia-deixa-pelo-menos-47-mortos\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p><strong>Pelo menos 47 pessoas morreram após um <a href=\"https://agenciabrasil.ebc.com.br/internacional/noticia/2026-08/forte-terremoto-atinge-costa-da-indonesia-alerta-de-tsunami-e-emitido\" target=\"_blank\">terremoto de magnitude 7,7 graus na escala Richter </a>e dezenas de tremores secundários atingirem a Costa Leste da Indonésia neste sábado (15). As informações são da Agência Nacional de Mitigação de Desastres (BNPB).</strong><img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699734&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699734&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>As equipes de resgate ainda não conseguiram chegar a Nagekeo, região mais próxima do epicentro, depois que deslizamentos de terra bloquearam estradas e interromperam as comunicações, de acordo com autoridades.</p> <blockquote> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/internacional/noticia/2026-08/forte-terremoto-atinge-costa-da-indonesia-alerta-de-tsunami-e-emitido\">Forte terremoto atinge costa da Indonésia; alerta de tsunami é emitido.</a></li></ul>\"O terremoto foi enorme, o tremor foi muito forte\", disse Nona, moradora de 51 anos de Talibura, uma vila em Nusa Tenggara Oriental. \"Estávamos em 13 pessoas dentro de casa e todos corremos para nos salvar.\"</p> </blockquote> <p><strong>Ondas de tsunami com menos de 1 metro (3 pés) foram registradas em diversas áreas do país do Sudeste Asiático após o terremoto no início da manhã. </strong>As autoridades suspenderam o alerta de tsunami cerca de três horas depois.</p> <p>Mais cedo, equipes ",
+              "content_hash": "sha256:29232fd12a93a5ea268bd308d55c1b4eae84c9f1828a73be5dc4c70a94426d43",
+              "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+              "evidence_ref": "mem-20260815202152-3cf8d0704888"
+            },
+            {
+              "source": "Agência Brasil",
+              "category": "general_news",
+              "title": "Com 25 anos, grupo musical de pacientes psiquiátricos lança novo álbum",
+              "link": "https://agenciabrasil.ebc.com.br/saude/noticia/2026-08/com-25-anos-grupo-musical-de-pacientes-psiquiatricos-lanca-novo-album",
+              "published_at": "Sat, 15 Aug 2026 11:33:00 -0300",
+              "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/saude/noticia/2026-08/com-25-anos-grupo-musical-de-pacientes-psiquiatricos-lanca-novo-album\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p><strong>O Centro Psiquiátrico do Rio de Janeiro (CPRJ) lança neste sábado (15) o quinto álbum do grupo Harmonia Enlouquece, que recebeu o título <em>O Quinto dos Infernos</em>. </strong><img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699714&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699714&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p><strong>Formado por pacientes psiquiátricos e profissionais de saúde do CPRJ, o grupo é considerado referência em música como ferramenta de cuidado em saúde mental no âmbito do Sistema Único de Saúde (SUS).</strong></p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/educacao/noticia/2026-08/impacto-das-telas-na-saude-mental-ja-e-debatido-em-80-das-escolas\">Impacto das telas na saúde mental já é debatido em 80% das escolas.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/saude/noticia/2026-03/ibge-alerta-para-quadro-preocupante-na-saude-mental-de-adolescentes\">IBGE alerta para quadro preocupante na saúde mental de adolescentes.</a></li></ul>O CPRJ, unidade da Secretaria de Estado de Saúde do Rio de Janeiro (SES-RJ), é referência nacional em psiquiatria humanizada, destacando os elementos da cultura, escuta e protagonismo dos pacientes como parte do tratamento.</p> <p>O grupo Harmonia Enlouquece iniciou no dia 7 de abril de 2001, Dia Mundial da Saúde. O grupo já soma 65 músicas gravadas, a grande maioria composta pelo cantor e compositor Hamilton de Jesus Assunção, paciente do CPRJ desde 1998.</p> <blockquote> <p>“Ele faz a letra, a música e interpreta. Sem ele, a g",
+              "content_hash": "sha256:3c43de0547c6af332766efc0198281e4eb6d41318fb84e1ad129ab3db7e5c560",
+              "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+              "evidence_ref": "mem-20260815202152-3e0803fc1653"
+            },
+            {
+              "source": "Agência Brasil",
+              "category": "general_news",
+              "title": "Com envelhecimento da população, eleitorado jovem recua 22% em 16 anos",
+              "link": "https://agenciabrasil.ebc.com.br/politica/noticia/2026-08/com-envelhecimento-da-populacao-eleitorado-jovem-recua-22-em-16-anos",
+              "published_at": "Sat, 15 Aug 2026 10:03:00 -0300",
+              "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/politica/noticia/2026-08/com-envelhecimento-da-populacao-eleitorado-jovem-recua-22-em-16-anos\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p><strong>O envelhecimento da população brasileira já impacta o perfil do eleitorado, com diminuição de 22% dos votantes com idade entre 16 e 24 anos, considerando o período de 2010 a 2026. </strong>O levantamento foi realizado pelo Instituto Nexus, a pedido da <strong>Agência Brasil</strong>, com base em dados do Tribunal Superior Eleitoral (TSE). <img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699570&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699570&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>Além da redução proporcional, também houve recuo em números absolutos. <strong>A quantidade de brasileiros com menos de 24 anos que podem comparecer às urnas caiu 5,5 milhões</strong>. Eram 24,7 milhões eleitores nesta faixa etária, em 2010, contra 19,2 milhões, em 2026. </p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/direitos-humanos/noticia/2026-08/juventudes-perifericas-querem-usar-voto-como-ferramenta-de-mudanca\">Juventudes periféricas querem usar voto como ferramenta de mudança.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/geral/noticia/2026-08/adesivo-eleitoral-pode-levar-perda-da-cobertura-de-seguro\">Adesivo eleitoral pode levar à perda da cobertura de seguro.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/justica/noticia/2026-08/tre-rj-altera-66-locais-de-votacao-por-questoes-de-seguranca\">TRE-RJ altera 66 locais de votação por questões de segurança.</a></li></ul>Como o número total de eleitores no país aumentou 17%, passando de 135,8 milhões para 158,8 milhões no período, a parti",
+              "content_hash": "sha256:931ec1f153f986ab1c360dba5cf2d75ea90c43f0a9375013f0f972b2bc07e64e",
+              "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+              "evidence_ref": "mem-20260815202152-313877a217f8"
+            }
+          ],
+          "response_time_ms": 324.27
+        },
+        {
+          "source": "MIT Technology Review",
+          "category": "technology",
+          "ok": true,
+          "items": [
+            {
+              "source": "MIT Technology Review",
+              "category": "technology",
+              "title": "The Download: Flock’s new rules, cloning’s future, and children’s cells",
+              "link": "https://www.technologyreview.com/2026/08/14/1142033/the-download-flock-new-rules-cloning-future/",
+              "published_at": "Fri, 14 Aug 2026 12:17:21 +0000",
+              "summary": "This is today&#8217;s edition of The Download, our weekday newsletter that provides a daily dose of what&#8217;s going on in the world of technology. Flock is tightening its rules in response to a growing surveillance backlash The police-tech giant Flock is changing officers’ access to its nationwide network of license plate readers. The move comes&#8230;",
+              "content_hash": "sha256:e9a09d8723c3199836fc7056ef80deed770d15691840b98010b33a6eaf9b2b37",
+              "source_url": "https://www.technologyreview.com/feed/",
+              "evidence_ref": "mem-20260815202152-42d846e0112b"
+            },
+            {
+              "source": "MIT Technology Review",
+              "category": "technology",
+              "title": "This scientist is helping build a missing map of childhood",
+              "link": "https://www.technologyreview.com/2026/08/14/1141354/deanne-taylor-gene-expression-children/",
+              "published_at": "Fri, 14 Aug 2026 09:00:00 +0000",
+              "summary": "In 2017, Deanne Taylor attended a presentation at the University of Pennsylvania, just a short walk from her office. A researcher was there to unveil the Human Cell Atlas, an ambitious project that aimed to map every cell in the human body. Taylor was floored, and then concerned. As details emerged, she discovered that the&#8230;",
+              "content_hash": "sha256:117e3314b7d2e87a3ad4f7aa1779580801d31ce90b125691402275bfcece5e55",
+              "source_url": "https://www.technologyreview.com/feed/",
+              "evidence_ref": "mem-20260815202152-7a930b4f0aca"
+            },
+            {
+              "source": "MIT Technology Review",
+              "category": "technology",
+              "title": "Job titles of the future: Space travel agent",
+              "link": "https://www.technologyreview.com/2026/08/14/1141431/job-titles-space-travel-agent-roman-chiporukha/",
+              "published_at": "Fri, 14 Aug 2026 09:00:00 +0000",
+              "summary": "Roman Chiporukha has long turned wild travel dreams into reality. Over two decades as co-owner of the luxury lifestyle firm Roman &#38; Erica, he has orchestrated everything from the construction of a client’s superyacht to vacations in the Bahamas at a location so private that guests must sign an NDA.&#160; The experiences earned him “the&#8230;",
+              "content_hash": "sha256:5b8a4430c6303c3c10fea847c906e5dcc35e6bafc8583063fbd761cde2935022",
+              "source_url": "https://www.technologyreview.com/feed/",
+              "evidence_ref": "mem-20260815202152-1c831eed8b0a"
+            },
+            {
+              "source": "MIT Technology Review",
+              "category": "technology",
+              "title": "Cloning could be used to save species—or make human “organ sacks”",
+              "link": "https://www.technologyreview.com/2026/08/14/1141919/cloning-save-species-or-make-human-organ-sacks/",
+              "published_at": "Fri, 14 Aug 2026 09:00:00 +0000",
+              "summary": "This week I spoke to scientists who have found a way to turn male mouse embryos female. They’ve developed a CRISPR-based approach to essentially cut out the Y chromosome. It allowed them to create female clones of male mice. That’s right: female animals that are genetically identical to males, except for the missing Y chromosome.&#8230;",
+              "content_hash": "sha256:4fde7cc7e9f1ac54ba16280fe5c813287e103c70410859837f457bbf8e7956b6",
+              "source_url": "https://www.technologyreview.com/feed/",
+              "evidence_ref": "mem-20260815202152-e9797937363e"
+            },
+            {
+              "source": "MIT Technology Review",
+              "category": "technology",
+              "title": "Roundtables: Inside the “Censorship-Industrial Complex” Idea Shaping US Policy",
+              "link": "https://www.technologyreview.com/2026/08/13/1141399/roundtables-inside-the-censorship-industrial-complex-idea-shaping-us-policy/",
+              "published_at": "Thu, 13 Aug 2026 21:00:00 +0000",
+              "summary": "Listen to the session or watch below The “censorship-industrial complex” is an idea that a network of government, tech, and research groups is collaborating to suppress conservative online speech. This was fodder for the right-wing information sphere for years—then it began making its way into US policy. Watch a conversation exploring how it started, where&#8230;",
+              "content_hash": "sha256:97a9791f5512b0ffa67c50bdecb5630a2be341e2fafaa0f38e61f26a4f180307",
+              "source_url": "https://www.technologyreview.com/feed/",
+              "evidence_ref": "mem-20260815202152-38466e1b0e53"
+            }
+          ],
+          "response_time_ms": 122.92
+        }
+      ],
+      "errors": [],
+      "requested_by": "rotation",
+      "intent_id": null
+    },
+    "observations": {
+      "insights": [
+        {
+          "text": "A eleição presidencial está prevista para ocorrer em outubro de 2026, com debates e campanha eleitoral até lá.",
+          "evidence_refs": [
+            "https://www.bbc.com/portuguese/articles/c75gxk1vlnqo?at_medium=RSS&at_campaign=rss"
+          ],
+          "type": "observation",
+          "confidence": 0.8
+        },
+        {
+          "text": "O programa Olhar Digital News publicou notícias sobre tecnologia e ciência.",
+          "evidence_refs": [
+            "https://olhardigital.com.br/2026/08/14/videos/confira-o-olhar-digital-news-na-integra-14-08-2026/"
+          ],
+          "type": "observation",
+          "confidence": 0.8
+        },
+        {
+          "text": "PayPal está negociando a venda para duas empresas, sendo uma delas a Stripe e a outra a empresa de private equity Advent International.",
+          "evidence_refs": [
+            "https://olhardigital.com.br/2026/08/14/pro/paypal-negocia-venda-para-duas-empresas/"
+          ],
+          "type": "observation",
+          "confidence": 0.8
+        },
+        {
+          "text": "A Nvidia reduziu a garantia de financiamento para um projeto da OpenAI.",
+          "evidence_refs": [
+            "https://olhardigital.com.br/2026/08/14/pro/nvidia-reduz-garantia-de-financiamento-de-data-center-da-openai/"
+          ],
+          "type": "observation",
+          "confidence": 0.8
+        },
+        {
+          "text": "Conheça o telescópio da NASA feito para caçar vida alienígena.",
+          "evidence_refs": [
+            "https://olhardigital.com.br/2026/08/15/ciencia-e-espaco/o-telescopio-da-nasa-que-vai-atras-de-vida-alienigena/"
+          ],
+          "type": "observation",
+          "confidence": 0.8
+        },
+        {
+          "text": "O que os terremotos podem ensinar sobre a força dos furacões.",
+          "evidence_refs": [
+            "https://olhardigital.com.br/2026/08/15/ciencia-e-espaco/o-que-os-terremotos-podem-ensinar-sobre-a-forca-dos-furacoes/"
+          ],
+          "type": "observation",
+          "confidence": 0.8
+        }
+      ],
+      "risks": [],
+      "proposed_changes": [],
+      "next_cycle": [],
+      "quality_gate": {
+        "accepted": false,
+        "reasons": [
+          "insights sem próximo teste ou plano de verificação"
+        ],
+        "metrics": {
+          "insights": 6,
+          "evidence_refs": 6,
+          "duplicate_ratio": 0.0,
+          "proposals": 0,
+          "risks": 0
+        }
+      },
+      "research_plan": {
+        "topic": "FAISS e recuperação",
+        "question": "Como melhorar a busca semântica e a diversidade do contexto?",
+        "sources_to_consult": [],
+        "evidence_expected": "comparar pelo menos duas evidências independentes antes de consolidar um fato",
+        "next_test": "verificar uma instância inédita relacionada a FAISS e recuperação",
+        "retrieval": {
+          "source": "sqlite",
+          "episode_limit": 12,
+          "context_chars": 8417
+        }
+      }
+    }
   }
 ]
