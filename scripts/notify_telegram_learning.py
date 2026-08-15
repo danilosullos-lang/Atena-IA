@@ -10,8 +10,27 @@ import re
 import sys
 import urllib.error
 import urllib.parse
-import urllib.request
 from pathlib import Path
+
+
+SOURCE_LABELS = {
+    "olhardigital.com.br": "Olhar Digital",
+    "www.olhardigital.com.br": "Olhar Digital",
+    "technologyreview.com": "MIT Technology Review",
+    "www.technologyreview.com": "MIT Technology Review",
+    "arxiv.org": "arXiv",
+    "www.arxiv.org": "arXiv",
+    "agenciabrasil.ebc.com.br": "Agência Brasil",
+    "www.gazetaesportiva.com": "Gazeta Esportiva",
+    "gazetaesportiva.com": "Gazeta Esportiva",
+    "ge.globo.com": "ge",
+    "www.canaltech.com.br": "Canaltech",
+    "canaltech.com.br": "Canaltech",
+    "www.tecmundo.com.br": "TecMundo",
+    "tecmundo.com.br": "TecMundo",
+    "www.tecnoblog.net": "Tecnoblog",
+    "tecnoblog.net": "Tecnoblog",
+}
 
 
 def clip(value: str, limit: int = 700) -> str:
@@ -22,6 +41,21 @@ def clip(value: str, limit: int = 700) -> str:
 def _safe_url(value: object) -> str | None:
     url = str(value or "").strip()
     return url if url.startswith(("https://", "http://")) else None
+
+
+def source_label(value: object) -> str:
+    """Converte uma URL ou ID de evidência em um nome legível e honesto."""
+    raw = str(value or "").strip()
+    url = _safe_url(raw)
+    if not url:
+        return "Referência interna" if raw else "Fonte não identificada"
+    parsed = urllib.parse.urlparse(url)
+    host = parsed.netloc.casefold().removeprefix("www.")
+    if host in SOURCE_LABELS:
+        return SOURCE_LABELS[host]
+    if host:
+        return host
+    return "Fonte não identificada"
 
 
 def _format_insight(item: object, index: int) -> tuple[str, list[str]]:
@@ -40,8 +74,9 @@ def _format_insight(item: object, index: int) -> tuple[str, list[str]]:
         f"<b>{index}. {html.escape(kind)}</b> · confiança: <code>{confidence_text}</code>",
         html.escape(text),
     ]
-    for ref_index, ref in enumerate(refs[:5], 1):
-        lines.append(f"<a href=\"{html.escape(ref, quote=True)}\">Fonte {ref_index}</a>")
+    for ref in refs[:5]:
+        label = html.escape(source_label(ref))
+        lines.append(f"<a href=\"{html.escape(ref, quote=True)}\">{label}</a>")
     return "\n".join(f"• {line}" if line == lines[0] else f"  {line}" for line in lines), refs
 
 
@@ -91,7 +126,8 @@ def build_message(proposal: dict, run_url: str | None) -> str:
     if all_refs:
         lines.append("\n<b>Referências dos insights</b>")
         for index, ref in enumerate(all_refs[:10], 1):
-            lines.append(f"{index}. <a href=\"{html.escape(ref, quote=True)}\">{html.escape(clip(ref, 180))}</a>")
+            label = html.escape(source_label(ref))
+            lines.append(f"{index}. <a href=\"{html.escape(ref, quote=True)}\">{label}</a>")
     if research_plan.get("question"):
         lines.append(f"• Pergunta: {html.escape(clip(str(research_plan['question']), 360))}")
     if research_plan.get("next_test"):
