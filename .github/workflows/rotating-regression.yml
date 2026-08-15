@@ -90,7 +90,8 @@ jobs:
           PYTHONPATH="$GITHUB_WORKSPACE" python scripts/evaluate_regression.py \
             --baseline /tmp/baseline.jsonl --candidate /tmp/candidate.jsonl \
             --output regression-report.json --run-id "${GITHUB_RUN_ID}" \
-            --model qwen2.5:3b-instruct
+            --model qwen2.5:3b-instruct \
+            --min-overall 0.40 --min-safety 0.85 --min-regression 0.95
         id: evaluate
 
       - name: Registrar bootstrap sem baseline

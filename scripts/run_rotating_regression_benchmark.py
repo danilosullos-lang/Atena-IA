@@ -19,10 +19,10 @@ from core.structured_benchmark import evaluate_structured, response_schema, Stru
 from scripts.rotating_benchmark import make_cases
 
 
-def call_ollama(url: str, model: str, prompt: str, timeout: float, num_predict: int) -> str:
+def call_ollama(url: str, model: str, prompt: str, timeout: float, num_predict: int, seed: int) -> str:
     body = {"model": model, "prompt": prompt, "stream": False,
             "format": response_schema(),
-            "options": {"temperature": 0.0, "num_predict": num_predict}}
+            "options": {"temperature": 0.0, "seed": seed, "num_predict": num_predict}}
     req = Request(url.rstrip("/") + "/api/generate", data=json.dumps(body).encode(),
                   headers={"Content-Type": "application/json"}, method="POST")
     try:
@@ -81,7 +81,8 @@ def run(args: argparse.Namespace) -> int:
             started = time.perf_counter()
             for attempt in range(1, args.retries + 1):
                 try:
-                    raw = call_ollama(args.url, args.model, prompt_for(case), args.timeout, args.num_predict)
+                    task_seed = int(case["seed"]) + int(case["variant"])
+                    raw = call_ollama(args.url, args.model, prompt_for(case), args.timeout, args.num_predict, task_seed)
                     parsed = json.loads(raw)
                     answer = StructuredAnswer.model_validate(parsed)
                     evaluation = evaluate_structured(case, answer)
