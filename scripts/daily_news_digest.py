@@ -336,11 +336,25 @@ def _why_it_matters(category: str) -> str:
     }.get(category, "relevância geral")
 
 
+def _published_label(value: str) -> str:
+    if not value:
+        return "horário não informado"
+    try:
+        parsed = email.utils.parsedate_to_datetime(value)
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=dt.timezone.utc)
+        local = parsed.astimezone(dt.timezone(dt.timedelta(hours=-3)))
+        return local.strftime("%d/%m às %H:%M")
+    except (TypeError, ValueError, OverflowError):
+        return "horário não informado"
+
+
 def _caption(item: NewsItem) -> str:
     prefix = "Santos FC | torcida santista" if item.category == "Santos FC" else item.category
+    published = _published_label(item.published)
     return (
         f"<b>{html.escape(prefix)} — {html.escape(item.title[:220])}</b>\n"
-        f"<i>Fonte: {html.escape(item.source)}</i>\n"
+        f"<i>Fonte: {html.escape(item.source)} | Publicado: {published}</i>\n"
         f"<i>{html.escape(item.summary[:420] or 'Resumo indisponível; consulte a fonte original.')}</i>\n"
         f"<u>Por que importa:</u> {html.escape(_why_it_matters(item.category))}.\n"
         f"<a href=\"{html.escape(item.url, quote=True)}\">Ler fonte original</a>"
@@ -355,11 +369,11 @@ def format_digest(items: Iterable[NewsItem], errors: list[str], *, include_x: bo
     for category in grouped:
         grouped[category] = sorted(grouped[category], key=lambda item: _rank(item), reverse=True)[:max_items_per_category]
     lines = [
-        "ATENA — principais notícias do dia | briefing essencial",
+        "ATENA — principais notícias do dia | briefing editorial",
         f"Atualizado: {now.strftime('%d/%m/%Y às %H:%M')} (horário de Brasília)",
         "",
-        "Critérios: novidade, relevância, confiabilidade da fonte e deduplicação.",
-        "As imagens são ilustrativas da matéria; confirme notícias importantes na fonte original.",
+        "Seleção por atualidade, relevância, confiabilidade e diversidade de fontes.",
+        "Cada título abre a matéria original; imagens acompanham a notícia quando validadas.",
         "",
     ]
     for category, category_items in grouped.items():
@@ -367,15 +381,19 @@ def format_digest(items: Iterable[NewsItem], errors: list[str], *, include_x: bo
         for item in category_items:
             title = html.escape(item.title[:210])
             source = html.escape(item.source)
-            lines.append(f"• <a href=\"{html.escape(item.url, quote=True)}\">{title}</a> — {source}")
+            published = html.escape(_published_label(item.published))
+            lines.append(f"• <a href=\"{html.escape(item.url, quote=True)}\"><b>{title}</b></a>")
+            lines.append(f"  <i>Fonte: {source} | Publicado: {published}</i>")
             if item.summary:
-                lines.append(f"  <i>{html.escape(item.summary[:230])}</i>")
-            lines.append(f"  <u>Por que importa:</u> {html.escape(_why_it_matters(category))}.")
+                lines.append(f"  {html.escape(item.summary[:230])}")
+            lines.append(f"  <u>Relevância:</u> {html.escape(_why_it_matters(category))}.")
         lines.append("")
     if include_x and not grouped.get("Em alta no X"):
         lines.extend(["<b>Em alta no X</b>", "Nenhum resultado disponível; o token pode não estar configurado.", ""])
     if errors:
-        lines.extend([f"Fontes indisponíveis neste ciclo: {len(errors)}; serão tentadas novamente.", ""])
+        visible_errors = "; ".join(errors[:5])
+        suffix = "…" if len(errors) > 5 else ""
+        lines.extend([f"<b>Fontes indisponíveis neste ciclo ({len(errors)}):</b> {html.escape(visible_errors + suffix)}", "Será feita nova tentativa no próximo briefing.", ""])
     return "\n".join(lines)[:3900]
 
 

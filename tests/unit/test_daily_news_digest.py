@@ -10,12 +10,15 @@ def test_format_digest_has_categories_links_and_disclaimer():
     assert "ATENA — principais notícias do dia" in message
     assert "<b>Futebol</b>" in message
     assert "https://example.com/santos" in message
-    assert "fonte original" in message
+    assert "matéria original" in message
+    assert "Fonte: Fonte" in message
+    assert "horário não informado" in message
 
 
 def test_format_digest_reports_unavailable_sources():
     message = format_digest([], ["Fonte: Timeout"], include_x=False)
-    assert "Fontes indisponíveis neste ciclo: 1" in message
+    assert "Fontes indisponíveis neste ciclo (1)" in message
+    assert "Fonte: Timeout" in message
 
 
 from xml.etree import ElementTree as ET
