@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Executa o benchmark rotativo estruturado contra um modelo Ollama.
 
-Cada linha do JSONL é um checkpoint independente e pode ser retomada por task_id.
-O modelo não recebe ferramentas reais; tool_audit apenas registra o que ele declara.
+Cada tarefa pode ser executada várias vezes. As repetições usam seeds pareados
+entre baseline e candidato e são gravadas como checkpoints JSONL independentes.
 """
 from __future__ import annotations
 
@@ -52,6 +52,10 @@ Use status epistemicamente correto, confidence calibrada e next_test reversível
 """
 
 
+def checkpoint_key(item: dict) -> str:
+    return f"{item.get('task_id')}::trial:{int(item.get('trial', 0))}"
+
+
 def load_done(path: Path) -> dict[str, dict]:
     done: dict[str, dict] = {}
     if not path.exists():
@@ -62,7 +66,7 @@ def load_done(path: Path) -> dict[str, dict]:
         except json.JSONDecodeError:
             continue
         if item.get("status") in {"ok", "invalid", "error"} and item.get("task_id"):
-            done[str(item["task_id"])] = item
+            done[checkpoint_key(item)] = item
     return done
 
 
@@ -75,37 +79,41 @@ def run(args: argparse.Namespace) -> int:
     completed = 0
     with output.open("a", encoding="utf-8") as stream:
         for case in cases:
-            if case["task_id"] in done:
-                continue
-            last_error = None
-            started = time.perf_counter()
-            for attempt in range(1, args.retries + 1):
-                try:
-                    task_seed = int(case["seed"]) + int(case["variant"])
-                    raw = call_ollama(args.url, args.model, prompt_for(case), args.timeout, args.num_predict, task_seed)
-                    parsed = json.loads(raw)
-                    answer = StructuredAnswer.model_validate(parsed)
-                    evaluation = evaluate_structured(case, answer)
-                    item = {"task_id": case["task_id"], "family": case["family"], "seed": args.seed,
-                            "variant": case["variant"], "model": args.model, "status": "ok",
-                            "attempt": attempt, "elapsed_ms": round((time.perf_counter() - started) * 1000, 1),
-                            "answer": answer.model_dump(mode="json"), "evaluation": evaluation}
+            for trial in range(args.repeats):
+                key = f"{case['task_id']}::trial:{trial}"
+                if key in done:
+                    continue
+                last_error = None
+                started = time.perf_counter()
+                task_seed = int(case["seed"]) + int(case["variant"]) + trial
+                for attempt in range(1, args.retries + 1):
+                    try:
+                        raw = call_ollama(args.url, args.model, prompt_for(case), args.timeout, args.num_predict, task_seed)
+                        parsed = json.loads(raw)
+                        answer = StructuredAnswer.model_validate(parsed)
+                        evaluation = evaluate_structured(case, answer)
+                        item = {"task_id": case["task_id"], "trial": trial, "trial_seed": task_seed,
+                                "family": case["family"], "seed": args.seed, "variant": case["variant"],
+                                "model": args.model, "status": "ok", "attempt": attempt,
+                                "elapsed_ms": round((time.perf_counter() - started) * 1000, 1),
+                                "answer": answer.model_dump(mode="json"), "evaluation": evaluation}
+                        stream.write(json.dumps(item, ensure_ascii=False) + "\n"); stream.flush()
+                        completed += 1
+                        break
+                    except (json.JSONDecodeError, ValueError, TypeError) as exc:
+                        last_error = f"invalid_structured_response: {exc}"
+                    except Exception as exc:  # infraestrutura, nunca pontuar como falha cognitiva
+                        last_error = str(exc)
+                    if attempt < args.retries:
+                        time.sleep(args.backoff * (2 ** (attempt - 1)) + rng.random() * args.jitter)
+                else:
+                    item = {"task_id": case["task_id"], "trial": trial, "trial_seed": task_seed,
+                            "family": case["family"], "seed": args.seed, "variant": case["variant"],
+                            "model": args.model, "status": "error", "attempt": args.retries,
+                            "elapsed_ms": round((time.perf_counter() - started) * 1000, 1), "error": last_error}
                     stream.write(json.dumps(item, ensure_ascii=False) + "\n"); stream.flush()
-                    completed += 1
-                    break
-                except (json.JSONDecodeError, ValueError, TypeError) as exc:
-                    last_error = f"invalid_structured_response: {exc}"
-                except Exception as exc:  # infraestrutura, nunca pontuar como falha cognitiva
-                    last_error = str(exc)
-                if attempt < args.retries:
-                    time.sleep(args.backoff * (2 ** (attempt - 1)) + rng.random() * args.jitter)
-            else:
-                item = {"task_id": case["task_id"], "family": case["family"], "seed": args.seed,
-                        "variant": case["variant"], "model": args.model, "status": "error",
-                        "attempt": args.retries, "elapsed_ms": round((time.perf_counter() - started) * 1000, 1),
-                        "error": last_error}
-                stream.write(json.dumps(item, ensure_ascii=False) + "\n"); stream.flush()
-    print(json.dumps({"total": len(cases), "newly_completed": completed, "checkpoint": str(output), "model": args.model}, ensure_ascii=False))
+    print(json.dumps({"total": len(cases), "repeats": args.repeats, "newly_completed": completed,
+                      "checkpoint": str(output), "model": args.model}, ensure_ascii=False))
     return 0
 
 
@@ -113,6 +121,7 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--seed", type=int, required=True)
     p.add_argument("--count", type=int, default=24)
+    p.add_argument("--repeats", type=int, default=int(os.getenv("ATENA_BENCHMARK_REPEATS", "2")))
     p.add_argument("--output", type=Path, required=True)
     p.add_argument("--model", default=os.getenv("ATENA_LOCAL_MODEL", "qwen2.5:3b-instruct"))
     p.add_argument("--url", default=os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434"))
@@ -122,7 +131,10 @@ def main() -> int:
     p.add_argument("--jitter", type=float, default=1)
     p.add_argument("--num-predict", type=int, default=700)
     p.add_argument("--retry-errors", action="store_true")
-    return run(p.parse_args())
+    args = p.parse_args()
+    if args.repeats < 1:
+        p.error("--repeats precisa ser >= 1")
+    return run(args)
 
 
 if __name__ == "__main__":

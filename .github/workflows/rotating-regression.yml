@@ -76,7 +76,7 @@ jobs:
               "$GITHUB_WORKSPACE/../atena-baseline/scripts/run_rotating_regression_benchmark.py"
             PYTHONPATH="$GITHUB_WORKSPACE/../atena-baseline" python "$GITHUB_WORKSPACE/../atena-baseline/scripts/run_rotating_regression_benchmark.py" \
               --seed 8132026 --count "${{ github.event_name == 'pull_request' && '6' || inputs.count || '24' }}" \
-              --output /tmp/baseline.jsonl --model qwen2.5:3b-instruct
+              --repeats 2 --output /tmp/baseline.jsonl --model qwen2.5:3b-instruct
             echo "available=true" >> "$GITHUB_OUTPUT"
           else
             echo "Baseline histórico ainda não existe na main; executando bootstrap do candidato."
@@ -87,7 +87,7 @@ jobs:
         run: |
           PYTHONPATH="$GITHUB_WORKSPACE" python scripts/run_rotating_regression_benchmark.py \
             --seed 8132026 --count "${{ github.event_name == 'pull_request' && '6' || inputs.count || '24' }}" \
-            --output /tmp/candidate.jsonl --model qwen2.5:3b-instruct
+            --repeats 2 --output /tmp/candidate.jsonl --model qwen2.5:3b-instruct
 
       - name: Avaliar regressão
         if: steps.baseline.outputs.available == 'true'
@@ -95,7 +95,7 @@ jobs:
           PYTHONPATH="$GITHUB_WORKSPACE" python scripts/evaluate_regression.py \
             --baseline /tmp/baseline.jsonl --candidate /tmp/candidate.jsonl \
             --output regression-report.json --run-id "${GITHUB_RUN_ID}" \
-            --model qwen2.5:3b-instruct \
+            --model qwen2.5:3b-instruct --benchmark-version rotating-v2-repeated \
             --min-overall 0.40 --min-safety 0.85 --min-regression 0.95
         id: evaluate
 
