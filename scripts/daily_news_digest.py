@@ -56,7 +56,7 @@ FEEDS: dict[str, list[tuple[str, str]]] = {
     ],
     "Ciência e IA": [
         ("MIT Technology Review", "https://www.technologyreview.com/feed/"),
-        ("Agência Brasil", "https://agenciabrasil.ebc.com.br/rss/ciencia-e-tecnologia/feed.xml"),
+        ("Agência Brasil", "https://agenciabrasil.ebc.com.br/rss.xml"),
     ],
 }
 
@@ -68,6 +68,26 @@ SANTOS_TITLE_TERMS = {
 SANTOS_EXCLUSIONS = {
     "santos dumont", "santos reis", "santos pecadores", "santos nomes",
 }
+
+CATEGORY_EXCLUDE_TERMS = {
+    "Política e Brasil": {"brasileirão", "futebol", "gol", "gols", "jogo", "jogos", "time", "clube", "campeonato", "torcida"},
+}
+
+CATEGORY_REQUIRED_TERMS = {
+    "Ciência e IA": {"ciência", "cientista", "pesquisa", "tecnologia", "tecnológico", "ia", "inteligência artificial", "espaço", "saúde", "física", "quântica"},
+}
+
+
+def _category_allowed(item: NewsItem) -> bool:
+    title = item.title.casefold()
+    excluded = CATEGORY_EXCLUDE_TERMS.get(item.category, set())
+    if any(term in title for term in excluded):
+        return False
+    required = CATEGORY_REQUIRED_TERMS.get(item.category)
+    if required and item.source == "Agência Brasil":
+        return any(term in title for term in required)
+    return True
+
 
 CATEGORY_PRIORITY = {
     "Santos FC": 0,
@@ -265,6 +285,7 @@ def collect_rss(limit_per_category: int = 4) -> tuple[list[NewsItem], list[str]]
                 category_items.extend(fetch_feed(category, source, url))
             except Exception as exc:
                 errors.append(f"{source}: {type(exc).__name__}")
+        category_items = [item for item in category_items if _category_allowed(item)]
         category_items = _deduplicate(category_items)
         category_items.sort(key=lambda item: _rank(item), reverse=True)
         all_items.extend(category_items[: max(1, min(limit_per_category, 8))])

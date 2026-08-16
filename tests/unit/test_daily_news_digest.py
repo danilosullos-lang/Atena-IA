@@ -1,4 +1,4 @@
-from scripts.daily_news_digest import NewsItem, format_digest, _deduplicate_global, _is_santos_news
+from scripts.daily_news_digest import NewsItem, format_digest, _category_allowed, _deduplicate_global, _is_santos_news
 
 
 def test_format_digest_has_categories_links_and_disclaimer():
@@ -67,6 +67,16 @@ def test_global_deduplication_removes_same_story_across_categories():
     result = _deduplicate_global(items)
     assert len(result) == 1
     assert result[0].category == "Futebol"
+
+
+def test_category_filter_rejects_sports_from_politics():
+    assert _category_allowed(NewsItem("Política e Brasil", "Brasileirão tem rodada decisiva", "https://example.com/a", "Agência Brasil")) is False
+    assert _category_allowed(NewsItem("Política e Brasil", "Congresso aprova nova lei", "https://example.com/b", "Agência Brasil")) is True
+
+
+def test_science_filter_requires_relevant_title_for_agencia_brasil():
+    assert _category_allowed(NewsItem("Ciência e IA", "Time vence campeonato", "https://example.com/a", "Agência Brasil")) is False
+    assert _category_allowed(NewsItem("Ciência e IA", "Pesquisadores estudam física quântica", "https://example.com/b", "Agência Brasil")) is True
 
 
 def test_santos_filter_rejects_unrelated_santos_mentions():
