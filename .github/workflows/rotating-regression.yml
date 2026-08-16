@@ -69,6 +69,11 @@ jobs:
         id: baseline
         run: |
           if test -f "$GITHUB_WORKSPACE/../atena-baseline/scripts/run_rotating_regression_benchmark.py"; then
+            # O baseline usa o código de avaliação do candidato para que ambos
+            # recebam exatamente o mesmo seed, temperatura, schema e num_predict.
+            # Somente o código da aplicação/ memória vem da main histórica.
+            cp "$GITHUB_WORKSPACE/scripts/run_rotating_regression_benchmark.py" \
+              "$GITHUB_WORKSPACE/../atena-baseline/scripts/run_rotating_regression_benchmark.py"
             PYTHONPATH="$GITHUB_WORKSPACE/../atena-baseline" python "$GITHUB_WORKSPACE/../atena-baseline/scripts/run_rotating_regression_benchmark.py" \
               --seed 8132026 --count "${{ github.event_name == 'pull_request' && '6' || inputs.count || '24' }}" \
               --output /tmp/baseline.jsonl --model qwen2.5:3b-instruct
