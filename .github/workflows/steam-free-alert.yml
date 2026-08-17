@@ -2,8 +2,8 @@ name: Atena Steam free games alert
 
 on:
   schedule:
-    # GitHub Actions usa UTC; executa a cada 30 minutos.
-    - cron: "*/30 * * * *"
+    # GitHub Actions usa UTC; 23:00 UTC = 20:00 BRT (Brasília, UTC-3).
+    - cron: "0 23 * * *"
   workflow_dispatch:
 
 permissions:
