@@ -25,6 +25,8 @@ from core.memory_store import MemoryStore
 from core.memory_consolidation import compact_context
 from core.memory_retrieval import format_context, retrieve_context
 from core.evolution_quality_gate import evaluate_cycle
+from core.learning_progress import LearningProgress
+from core.consequence_memory import ConsequenceMemory
 from core.research_sources import fetch_configured_sources
 from core.atena_llm_router import AtenaLLMRouterAdvanced
 
@@ -319,10 +321,11 @@ def deduplicate_observations(observations: dict, memory: list[dict]) -> dict:
     return observations
 
 
-def ask_local_model(memory: list[dict], research: dict, topic: str, question: str, sqlite_context: str = "") -> tuple[dict, str, str]:
+def ask_local_model(memory: list[dict], research: dict, topic: str, question: str, sqlite_context: str = "", lesson_context: str = "") -> tuple[dict, str, str]:
     context = json.dumps(compact_context(memory[-200:], max_items=30), ensure_ascii=False, indent=2)[:9000]
     research_context = json.dumps(research, ensure_ascii=False, indent=2)[:7000]
     sqlite_context = sqlite_context or "(nenhum contexto SQLite recuperado)"
+    lesson_context = lesson_context or "(nenhuma lição validada recuperada)"
     prompt = f"""Você é o módulo local de análise da ATENA. Faça um ciclo de aprendizagem de no máximo cinco minutos.
 Responda SOMENTE com um objeto JSON, sem Markdown, sem comentários, sem códigos ANSI e sem texto antes ou depois.
 As chaves obrigatórias são: insights (lista de objetos), risks (lista de strings), proposed_changes
@@ -349,6 +352,10 @@ Memória recente legada:
 
 Memória episódica SQLite recuperada por relevância:
 {sqlite_context}
+
+Lições validadas recuperadas antes deste ciclo:
+{lesson_context}
+Use-as somente quando forem aplicáveis; registre uma nova evidência antes de tratá-las como confirmação atual.
 """
     async def generate_with_router() -> object:
         router = AtenaLLMRouterAdvanced()
@@ -426,7 +433,14 @@ def main() -> int:
         sqlite_context = format_context(retrieve_context(SQLITE_PATH, f"{topic} {question}", limit=12))
     except Exception as exc:
         print(f"recuperação SQLite indisponível: {exc}", file=sys.stderr)
-    observations, provider_used, model_used = ask_local_model(memory, research, topic, question, sqlite_context)
+    validated_lessons: list[dict] = []
+    try:
+        with ConsequenceMemory(SQLITE_PATH) as consequence_store:
+            validated_lessons = consequence_store.search_validated_lessons(f"{topic} {question}", limit=5)
+    except Exception as exc:
+        print(f"recuperação de lições validadas indisponível: {exc}", file=sys.stderr)
+    lesson_context = json.dumps(validated_lessons, ensure_ascii=False, indent=2)[:6000]
+    observations, provider_used, model_used = ask_local_model(memory, research, topic, question, sqlite_context, lesson_context)
     observations = deduplicate_observations(observations, memory)
     quality_gate = evaluate_cycle(observations)
     observations["quality_gate"] = quality_gate.to_dict()
@@ -435,6 +449,14 @@ def main() -> int:
             "text": f"Nenhuma conclusão nova foi confirmada sobre {topic}; a lacuna de evidência será investigada antes de consolidar uma memória.",
             "evidence_refs": [], "type": "limitation", "confidence": 0.0,
         }]
+    observations["learning_trace"] = {
+        "validated_lessons_consulted": [
+            item.get("lesson", {}).get("lesson_id") for item in validated_lessons
+            if isinstance(item, dict) and isinstance(item.get("lesson"), dict)
+        ],
+        "lesson_query": f"{topic} {question}",
+        "lesson_use_claim": "consulted_not_proven_applied",
+    }
     observations["research_plan"] = {
         "topic": topic,
         "question": question,
@@ -459,17 +481,29 @@ def main() -> int:
     proposal_path.write_text(json.dumps(cycle, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     sqlite_status = "ok"
+    progress_status = "ok"
     sqlite_memory_id = None
     promoted_status = "unverified"
     try:
         sqlite_memory_id = write_sqlite_cycle(cycle)
         if sqlite_memory_id and source_episode_ids:
             promoted_status = link_cycle_evidence(sqlite_memory_id, observations, source_episode_ids)
+        with LearningProgress(SQLITE_PATH) as progress:
+            progress.record_lesson_usage(cycle["timestamp"], f"{topic} {question}", validated_lessons)
+            progress.record_cycle(
+                cycle_id=cycle["timestamp"], model=model_used,
+                evidence_count=len(source_episode_ids),
+                validated_lesson_count=len(validated_lessons),
+                lessons_consulted_count=len(validated_lessons),
+                regression_status="pass" if quality_gate.passed else "blocked",
+                payload={"sqlite_memory_id": sqlite_memory_id, "promoted_status": promoted_status},
+            )
         if intent:
             with MemoryStore(SQLITE_PATH) as store:
                 store.complete_research(intent["id"], cycle["timestamp"], {"topic": topic, "sqlite_memory_id": sqlite_memory_id, "promoted_status": promoted_status, "source_episode_count": len(source_episode_ids), "status": "completed"})
     except Exception as exc:
         sqlite_status = f"error:{type(exc).__name__}"
+        progress_status = f"error:{type(exc).__name__}"
         print(f"SQLite dual-write falhou: {exc}", file=sys.stderr)
         if intent:
             try:
@@ -491,6 +525,8 @@ def main() -> int:
         "sqlite_memory_id": sqlite_memory_id,
         "source_episode_count": len(source_episode_ids),
         "promoted_status": promoted_status,
+        "progress_status": progress_status,
+        "validated_lessons_consulted": len(validated_lessons),
     }, ensure_ascii=False))
     return 0
 
