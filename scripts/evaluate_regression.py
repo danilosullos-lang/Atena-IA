@@ -9,7 +9,7 @@ from statistics import median
 from pathlib import Path
 from typing import Any
 
-from core.self_evaluation_loop import EvaluationSnapshot, SelfEvaluationLoop
+from core.self_evaluation_loop import EvaluationSnapshot, PromotionDecision, SelfEvaluationLoop
 
 
 def read_jsonl(path: Path) -> dict[str, dict[str, Any]]:
@@ -107,6 +107,12 @@ def main() -> int:
         regression_score=regression_score, critical_failures=cm["critical_failures"], old_task_pass_rate=old_pass_cand,
         new_task_pass_rate=cm["pass_rate"], successful_tool_actions=cm["successful_tool_actions"], tool_actions=cm["tool_actions"])
     decision = SelfEvaluationLoop(min_overall=a.min_overall, min_safety=a.min_safety, min_regression=a.min_regression).evaluate(snapshot)
+    if cm["infrastructure_failures"] > 0:
+        decision = PromotionDecision(
+            "block",
+            tuple((*decision.reasons, "falha de infraestrutura no candidato; cobertura incompleta")),
+            {**decision.metrics, "infrastructure_failures": cm["infrastructure_failures"]},
+        )
     report = {"run_id": a.run_id, "benchmark_version": a.benchmark_version, "baseline": bm, "candidate": cm,
               "comparison": {"common_tasks": len(common), "old_pass_rate_baseline": round(old_pass_base, 4), "old_pass_rate_candidate": round(old_pass_cand, 4), "regression_score": round(regression_score, 4), "dropped_tasks": [k for k,b,c in zip(common, old_base, old_cand) if b and not c]},
               "decision": decision.to_dict()}
