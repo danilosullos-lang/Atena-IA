@@ -1,0 +1,302 @@
+{
+  "timestamp": "2026-08-17T05:34:24.600591+00:00",
+  "model": "qwen2.5:3b-instruct",
+  "provider": "local",
+  "task_type": "github_evolution",
+  "duration_limit_seconds": 300,
+  "research": {
+    "topic": "autocorreção",
+    "question": "Qual falha observada precisa de um teste de regressão novo?",
+    "query": "ATENA autocorreção: Qual falha observada precisa de um teste de regressão novo?",
+    "mode": "autonomous",
+    "sources": [],
+    "rss_sources": [
+      {
+        "source": "ArXiv Quantum Physics",
+        "category": "quantum_technology",
+        "ok": true,
+        "items": [
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "A Quantum Optimization Framework for Data-Assimilation-Augmented Parameter Estimation",
+            "link": "https://arxiv.org/abs/2608.13614",
+            "published_at": "Mon, 17 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.13614v1 Announce Type: new Abstract: Parameter estimation is a fundamental challenge in the calibration of ordinary differential equation (ODE) models, where repeated numerical integration can lead to high computational cost. In this work, we investigate whether quantum algorithms can be leveraged to assist parameter estimation in nonlinear dynamical systems. We develop a hybrid classical-quantum framework that reformulates a data-assimilation-augmented parameter estimation problem as a combinatorial optimization task. Model dynamics and data assimilation are enforced entirely on the classical side, while the resulting parameter estimation cost functional is discretized and approximated by a quadratic unconstrained binary optimization (QUBO) surrogate. This surrogate is mapped to an Ising Hamiltonian, and quantum optimizers are used to search for low-energy configurations corresponding to candidate parameter estimates. We apply the framework to SIS and SIR epidemic models, the chaotic Lorenz-63 system, and a high-dimensional two-layer Lorenz-96 system. In this setting, the method is used to recover classical system parameters from partial state observations across steady-state, chaotic, and high-dimensional multiscale dynamical systems. Numerical experiments with synthetic data show that the proposed approach accurately recovers parameters while requiring data-assimilation solves only on a prescribed coarse grid. The framework avoids quantum state tomography, illustrating a viable pathway for integrating quantum optimization into data-driven parameter estimation for nonlinear dynamical systems.",
+            "content_hash": "sha256:33780aeb9a9ee808e1f0b46265e8160390656c72b7a35c4a606549c05385e0b3",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260817053425-f021fcefa042"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "A scalable edge-pass Purcell filter for high-fidelity readout of superconducting qubits",
+            "link": "https://arxiv.org/abs/2608.13627",
+            "published_at": "Mon, 17 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.13627v1 Announce Type: new Abstract: High-fidelity readout with strong Purcell protection of qubit coherence is essential for scalable superconducting quantum processors, yet the finite passband and sizable footprint of conventional band-pass Purcell filters make them hard to scale. Here we introduce a scalable edge-pass Purcell filter that separates the readout band from the protected qubit band by a single transmission edge, freeing the readout resonators from bandwidth constraint. Depending on whether the transmitting band lies above or below the cutoff, the compact network is realized as a high-pass filter (HPF) or a low-pass filter (LPF). The HPF reaches an average readout fidelity of 99.46(4)% (up to 99.56%) with a 150-ns pulse, and the LPF reaches 99.49(3)% (up to 99.57%) with a 130-ns pulse. The average single-qubit gate fidelities are 99.94% (HPF) and 99.93% (LPF). Relative to the filter-free Purcell limit, the filters substantially extend the qubit lifetime, and the Purcell protection deepens at higher filter order. In addition, an intrinsic dissipation mode of the filter offers a qubit-reset channel. This leads to a compact architecture that unifies fast, high-fidelity readout, Purcell protection, and effective reset within a single filter for large-scale fault-tolerant quantum computation.",
+            "content_hash": "sha256:8ed941283b79615440d49a4d745676c67261292ca8415041010a7cd5daa9eddb",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260817053425-8333fa8bb34b"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Heuristic Lookahead Distillation Protocol Search",
+            "link": "https://arxiv.org/abs/2608.13644",
+            "published_at": "Mon, 17 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.13644v1 Announce Type: new Abstract: Bipartite qubit entanglement distillation is the process of converting noisy ebits into pure ebits using only local operations and classical communication. This is a core operation for quantum repeaters, enabling such crucial tasks as long-distance quantum communication and distributed quantum computing. In this work, we introduce a method for searching for entanglement distillation protocols and, using this technique, distil qubit Werner states at a higher rate than could be achieved using previously discovered protocols. In particular, we demonstrate the advantage of our new distillation strategy by improving the best-known lower bound for the two-way-assisted quantum capacity of the qubit depolarising channel across a wide range of channel parameters, making progress in one of the long-standing problems of quantum information theory.",
+            "content_hash": "sha256:124e36092907d115f5249f348230bedf2b9b3879bc124a8067ade44514f647a6",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260817053425-6e264bf0b7ed"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Tracking real-space quantum state breathing through Floquet-projector geometry",
+            "link": "https://arxiv.org/abs/2608.13649",
+            "published_at": "Mon, 17 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.13649v1 Announce Type: new Abstract: Periodic driving of spatially periodic quantum systems generates band structures that are absent in static crystals. We present a quantum geometric theory to characterize the Floquet-Bloch states at stroboscopic times and during micromotion on equal footing. Our framework builds upon time-evolved Floquet projectors that connect static quantum geometry, micromotion-operator geometry, and Floquet topology. To illustrate the formalism, we introduce the Floquet-projector quantum metric, which we employ to characterize the real-space breathing of localized states in a driven chiral-symmetric integrable spin chain. The Floquet-projector quantum metric, integrated over the Brillouin zone, captures the oscillatory variance during micromotion and, at symmetry-selected times, is bounded below by Floquet topological invariants. We further describe how the Floquet projector geometry enables a systematic investigation of micromotion dynamics in periodically driven lattice systems.",
+            "content_hash": "sha256:032a508353394857e444fd73b11a3391a92e6a5f1ce6fe78840cec375eb812a8",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260817053425-4fb97f7831d6"
+          },
+          {
+            "source": "ArXiv Quantum Physics",
+            "category": "quantum_technology",
+            "title": "Entanglement Negativity in Noisy Quantum Volume Sampling",
+            "link": "https://arxiv.org/abs/2608.13654",
+            "published_at": "Mon, 17 Aug 2026 00:00:00 -0400",
+            "summary": "arXiv:2608.13654v1 Announce Type: new Abstract: The Quantum Volume protocol uses scrambling random circuits to benchmark NISQ computers. Quantum Volume is generally well-regarded as a benchmark for small, noisy, quantum computers because it requires the quantum computer to implement many non-local entangling gates within a square-shaped circuit, which incentivizes high qubit count, long qubit coherence times, and low error rates on all hardware gates. Quantum Volume circuits inherently produce high-entanglement states that are fragile to errors and decoherence. The Quantum Volume benchmark measures an observable called heavy-output-probability (HOP), where an HOP of $0.5$ corresponds to complete loss of coherence, and in the limit of system size an HOP $\\approx 0.84$ for a fully coherent quantum processor. Here, we numerically study the tradeoff between depolarizing noise, entanglement as quantified by the bipartite negativity measure, and HOP in quantum volume circuits. Our results contextualize prior small scale quantum volume demonstrations on quantum computers and highlight that under depolarizing noise, due to finite system size effects heavy output probabilities can be greater than $0.5$ while the bipartite negativity entanglement has been destroyed. This implies, although improbable, that a NISQ computer could pass the Quantum Volume benchmark test threshold of $2/3$ while the underlying quantum computation has no global entanglement -- albeit only for small $n$.",
+            "content_hash": "sha256:82bf27d78af0f4b1c313c79ca634329346ba6f169dc87ef32b75343bc86cacdc",
+            "source_url": "https://export.arxiv.org/rss/quant-ph",
+            "evidence_ref": "mem-20260817053425-5aa353d0ad04"
+          }
+        ],
+        "response_time_ms": 108.31
+      },
+      {
+        "source": "Olhar Digital",
+        "category": "technology",
+        "ok": true,
+        "items": [
+          {
+            "source": "Olhar Digital",
+            "category": "technology",
+            "title": "CEO da Anthropic: rejeição à IA é crise de confiança no setor",
+            "link": "https://olhardigital.com.br/2026/08/16/inteligencia-artificial/ceo-da-anthropic-rejeicao-a-ia-e-crise-de-confianca-no-setor/",
+            "published_at": "Sun, 16 Aug 2026 20:36:00 +0000",
+            "summary": "<p>Dario Amodei nega pessimismo em relação às inteligências artificiais e reconhece que público geral questiona ganhos com avanço da tecnologia</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/16/inteligencia-artificial/ceo-da-anthropic-rejeicao-a-ia-e-crise-de-confianca-no-setor/\">CEO da Anthropic: rejeição à IA é crise de confiança no setor</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+            "content_hash": "sha256:0b7039e06b35754ff33226097bb16d150dfc8c7bff770f55abf97993533f0f5c",
+            "source_url": "https://olhardigital.com.br/feed/",
+            "evidence_ref": "mem-20260817053425-dab6706bb4bf"
+          },
+          {
+            "source": "Olhar Digital",
+            "category": "technology",
+            "title": "Smartwatch em promoção: veja uma seleção para monitorar sua saúde e estilo",
+            "link": "https://olhardigital.com.br/2026/08/16/reviews/smartwatch-em-promocao-veja-uma-selecao-para-monitorar-sua-saude-e-estilo/",
+            "published_at": "Sun, 16 Aug 2026 19:40:00 +0000",
+            "summary": "<p>Se você está pensando em investir em um smartwatch, este é um bom momento para ficar de olho nas ofertas disponíveis na Amazon. Reunimos três opções que chamaram a atenção, entre modelos da Samsung e da Redmi, para diferentes perfis e necessidades. Confira! Smartwatch Samsung Galaxy Fit3 Display 1.6&#8243; Grafite O Samsung Galaxy Fit3 trouxe [&#8230;]</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/16/reviews/smartwatch-em-promocao-veja-uma-selecao-para-monitorar-sua-saude-e-estilo/\">Smartwatch em promoção: veja uma seleção para monitorar sua saúde e estilo</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+            "content_hash": "sha256:84aefdcd957cb166beae9a203cf72855d35a8230042e48a58d5d14689dc6ee15",
+            "source_url": "https://olhardigital.com.br/feed/",
+            "evidence_ref": "mem-20260817053425-0335aef01ff4"
+          },
+          {
+            "source": "Olhar Digital",
+            "category": "technology",
+            "title": "Hora de jogar: selecionamos ótimas ofertas de jogos para Xbox na Amazon",
+            "link": "https://olhardigital.com.br/2026/08/16/reviews/hora-de-jogar-selecionamos-otimas-ofertas-de-jogos-para-xbox-na-amazon/",
+            "published_at": "Sun, 16 Aug 2026 19:20:00 +0000",
+            "summary": "<p>Se você tem um Xbox One ou Xbox Series X e está de olho em bons títulos para expandir sua biblioteca, a Amazon reúne algumas opções interessantes com preços que valem a pena conferir. Separamos três jogos de gêneros bem diferentes para agradar desde os fãs de ação até quem curte um entretenimento mais descontraído. [&#8230;]</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/16/reviews/hora-de-jogar-selecionamos-otimas-ofertas-de-jogos-para-xbox-na-amazon/\">Hora de jogar: selecionamos ótimas ofertas de jogos para Xbox na Amazon</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+            "content_hash": "sha256:8b990a8aeba08efccf19d01b07b910a809adbb02856c7f5b666d61732aac9ae1",
+            "source_url": "https://olhardigital.com.br/feed/",
+            "evidence_ref": "mem-20260817053425-bdb491d33697"
+          },
+          {
+            "source": "Olhar Digital",
+            "category": "technology",
+            "title": "GTA VI, Street Fighter 6 e mais: selecionamos jogos de PS5 que estão em promoção na Amazon",
+            "link": "https://olhardigital.com.br/2026/08/16/reviews/gta-vi-street-fighter-6-e-mais-selecionamos-jogos-de-ps5-que-estao-em-promocao-na-amazon/",
+            "published_at": "Sun, 16 Aug 2026 19:00:00 +0000",
+            "summary": "<p>Se você tem um PlayStation 5 e está de olho em novos títulos para a coleção, chegou a hora certa. Reunimos três jogos em oferta na Amazon que valem muito a atenção — de luta a esporte, passando pelo lançamento mais aguardado dos últimos anos. Confira. Street Fighter 6 &#8211; Year 1 &#8211; 2 &#124; [&#8230;]</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/16/reviews/gta-vi-street-fighter-6-e-mais-selecionamos-jogos-de-ps5-que-estao-em-promocao-na-amazon/\">GTA VI, Street Fighter 6 e mais: selecionamos jogos de PS5 que estão em promoção na Amazon</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+            "content_hash": "sha256:d7d8697adc4a4e65ddb537745b19e1e3da769bc68e98cfe8ce210100444b473a",
+            "source_url": "https://olhardigital.com.br/feed/",
+            "evidence_ref": "mem-20260817053425-afe0e00ef533"
+          },
+          {
+            "source": "Olhar Digital",
+            "category": "technology",
+            "title": "Desertificação do solo avança no Brasil e ameaça cerca de 39 milhões de pessoas",
+            "link": "https://olhardigital.com.br/2026/08/16/ciencia-e-espaco/desertificacao-do-solo-avanca-no-brasil-e-ameaca-cerca-de-39-milhoes-de-pessoas/",
+            "published_at": "Sun, 16 Aug 2026 18:55:00 +0000",
+            "summary": "<p>Segurança hídrica e alimentar é ameaçada com avanço do desgaste do solo, que faz terras produtivas perderem a capacidade de sustentar vida vegetal e animal</p> <p>O post <a href=\"https://olhardigital.com.br/2026/08/16/ciencia-e-espaco/desertificacao-do-solo-avanca-no-brasil-e-ameaca-cerca-de-39-milhoes-de-pessoas/\">Desertificação do solo avança no Brasil e ameaça cerca de 39 milhões de pessoas</a> apareceu primeiro em <a href=\"https://olhardigital.com.br\">Olhar Digital</a>.</p>",
+            "content_hash": "sha256:22bef9805590adcabd89e065d9ce28da3e1345e90a7c5e7c07b71da4176f1e08",
+            "source_url": "https://olhardigital.com.br/feed/",
+            "evidence_ref": "mem-20260817053425-7d78edd7c150"
+          }
+        ],
+        "response_time_ms": 219.14
+      },
+      {
+        "source": "Agência Brasil",
+        "category": "general_news",
+        "ok": true,
+        "items": [
+          {
+            "source": "Agência Brasil",
+            "category": "general_news",
+            "title": "Santos desencanta no 2º tempo e atropela o Vasco pelo Brasileirão",
+            "link": "https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/santos-desencanta-no-2o-tempo-e-atropela-o-vasco-pelo-brasileirao",
+            "published_at": "Sun, 16 Aug 2026 18:10:00 -0300",
+            "summary": "<p>O Santos ganhou um respiro na luta pela permanência na elite do Campeonato Brasileiro. Na tarde deste domingo (16), o Peixe desencantou no segundo tempo e venceu o Vasco por 3 a 0 em São Januário, no Rio de Janeiro, pela 23ª rodada. A Rádio Nacional transmitiu a partida ao vivo.<img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699827&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699827&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>O Alvinegro Praiano foi a 25 pontos, deixando a zona de rebaixamento (o Z-4), que engloba as quatro piores campanhas do Brasileirão. O Cruzmaltino segue com 22 pontos e caiu para a 19ª e penúltima posição, superado pelo Remo (18º) no saldo de gols.</p> <p>O primeiro triunfo santista como visitante nesta edição da competição colocou o Internacional no Z-4. O Colorado possui os mesmos 23 pontos do Mirassol, primeiro time fora da zona de rebaixamento, mas uma vitória a menos que os paulistas. Nesta segunda-feira (17), os gaúchos têm confronto direto contra o Remo às 20h (horário de Brasília), no Beira-Rio, em Porto Alegre.</p> <p>A primeira grande chance do jogo foi do Santos. Aos 14 minutos, Álvaro Barreal escorou de cabeça na entrada da área e deixou o também atacante Gabriel livre na frente de Léo Jardim. O camisa 9 tocou na saída do goleiro e o chute saiu à direita, rente à trave.</p> <p>Aos 25, uma das novidades determinadas pela Confederação Brasileira de Futebol (CBF) nas regras foi colocada em prática. Após o goleiro Gabriel Brazão, do Santos, pedir atendimento depois de uma dividida, o árbitro Lucas Casagrande determinou que um atleta de linha do Peixe saísse de campo por um minuto, conforme prevê o novo protocolo. Quem deixou o gramado foi o atacante Neymar, capitão santista.</p> <p>O Vasco, apesar da maior presença no campo ofensivo, chegou pela primeira vez com mais perigo apenas aos 35 minutos. O lateral Lucas Piton recebeu do zagueiro Robe",
+            "content_hash": "sha256:3db94cd871733c7ce221f0f52bc54e7bfaf63f8c8d7ef136124d480877c702f2",
+            "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+            "evidence_ref": "mem-20260817053425-c9e96f481a7a"
+          },
+          {
+            "source": "Agência Brasil",
+            "category": "general_news",
+            "title": "Candidatos iniciam campanha presidencial em redutos eleitorais",
+            "link": "https://agenciabrasil.ebc.com.br/politica/noticia/2026-08/candidatos-iniciam-campanha-presidencial-em-redutos-eleitorais",
+            "published_at": "Sun, 16 Aug 2026 17:14:00 -0300",
+            "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/politica/noticia/2026-08/candidatos-iniciam-campanha-presidencial-em-redutos-eleitorais\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p> </p> <p>Os candidatos à presidência da República iniciaram neste domingo (16) a campanha nas ruas do país, <a href=\"https://agenciabrasil.ebc.com.br/politica/noticia/2026-08/campanha-eleitoral-nas-ruas-e-propaganda-virtual-comecam-neste-domingo\" target=\"_blank\">que está liberada<p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/politica/noticia/2026-08/candidatos-iniciam-campanha-presidencial-em-redutos-eleitorais\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p> a partir de hoje pelo calendário da Justiça Eleitoral</a>.<p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/politica/noticia/2026-08/candidatos-iniciam-campanha-presidencial-em-redutos-eleitorais\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p> <img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699821&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699821&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>De acordo com a<p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/politica/noticia/2026-08/candidatos-iniciam-campanha-presidencial-em-redutos-eleitorais\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p> <a href=\"https://www.planalto.gov.br/ccivil_0",
+            "content_hash": "sha256:fb34123058fb55caf68b24acdc76a8be195690e23246897135a937520a7e839a",
+            "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+            "evidence_ref": "mem-20260817053425-5061df7ea103"
+          },
+          {
+            "source": "Agência Brasil",
+            "category": "general_news",
+            "title": "Tifanny se pronuncia após regra que veta trans no vôlei: \"Retrocesso\"",
+            "link": "https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/tifanny-se-pronuncia-apos-regra-que-veta-trans-no-volei-retrocesso",
+            "published_at": "Sun, 16 Aug 2026 16:43:00 -0300",
+            "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/tifanny-se-pronuncia-apos-regra-que-veta-trans-no-volei-retrocesso\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p>A oposta Tifanny, que defende a equipe do Osasco São Cristóvão Saúde, manifestou-se, pela primeira vez, sobre a nova política de elegibilidade da Confederação Brasileira de Voleibol (CBV), que restringe a participação nas competições entre mulheres a atletas designadas com o sexo biológico feminino ao nascer.<img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699820&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699820&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p><strong>A jogadora, de 41 anos, a primeira transgênero a atuar na Superliga, considerou um \"enorme retrocesso\" e afirmou que não desistirá de seguir jogando</strong>.</p> <blockquote> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/volei-brasileiro-passa-exigir-teste-genetico-para-atletas-mulheres\">Vôlei brasileiro passa a exigir teste genético para atletas mulheres.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/nova-regra-da-cbv-afeta-participacao-de-tifanny-na-superliga-de-volei\">Nova regra da CBV afeta participação de Tifanny na Superliga de vôlei.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/esportes/noticia/2026-08/brasil-faz-historia-e-leva-dois-ouros-no-mundial-de-ginastica-ritmica\">Brasil faz história e leva dois ouros no Mundial de ginástica rítmica.</a></li></ul>\"A CBV está tirando tudo o que eu tenho, que é o amor pelo voleibol e a profissão que eu venho exercendo todos esses anos. Mas isso não afeta só a mim. Afeta o meu clube, a torcida, patrocinadores, as pessoas que se",
+            "content_hash": "sha256:72ba9c8d6d0e6acfb58c2c541ed244e29fbf4e1ba3d1dcb48daf60fc0105b147",
+            "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+            "evidence_ref": "mem-20260817053425-a00237181f15"
+          },
+          {
+            "source": "Agência Brasil",
+            "category": "general_news",
+            "title": "Inscrição para vestibular da Fuvest abre na próxima segunda-feira",
+            "link": "https://agenciabrasil.ebc.com.br/educacao/noticia/2026-08/inscricao-para-vestibular-da-fuvest-abre-na-proxima-segunda-feira",
+            "published_at": "Sun, 16 Aug 2026 16:02:00 -0300",
+            "summary": "<p><strong>Começa ao meio-dia da próxima segunda-feira (17) o prazo de inscrição para o Vestibular 2027 da Universidade de São Paulo (USP). O processo seletivo receberá cadastros até 9 de outubro <a href=\"https://www.fuvest.br/\" target=\"_blank\">por meio da página oficial</a>. A taxa cobrada para a participação é R$ 228.</strong><img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699689&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699689&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>O concurso manterá a oferta de 8.147 oportunidades em cursos de graduação, divididas entre diferentes perfis de concorrência. Serão 4.888 vagas para candidatos da modalidade Ampla Concorrência, 2.053 vagas para candidatos de escolas públicas e 1.206 vagas para candidatos autodeclarados pretos, pardos ou indígenas, egressos de escolas públicas.</p> <p><strong>A primeira etapa do vestibular, agendada para 1º de novembro, apresentará um novo formato. O caderno terá 80 questões de múltipla escolha, dez a menos do que nas edições anteriores, sem alteração na duração total de 5 horas.</strong></p> <p>Segundo a banca organizadora, a redução alinha-se a um modelo de avaliação mais interdisciplinar, focado na integração de conteúdos de diferentes disciplinas. <strong>A segunda etapa ocorrerá em 6 e 7 de dezembro.</strong></p> <p>Outra novidade é a inclusão de Fortaleza (CE) como polo de aplicação das provas, medida testada previamente durante os simulados organizados pela instituição. <strong>A expansão visa encurtar o trajeto de vestibulandos do Nordeste que tradicionalmente viajavam a São Paulo para prestar o exame, conforme explicou Gustavo Monaco, diretor-executivo da fundação.</strong></p> <p>Estudantes que demandam adaptações ou recursos de acessibilidade, como tempo estendido, provas em <em>braile</em> ou ampliadas, mobiliário adaptado e uso de próteses auditivas, devem formalizar o pedido no momento do c",
+            "content_hash": "sha256:fd627c136fa2c8a92bd27141991a020e97d5dcb91fefd9f797169f231e6ddd75",
+            "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+            "evidence_ref": "mem-20260817053425-e6bb8acd077e"
+          },
+          {
+            "source": "Agência Brasil",
+            "category": "general_news",
+            "title": "Pesquisadores encontram plantas consideradas extintas há 30 anos",
+            "link": "https://agenciabrasil.ebc.com.br/meio-ambiente/noticia/2026-08/pesquisadores-encontram-plantas-consideradas-extintas-ha-30-anos",
+            "published_at": "Sun, 16 Aug 2026 15:17:00 -0300",
+            "summary": "<p><p style=\"text-align:center;\"><a class=\"\" href=\"https://agenciabrasil.ebc.com.br/meio-ambiente/noticia/2026-08/pesquisadores-encontram-plantas-consideradas-extintas-ha-30-anos\"> <img src=\"https://cdn.jsdelivr.net/gh/sergiosdlima/assets-ebc@1.0.0/abr/assets/images/logo-agenciabrasil.svg\" alt=\"Logo Agência Brasil\" style=\"height: 54px;\"> </a></p>Algumas espécies de plantas raras e consideradas extintas da natureza há mais de 30 anos foram encontradas recentemente por um grupo de pesquisadores na região do Quadrilátero Ferrífero, em Minas Gerais.<img src=\"https://agenciabrasil.ebc.com.br/ebc.png?id=1699722&o=rss\" style=\"width:1px; height:1px; display:inline;\" /><img src=\"https://agenciabrasil.ebc.com.br/ebc.gif?id=1699722&o=rss\" style=\"width:1px; height:1px; display:inline;\" /></p> <p>As <strong>descobertas ocorreram em áreas protegidas e mantidas pela Vale e fazem parte do Projeto de Conservação de Espécies Raras e Endêmicas do Quadrilátero Ferrífero</strong>, desenvolvido por universidades, instituições de pesquisa e a Vale dentro da Rede Propagar.</p> <p><h3>Notícias relacionadas:</h3><ul><li><a href=\"https://agenciabrasil.ebc.com.br/saude/noticia/2026-08/pesquisa-de-polipilula-para-prevencao-do-avc-busca-85-mil-voluntarios\">Pesquisa de polipílula para prevenção do AVC busca 8,5 mil voluntários.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/direitos-humanos/noticia/2026-08/cientistas-cassados-pelo-ai-5-viram-pesquisadores-emeritos-da-fiocruz\">Cientistas cassados pelo AI-5 viram pesquisadores eméritos da Fiocruz.</a></li><li><a href=\"https://agenciabrasil.ebc.com.br/saude/noticia/2026-08/aberta-chamada-publica-para-pesquisas-sobre-endometriose\">Aberta chamada pública para pesquisas sobre endometriose .</a></li></ul>“Esse projeto envolve ir a campo nos locais onde essas plantas ocorrem e procurar por essas plantas na natureza. Algumas plantas que a gente tinha na nossa lista de espécies-alvo não eram vistas há mais de 100 anos e eram consideradas potencialme",
+            "content_hash": "sha256:909bab22c270260f0cf80b27582abb2f7f0a2ee965cda3da1d55276891fd5f24",
+            "source_url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
+            "evidence_ref": "mem-20260817053425-042b534cbc53"
+          }
+        ],
+        "response_time_ms": 849.19
+      },
+      {
+        "source": "MIT Technology Review",
+        "category": "technology",
+        "ok": true,
+        "items": [
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "The Download: Flock’s new rules, cloning’s future, and children’s cells",
+            "link": "https://www.technologyreview.com/2026/08/14/1142033/the-download-flock-new-rules-cloning-future/",
+            "published_at": "Fri, 14 Aug 2026 12:17:21 +0000",
+            "summary": "This is today&#8217;s edition of The Download, our weekday newsletter that provides a daily dose of what&#8217;s going on in the world of technology. Flock is tightening its rules in response to a growing surveillance backlash The police-tech giant Flock is changing officers’ access to its nationwide network of license plate readers. The move comes&#8230;",
+            "content_hash": "sha256:e9a09d8723c3199836fc7056ef80deed770d15691840b98010b33a6eaf9b2b37",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260817053425-42d846e0112b"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "This scientist is helping build a missing map of childhood",
+            "link": "https://www.technologyreview.com/2026/08/14/1141354/deanne-taylor-gene-expression-children/",
+            "published_at": "Fri, 14 Aug 2026 09:00:00 +0000",
+            "summary": "In 2017, Deanne Taylor attended a presentation at the University of Pennsylvania, just a short walk from her office. A researcher was there to unveil the Human Cell Atlas, an ambitious project that aimed to map every cell in the human body. Taylor was floored, and then concerned. As details emerged, she discovered that the&#8230;",
+            "content_hash": "sha256:117e3314b7d2e87a3ad4f7aa1779580801d31ce90b125691402275bfcece5e55",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260817053425-7a930b4f0aca"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "Job titles of the future: Space travel agent",
+            "link": "https://www.technologyreview.com/2026/08/14/1141431/job-titles-space-travel-agent-roman-chiporukha/",
+            "published_at": "Fri, 14 Aug 2026 09:00:00 +0000",
+            "summary": "Roman Chiporukha has long turned wild travel dreams into reality. Over two decades as co-owner of the luxury lifestyle firm Roman &#38; Erica, he has orchestrated everything from the construction of a client’s superyacht to vacations in the Bahamas at a location so private that guests must sign an NDA.&#160; The experiences earned him “the&#8230;",
+            "content_hash": "sha256:5b8a4430c6303c3c10fea847c906e5dcc35e6bafc8583063fbd761cde2935022",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260817053425-1c831eed8b0a"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "Cloning could be used to save species—or make human “organ sacks”",
+            "link": "https://www.technologyreview.com/2026/08/14/1141919/cloning-save-species-or-make-human-organ-sacks/",
+            "published_at": "Fri, 14 Aug 2026 09:00:00 +0000",
+            "summary": "This week I spoke to scientists who have found a way to turn male mouse embryos female. They’ve developed a CRISPR-based approach to essentially cut out the Y chromosome. It allowed them to create female clones of male mice. That’s right: female animals that are genetically identical to males, except for the missing Y chromosome.&#8230;",
+            "content_hash": "sha256:4fde7cc7e9f1ac54ba16280fe5c813287e103c70410859837f457bbf8e7956b6",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260817053425-e9797937363e"
+          },
+          {
+            "source": "MIT Technology Review",
+            "category": "technology",
+            "title": "Roundtables: Inside the “Censorship-Industrial Complex” Idea Shaping US Policy",
+            "link": "https://www.technologyreview.com/2026/08/13/1141399/roundtables-inside-the-censorship-industrial-complex-idea-shaping-us-policy/",
+            "published_at": "Thu, 13 Aug 2026 21:00:00 +0000",
+            "summary": "Listen to the session or watch below The “censorship-industrial complex” is an idea that a network of government, tech, and research groups is collaborating to suppress conservative online speech. This was fodder for the right-wing information sphere for years—then it began making its way into US policy. Watch a conversation exploring how it started, where&#8230;",
+            "content_hash": "sha256:97a9791f5512b0ffa67c50bdecb5630a2be341e2fafaa0f38e61f26a4f180307",
+            "source_url": "https://www.technologyreview.com/feed/",
+            "evidence_ref": "mem-20260817053425-38466e1b0e53"
+          }
+        ],
+        "response_time_ms": 86.93
+      }
+    ],
+    "errors": [],
+    "requested_by": "rotation",
+    "intent_id": null
+  },
+  "observations": {
+    "insights": [],
+    "risks": [],
+    "proposed_changes": [],
+    "next_cycle": [
+      "verificar uma instância inédita relacionada a qualidade de código"
+    ],
+    "quality_gate": {
+      "accepted": true,
+      "reasons": [],
+      "metrics": {
+        "insights": 0,
+        "evidence_refs": 0,
+        "duplicate_ratio": 0.0,
+        "proposals": 0,
+        "risks": 0
+      }
+    },
+    "research_plan": {
+      "topic": "autocorreção",
+      "question": "Qual falha observada precisa de um teste de regressão novo?",
+      "sources_to_consult": [],
+      "evidence_expected": "comparar pelo menos duas evidências independentes antes de consolidar um fato",
+      "next_test": "verificar uma instância inédita relacionada a autocorreção",
+      "retrieval": {
+        "source": "sqlite",
+        "episode_limit": 12,
+        "context_chars": 8692
+      }
+    }
+  }
+}
