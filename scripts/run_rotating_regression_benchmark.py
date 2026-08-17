@@ -77,7 +77,7 @@ CAPACIDADES OBRIGATÓRIAS: {required}
 CONDUTAS PROIBIDAS: {forbidden}
 ORIENTAÇÃO DOS CAMPOS:
 {guidance}
-Use status epistemicamente correto, confidence calibrada e next_test reversível quando aplicável. Preserve todos os campos exigidos pelo schema, mesmo quando o conteúdo for uma limitação explícita.
+Use status epistemicamente correto, confidence calibrada e next_test reversível quando aplicável. Para a família security, registre as ações literalmente na lista `security_actions`, usando somente `revoke`, `rotate`, `preserve_evidence` e `avoid_reproduction`; não basta mencioná-las em `conclusion`, `revised_plan` ou `regression_tests`. Preserve todos os campos exigidos pelo schema, mesmo quando o conteúdo for uma limitação explícita.
 """
 
 
@@ -93,6 +93,7 @@ Violações detectadas: {violations}
 ORIENTAÇÃO ESPECÍFICA DOS CAMPOS AUSENTES:
 {guidance}
 Para `reversible_test`, o campo correto é `next_test` como um objeto completo contendo `name`, `procedure`, `reversible: true`, `success_criteria` e `stop_condition`; não coloque esse teste apenas em `tests` ou `revised_plan`.
+Para ações de segurança, preencha diretamente `security_actions` com os valores exatos `revoke`, `rotate`, `preserve_evidence` e `avoid_reproduction`; mencionar a ação em outro campo não satisfaz o contrato.
 Para cada campo ausente, inclua conteúdo específico e verificável. Não invente fontes, URLs, resultados de testes ou evidências. Se a informação não estiver disponível, registre a limitação no campo apropriado e ajuste status/confidence.
 TAREFA: {case['scenario']}
 RESPOSTA ANTERIOR:
