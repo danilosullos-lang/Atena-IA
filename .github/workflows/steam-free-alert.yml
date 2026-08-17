@@ -56,4 +56,6 @@ jobs:
             exit 0
           fi
           git commit -m "chore(atena): record multistore discount alerts"
-          git push origin HEAD:atena/autoevolution
+          if ! git push origin HEAD:atena/autoevolution; then
+            echo "Aviso: outro worker publicou o estado do SQLite primeiro; mantendo este alerta como sucesso parcial."
+          fi
