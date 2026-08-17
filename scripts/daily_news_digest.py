@@ -7,6 +7,7 @@ import email.utils
 import html
 import os
 import re
+import time
 import xml.etree.ElementTree as ET
 from io import BytesIO
 from dataclasses import dataclass
@@ -17,6 +18,8 @@ from urllib.parse import urljoin
 import requests
 
 from core.x_news_research import XNewsResearch, XNotConfigured
+from core.monitoring_health import MonitoringHealth
+from core.semantic_dedup import MonitoredItem, SemanticDeduplicator
 
 
 @dataclass(frozen=True)
@@ -265,6 +268,26 @@ def _deduplicate_global(items: Iterable[NewsItem]) -> list[NewsItem]:
     return _deduplicate(ordered, preserve_categories=False)
 
 
+def _semantic_news_filter(items: Iterable[NewsItem]) -> list[NewsItem]:
+    """Retém notícias novas ou semanticamente alteradas entre ciclos."""
+    candidates = list(items)
+    try:
+        db_path = os.getenv("ATENA_MEMORY_DB", "atena_evolution/memory.sqlite3")
+        with SemanticDeduplicator(db_path) as dedup:
+            selected: list[NewsItem] = []
+            for item in candidates:
+                result = dedup.observe(MonitoredItem(
+                    kind="news", source=item.source, title=item.title, url=item.url,
+                    summary=item.summary, content=f"{item.title}\n{item.summary}",
+                    metadata={"category": item.category, "published": item.published},
+                ))
+                if result.action in {"new", "changed"}:
+                    selected.append(item)
+            return selected
+    except Exception:
+        return candidates
+
+
 def _rank(item: NewsItem, query_terms: set[str] | None = None) -> float:
     terms = query_terms or set()
     relevance = len(_tokens(item.title) & terms) / max(1, len(terms)) if terms else 0.5
@@ -275,36 +298,84 @@ def _rank(item: NewsItem, query_terms: set[str] | None = None) -> float:
     return 0.40 * freshness + 0.27 * source + 0.20 * relevance + 0.11 * substance + image_bonus
 
 
+def _health_source_id(source: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", source.casefold()).strip("_")
+
+
 def collect_rss(limit_per_category: int = 4) -> tuple[list[NewsItem], list[str]]:
     all_items: list[NewsItem] = []
     errors: list[str] = []
-    for category, sources in FEEDS.items():
-        category_items: list[NewsItem] = []
-        for source, url in sources:
-            try:
-                category_items.extend(fetch_feed(category, source, url))
-            except Exception as exc:
-                errors.append(f"{source}: {type(exc).__name__}")
-        category_items = [item for item in category_items if _category_allowed(item)]
-        category_items = _deduplicate(category_items)
-        category_items.sort(key=lambda item: _rank(item), reverse=True)
-        all_items.extend(category_items[: max(1, min(limit_per_category, 8))])
-    return _deduplicate_global(all_items), errors
+    health: MonitoringHealth | None = None
+    try:
+        health = MonitoringHealth(os.getenv("ATENA_MEMORY_DB", "atena_evolution/memory.sqlite3"))
+    except Exception:
+        pass
+    try:
+        for category, sources in FEEDS.items():
+            category_items: list[NewsItem] = []
+            for source, url in sources:
+                started = time.monotonic()
+                try:
+                    found = fetch_feed(category, source, url)
+                    category_items.extend(found)
+                    if health:
+                        health.record_check(_health_source_id(source), status="healthy" if found else "degraded",
+                                            latency_ms=(time.monotonic() - started) * 1000, item_count=len(found),
+                                            metadata={"category": category, "url": url})
+                except Exception as exc:
+                    errors.append(f"{source}: {type(exc).__name__}")
+                    if health:
+                        response = getattr(exc, "response", None)
+                        status_code = getattr(response, "status_code", None)
+                        health.record_check(_health_source_id(source), status="blocked" if status_code == 403 else "failed",
+                                            http_status=status_code, latency_ms=(time.monotonic() - started) * 1000,
+                                            error_type=type(exc).__name__, error_message=str(exc),
+                                            metadata={"category": category, "url": url})
+            category_items = [item for item in category_items if _category_allowed(item)]
+            category_items = _deduplicate(category_items)
+            category_items.sort(key=lambda item: _rank(item), reverse=True)
+            all_items.extend(category_items[: max(1, min(limit_per_category, 8))])
+        return _deduplicate_global(all_items), errors
+    finally:
+        if health:
+            health.close()
 
 
 def collect_santos_feeds(limit: int = 8) -> tuple[list[NewsItem], list[str]]:
     """Coleta fontes dedicadas e retorna apenas notícias explicitamente do clube."""
     items: list[NewsItem] = []
     errors: list[str] = []
-    for source, url in SANTOS_FEEDS:
-        try:
-            items.extend(fetch_feed("Santos FC", source, url))
-        except Exception as exc:
-            errors.append(f"{source}: {type(exc).__name__}")
-    selected = [item for item in items if _is_santos_news(item)]
-    selected = _deduplicate(selected)
-    selected.sort(key=lambda item: _rank(item), reverse=True)
-    return selected[: max(1, min(limit, 8))], errors
+    health: MonitoringHealth | None = None
+    try:
+        health = MonitoringHealth(os.getenv("ATENA_MEMORY_DB", "atena_evolution/memory.sqlite3"))
+    except Exception:
+        pass
+    try:
+        for source, url in SANTOS_FEEDS:
+            started = time.monotonic()
+            try:
+                found = fetch_feed("Santos FC", source, url)
+                items.extend(found)
+                if health:
+                    health.record_check(_health_source_id(source), status="healthy" if found else "degraded",
+                                        latency_ms=(time.monotonic() - started) * 1000, item_count=len(found),
+                                        metadata={"category": "Santos FC", "url": url})
+            except Exception as exc:
+                errors.append(f"{source}: {type(exc).__name__}")
+                if health:
+                    response = getattr(exc, "response", None)
+                    status_code = getattr(response, "status_code", None)
+                    health.record_check(_health_source_id(source), status="blocked" if status_code == 403 else "failed",
+                                        http_status=status_code, latency_ms=(time.monotonic() - started) * 1000,
+                                        error_type=type(exc).__name__, error_message=str(exc),
+                                        metadata={"category": "Santos FC", "url": url})
+        selected = [item for item in items if _is_santos_news(item)]
+        selected = _deduplicate(selected)
+        selected.sort(key=lambda item: _rank(item), reverse=True)
+        return selected[: max(1, min(limit, 8))], errors
+    finally:
+        if health:
+            health.close()
 
 
 def _is_santos_news(item: NewsItem) -> bool:
@@ -385,7 +456,7 @@ def _caption(item: NewsItem) -> str:
 def format_digest(items: Iterable[NewsItem], errors: list[str], *, include_x: bool, max_items_per_category: int = 3) -> str:
     now = dt.datetime.now(dt.timezone.utc).astimezone(dt.timezone(dt.timedelta(hours=-3)))
     grouped: dict[str, list[NewsItem]] = {}
-    for item in _deduplicate_global(items):
+    for item in _semantic_news_filter(_deduplicate_global(items)):
         grouped.setdefault(item.category, []).append(item)
     for category in grouped:
         grouped[category] = sorted(grouped[category], key=lambda item: _rank(item), reverse=True)[:max_items_per_category]

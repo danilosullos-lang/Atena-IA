@@ -21,6 +21,7 @@ import os
 import re
 import sqlite3
 import sys
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,6 +33,9 @@ from bs4 import BeautifulSoup
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+
+from core.monitoring_health import MonitoringHealth
+from core.semantic_dedup import MonitoredItem, SemanticDeduplicator
 
 USER_AGENT = os.getenv("ATENA_STORE_USER_AGENT", "Atena-IA store discount monitor/1.0")
 LOG = logging.getLogger("atena.store_discount_alert")
@@ -291,6 +295,23 @@ def save_deal(db: sqlite3.Connection, deal: Deal) -> None:
     )
 
 
+def _numeric_price(value: str | None) -> float | None:
+    if not value:
+        return None
+    match = re.search(r"([0-9][0-9.,]*)", value.replace(" ", ""))
+    if not match:
+        return None
+    raw = match.group(1)
+    if "," in raw and "." in raw:
+        raw = raw.replace(".", "").replace(",", ".")
+    elif "," in raw:
+        raw = raw.replace(",", ".")
+    try:
+        return float(raw)
+    except ValueError:
+        return None
+
+
 def telegram_send(token: str, chat_id: str, text: str) -> None:
     response = requests.post(
         f"https://api.telegram.org/bot{token}/sendMessage",
@@ -324,17 +345,35 @@ def collect(stores: list[str], minimum_discount: float = 50.0) -> tuple[list[Dea
     session = requests.Session()
     deals: list[Deal] = []
     errors: list[str] = []
-    for store in stores:
-        try:
-            found = DISCOVERERS[store](session, minimum_discount)
-            # Se uma listagem válida não tiver descontos, isso é possível; o
-            # limite protege contra páginas de bloqueio ou layouts quebrados.
-            if len(found) > int(os.getenv("ATENA_MAX_STORE_ITEMS", "200")):
-                found = found[: int(os.getenv("ATENA_MAX_STORE_ITEMS", "200"))]
-            deals.extend(found)
-        except Exception as exc:
-            LOG.warning("falha em %s: %s", store, exc)
-            errors.append(f"{store}: {type(exc).__name__}: {exc}")
+    health: MonitoringHealth | None = None
+    try:
+        health = MonitoringHealth(os.getenv("ATENA_MEMORY_DB", "atena_evolution/memory.sqlite3"))
+    except Exception as exc:
+        LOG.warning("monitoramento de saúde indisponível: %s", exc)
+    try:
+        for store in stores:
+            started = time.monotonic()
+            try:
+                found = DISCOVERERS[store](session, minimum_discount)
+                if len(found) > int(os.getenv("ATENA_MAX_STORE_ITEMS", "200")):
+                    found = found[: int(os.getenv("ATENA_MAX_STORE_ITEMS", "200"))]
+                deals.extend(found)
+                if health:
+                    health.record_check(store, status="healthy" if found else "degraded",
+                                        latency_ms=(time.monotonic() - started) * 1000,
+                                        item_count=len(found))
+            except Exception as exc:
+                LOG.warning("falha em %s: %s", store, exc)
+                errors.append(f"{store}: {type(exc).__name__}: {exc}")
+                response = getattr(exc, "response", None)
+                http_status = getattr(response, "status_code", None)
+                if health:
+                    health.record_check(store, status="blocked" if http_status == 403 else "failed",
+                                        http_status=http_status, latency_ms=(time.monotonic() - started) * 1000,
+                                        error_type=type(exc).__name__, error_message=str(exc))
+    finally:
+        if health:
+            health.close()
     unique = {deal.key: deal for deal in deals}
     return sorted(unique.values(), key=lambda item: (-item.discount_percent, item.store, item.title.lower())), errors
 
@@ -362,16 +401,28 @@ def run(db_path: Path, stores: list[str], minimum_discount: float = 50.0, dry_ru
     ensure_schema(db)
     sent = 0
     try:
-        for deal in deals:
-            if already_seen(db, deal):
-                continue
-            message = format_deal(deal)
-            if dry_run:
-                print(message + "\n")
-            else:
-                telegram_send(token, chat_id, message)
-            save_deal(db, deal)
-            sent += 1
+        with SemanticDeduplicator(db_path) as semantic:
+            for deal in deals:
+                observation = semantic.observe(MonitoredItem(
+                    kind="game_offer", source=deal.store, title=deal.title,
+                    url=deal.product_url, external_id=deal.product_id,
+                    summary=f"{deal.current_price or ''} {deal.original_price or ''}",
+                    price=_numeric_price(deal.current_price),
+                    discount_percent=deal.discount_percent,
+                    currency=deal.currency,
+                    metadata={"offer_type": deal.offer_type, "expires_at": deal.expires_at},
+                ))
+                if observation.action == "duplicate" or already_seen(db, deal):
+                    continue
+                message = format_deal(deal)
+                if observation.action == "changed":
+                    message = "ATENA — alteração detectada em oferta existente\n\n" + message
+                if dry_run:
+                    print(message + "\n")
+                else:
+                    telegram_send(token, chat_id, message)
+                save_deal(db, deal)
+                sent += 1
         db.commit()
     finally:
         db.close()
