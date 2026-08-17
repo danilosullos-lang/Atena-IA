@@ -68,6 +68,22 @@ jobs:
           ATENA_PROFILING: "0"
         run: bash atena doctor
 
+      - name: Healthcheck de integração por camadas
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          ALLOW_DEEP_SELF_MOD: "false"
+          ALLOW_CHECKER_EVOLVE: "false"
+          ALLOW_WORKFLOW_MUTATION: "false"
+          DEPLOY_COMMAND: ""
+        run: python scripts/integration_healthcheck.py --output /tmp/atena-integration-healthcheck.json
+
+      - name: Publicar relatório do healthcheck
+        uses: actions/upload-artifact@v4
+        with:
+          name: atena-integration-healthcheck-${{ github.run_id }}
+          path: /tmp/atena-integration-healthcheck.json
+          if-no-files-found: error
+
       - name: Suíte de testes
         env:
           ATENA_ROOT: ${{ github.workspace }}
