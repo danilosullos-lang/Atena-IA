@@ -397,33 +397,46 @@ def run(db_path: Path, stores: list[str], minimum_discount: float = 50.0, dry_ru
 
     deals, errors = collect(stores, minimum_discount)
     db_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Lê as chaves legadas e fecha a conexão antes de abrir o deduplicador
+    # semântico. Isso evita dois escritores SQLite ativos no mesmo arquivo.
+    legacy_db = sqlite3.connect(db_path, timeout=30)
+    legacy_db.execute("PRAGMA busy_timeout=30000")
+    ensure_schema(legacy_db)
+    legacy_keys = {row[0] for row in legacy_db.execute("SELECT alert_key FROM store_discount_alerts")}
+    legacy_db.close()
+
+    actionable: list[tuple[Deal, str]] = []
+    with SemanticDeduplicator(db_path) as semantic:
+        for deal in deals:
+            observation = semantic.observe(MonitoredItem(
+                kind="game_offer", source=deal.store, title=deal.title,
+                url=deal.product_url, external_id=deal.product_id,
+                summary=f"{deal.current_price or ''} {deal.original_price or ''}",
+                price=_numeric_price(deal.current_price),
+                discount_percent=deal.discount_percent,
+                currency=deal.currency,
+                metadata={"offer_type": deal.offer_type, "expires_at": deal.expires_at},
+            ))
+            if observation.action == "duplicate" or deal.key in legacy_keys:
+                continue
+            actionable.append((deal, observation.action))
+
     db = sqlite3.connect(db_path, timeout=30)
     db.execute("PRAGMA busy_timeout=30000")
     ensure_schema(db)
     sent = 0
     try:
-        with SemanticDeduplicator(db_path) as semantic:
-            for deal in deals:
-                observation = semantic.observe(MonitoredItem(
-                    kind="game_offer", source=deal.store, title=deal.title,
-                    url=deal.product_url, external_id=deal.product_id,
-                    summary=f"{deal.current_price or ''} {deal.original_price or ''}",
-                    price=_numeric_price(deal.current_price),
-                    discount_percent=deal.discount_percent,
-                    currency=deal.currency,
-                    metadata={"offer_type": deal.offer_type, "expires_at": deal.expires_at},
-                ))
-                if observation.action == "duplicate" or already_seen(db, deal):
-                    continue
-                message = format_deal(deal)
-                if observation.action == "changed":
-                    message = "ATENA — alteração detectada em oferta existente\n\n" + message
-                if dry_run:
-                    print(message + "\n")
-                else:
-                    telegram_send(token, chat_id, message)
-                save_deal(db, deal)
-                sent += 1
+        for deal, action in actionable:
+            message = format_deal(deal)
+            if action == "changed":
+                message = "ATENA — alteração detectada em oferta existente\n\n" + message
+            if dry_run:
+                print(message + "\n")
+            else:
+                telegram_send(token, chat_id, message)
+            save_deal(db, deal)
+            sent += 1
         db.commit()
     finally:
         db.close()
