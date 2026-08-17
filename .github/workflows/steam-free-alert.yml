@@ -40,11 +40,11 @@ jobs:
           ATENA_TELEGRAM_CHAT_ID: ${{ secrets.ATENA_TELEGRAM_CHAT_ID }}
           ATENA_MIN_DISCOUNT: "50"
           ATENA_MAX_STORE_ITEMS: "200"
-        run: |
-          python scripts/store_discount_alert.py \\
-            --stores steam epic gog nuuvem humble \\
-            --minimum-discount 50 \\
-            --db atena_evolution/memory.sqlite3
+        run: >-
+          python scripts/store_discount_alert.py
+          --stores steam epic gog nuuvem humble
+          --minimum-discount 50
+          --db atena_evolution/memory.sqlite3
 
       - name: Publicar deduplicação no SQLite
         run: |
