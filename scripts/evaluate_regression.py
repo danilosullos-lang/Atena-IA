@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 from collections import defaultdict
+from statistics import median
 from pathlib import Path
 from typing import Any
 
@@ -19,28 +20,64 @@ def read_jsonl(path: Path) -> dict[str, dict[str, Any]]:
         except json.JSONDecodeError:
             continue
         if item.get("task_id"):
-            result[str(item["task_id"])] = item
+            task_id = str(item["task_id"])
+            trial = item.get("trial")
+            key = task_id if trial is None and task_id not in result else f"{task_id}#trial-{trial if trial is not None else len(result)}"
+            while key in result:
+                key = f"{key}-duplicate"
+            result[key] = item
     return result
 
 
+def _logical_task_id(item: dict[str, Any]) -> str:
+    return str(item.get("task_id", "")).split("#", 1)[0]
+
+
 def metrics(items: dict[str, dict[str, Any]]) -> dict[str, Any]:
-    valid = [x for x in items.values() if x.get("status") == "ok" and isinstance(x.get("evaluation"), dict)]
-    scores = [float(x["evaluation"].get("score", 0)) / 100 for x in valid]
-    passed = [bool(x["evaluation"].get("passed")) for x in valid]
-    safety_failures = sum(bool(x["evaluation"].get("violations")) for x in valid)
-    tool_actions = sum(len(x.get("evaluation", {}).get("tool_calls", [])) for x in valid)
-    tool_success = sum(1 for x in valid if x.get("evaluation", {}).get("tool_executed") is False)
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for item in items.values():
+        grouped[_logical_task_id(item)].append(item)
+    tasks: dict[str, dict[str, Any]] = {}
+    infrastructure_failures = 0
+    for task_id, rows in grouped.items():
+        valid = [x for x in rows if x.get("status") == "ok" and isinstance(x.get("evaluation"), dict)]
+        infrastructure_failures += sum(x.get("status") == "error" for x in rows)
+        if not valid:
+            continue
+        scores = [float(x["evaluation"].get("score", 0)) / 100 for x in valid]
+        passed = [bool(x["evaluation"].get("passed")) for x in valid]
+        violations = any(bool(x["evaluation"].get("violations")) for x in valid)
+        representative = valid[-1]
+        tasks[task_id] = {
+            "family": str(representative.get("family", "unknown")),
+            "trials": len(valid),
+            "score_median": round(median(scores), 4),
+            "passed_majority": sum(passed) > len(passed) / 2,
+            "safety_violation_any": violations,
+        }
+    scores = [item["score_median"] for item in tasks.values()]
+    passed = [item["passed_majority"] for item in tasks.values()]
+    safety_failures = sum(item["safety_violation_any"] for item in tasks.values())
+    tool_actions = sum(len(x.get("evaluation", {}).get("tool_calls", [])) for x in items.values() if x.get("status") == "ok")
+    tool_success = sum(1 for x in items.values() if x.get("status") == "ok" and x.get("evaluation", {}).get("tool_executed") is True)
     by_family: dict[str, list[float]] = defaultdict(list)
-    for x, score in zip(valid, scores):
-        by_family[str(x.get("family", "unknown"))].append(score)
-    return {"total": len(items), "valid": len(valid), "infrastructure_failures": sum(x.get("status") == "error" for x in items.values()),
+    for item in tasks.values():
+        by_family[item["family"]].append(item["score_median"])
+    variability = {
+        "tasks_with_multiple_trials": sum(item["trials"] > 1 for item in tasks.values()),
+        "max_trials_per_task": max((item["trials"] for item in tasks.values()), default=0),
+    }
+    return {"total": len(tasks), "total_trials": len(items), "valid": len(tasks),
+            "infrastructure_failures": infrastructure_failures,
             "overall_score": round(sum(scores) / max(1, len(scores)), 4),
             "pass_rate": round(sum(passed) / max(1, len(passed)), 4),
-            "safety_score": round(1 - safety_failures / max(1, len(valid)), 4),
+            "safety_score": round(1 - safety_failures / max(1, len(tasks)), 4),
             "critical_failures": safety_failures,
             "tool_actions": tool_actions,
             "successful_tool_actions": tool_success,
-            "families": {k: round(sum(v) / max(1, len(v)), 4) for k, v in sorted(by_family.items())}}
+            "families": {k: round(sum(v) / max(1, len(v)), 4) for k, v in sorted(by_family.items())},
+            "variability": variability,
+            "tasks": tasks}
 
 
 def main() -> int:
@@ -57,9 +94,11 @@ def main() -> int:
     a = p.parse_args()
     base = read_jsonl(a.baseline); cand = read_jsonl(a.candidate)
     bm = metrics(base); cm = metrics(cand)
-    common = sorted(set(base) & set(cand))
-    old_base = [bool(base[k].get("evaluation", {}).get("passed")) for k in common]
-    old_cand = [bool(cand[k].get("evaluation", {}).get("passed")) for k in common]
+    base_tasks = bm.get("tasks", {})
+    cand_tasks = cm.get("tasks", {})
+    common = sorted(set(base_tasks) & set(cand_tasks))
+    old_base = [bool(base_tasks[k].get("passed_majority")) for k in common]
+    old_cand = [bool(cand_tasks[k].get("passed_majority")) for k in common]
     old_pass_base = sum(old_base) / max(1, len(old_base))
     old_pass_cand = sum(old_cand) / max(1, len(old_cand))
     regression_score = sum(1 for b, c in zip(old_base, old_cand) if (not b) or c) / max(1, len(common))
