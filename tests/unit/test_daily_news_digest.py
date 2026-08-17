@@ -1,7 +1,8 @@
 from scripts.daily_news_digest import NewsItem, format_digest, _category_allowed, _deduplicate_global, _is_santos_news
 
 
-def test_format_digest_has_categories_links_and_disclaimer():
+def test_format_digest_has_categories_links_and_disclaimer(tmp_path, monkeypatch):
+    monkeypatch.setenv("ATENA_MEMORY_DB", str(tmp_path / "news.sqlite3"))
     message = format_digest(
         [NewsItem("Futebol", "Santos vence", "https://example.com/santos", "Fonte")],
         [],

@@ -397,7 +397,8 @@ def run(db_path: Path, stores: list[str], minimum_discount: float = 50.0, dry_ru
 
     deals, errors = collect(stores, minimum_discount)
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    db = sqlite3.connect(db_path)
+    db = sqlite3.connect(db_path, timeout=30)
+    db.execute("PRAGMA busy_timeout=30000")
     ensure_schema(db)
     sent = 0
     try:
