@@ -384,6 +384,15 @@ def run(db_path: Path, stores: list[str], minimum_discount: float = 50.0, dry_ru
     }
 
 
+def workflow_exit_code(report: dict) -> int:
+    """Retorna falha apenas quando nenhuma loja conseguiu ser processada."""
+    stores = list(report.get("stores") or [])
+    errors = list(report.get("errors") or [])
+    if errors and len(errors) >= len(stores):
+        return 1
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Monitora descontos nas lojas de jogos")
     parser.add_argument("--db", type=Path, default=Path(os.getenv("ATENA_MEMORY_DB", "atena_evolution/memory.sqlite3")))
@@ -398,7 +407,7 @@ def main() -> int:
         return 0
     report = run(args.db, args.stores, args.minimum_discount, args.dry_run)
     print(json.dumps(report, ensure_ascii=False))
-    return 0 if not report["errors"] else 1
+    return workflow_exit_code(report)
 
 
 if __name__ == "__main__":

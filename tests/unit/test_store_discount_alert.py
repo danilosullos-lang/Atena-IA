@@ -40,3 +40,27 @@ def test_save_deal_is_idempotent_by_key() -> None:
     db.commit()
     row = db.execute("SELECT store, discount_percent FROM store_discount_alerts WHERE alert_key = ?", (deal.key,)).fetchone()
     assert row == ("humble", 70.0)
+
+
+from scripts.store_discount_alert import workflow_exit_code
+
+
+def test_partial_store_failure_keeps_workflow_successful():
+    report = {
+        "stores": ["steam", "epic", "gog", "nuuvem", "humble"],
+        "errors": ["nuuvem: HTTPError: 403 Client Error: Forbidden"],
+    }
+    assert workflow_exit_code(report) == 0
+
+
+def test_all_store_failures_keep_workflow_failed():
+    report = {
+        "stores": ["steam", "epic"],
+        "errors": ["steam: TimeoutError", "epic: HTTPError: 503"],
+    }
+    assert workflow_exit_code(report) == 1
+
+
+def test_no_store_errors_are_successful():
+    report = {"stores": ["steam"], "errors": []}
+    assert workflow_exit_code(report) == 0
