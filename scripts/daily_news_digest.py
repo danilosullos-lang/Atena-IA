@@ -20,6 +20,7 @@ import requests
 from core.x_news_research import XNewsResearch, XNotConfigured
 from core.monitoring_health import MonitoringHealth
 from core.semantic_dedup import MonitoredItem, SemanticDeduplicator
+from core.research_sources import load_config
 
 
 @dataclass(frozen=True)
@@ -99,8 +100,59 @@ CATEGORY_PRIORITY = {
     "Política e Brasil": 3,
     "Mundo": 4,
     "Ciência e IA": 5,
-    "Em alta no X": 6,
+    "Segurança digital": 6,
+    "Em alta no X": 7,
 }
+
+CONFIG_CATEGORY_MAP = {
+    "general_news": "Mundo",
+    "official_brazil": "Política e Brasil",
+    "economy": "Política e Brasil",
+    "economy_official": "Política e Brasil",
+    "health": "Política e Brasil",
+    "justice_security": "Política e Brasil",
+    "environment": "Mundo",
+    "agriculture": "Política e Brasil",
+    "science_policy": "Ciência e IA",
+    "space_science": "Ciência e IA",
+    "quantum_technology": "Ciência e IA",
+    "artificial_intelligence": "Ciência e IA",
+    "machine_learning": "Ciência e IA",
+    "language_models": "Ciência e IA",
+    "technology": "Jogos e tecnologia",
+    "technology_business": "Jogos e tecnologia",
+    "technology_gadgets": "Jogos e tecnologia",
+    "cybersecurity": "Segurança digital",
+    "culture_sports": "Futebol",
+}
+
+
+def _merged_feeds() -> dict[str, list[tuple[str, str]]]:
+    """Combina feeds editoriais fixos com o catálogo, sem duplicar URLs."""
+    merged = {category: list(sources) for category, sources in FEEDS.items()}
+    merged.setdefault("Segurança digital", [])
+    known_urls = {url for sources in merged.values() for _, url in sources}
+    try:
+        configured = load_config(mode="autonomous")
+    except Exception:
+        configured = []
+    for source in configured:
+        url = str(source.get("url", ""))
+        category = CONFIG_CATEGORY_MAP.get(str(source.get("category", "")))
+        name = str(source.get("name", url))
+        if not category or not url or url in known_urls:
+            continue
+        merged.setdefault(category, []).append((name, url))
+        known_urls.add(url)
+    deduplicated: dict[str, list[tuple[str, str]]] = {}
+    seen_urls: set[str] = set()
+    for category, sources in merged.items():
+        for name, url in sources:
+            if url in seen_urls:
+                continue
+            deduplicated.setdefault(category, []).append((name, url))
+            seen_urls.add(url)
+    return deduplicated
 
 
 SOURCE_WEIGHT = {
@@ -311,7 +363,7 @@ def collect_rss(limit_per_category: int = 4) -> tuple[list[NewsItem], list[str]]
     except Exception:
         pass
     try:
-        for category, sources in FEEDS.items():
+        for category, sources in _merged_feeds().items():
             category_items: list[NewsItem] = []
             for source, url in sources:
                 started = time.monotonic()

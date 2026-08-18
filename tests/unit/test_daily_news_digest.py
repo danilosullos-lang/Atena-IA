@@ -98,3 +98,15 @@ def test_santos_section_and_caption_are_personalized():
     selected = collect_santos([source], limit=3)
     assert selected[0].category == "Santos FC"
     assert "torcida santista" in _caption(selected[0])
+
+
+def test_configured_catalog_is_merged_without_duplicate_urls():
+    from scripts.daily_news_digest import _merged_feeds
+
+    feeds = _merged_feeds()
+    urls = [url for sources in feeds.values() for _, url in sources]
+    assert len(urls) >= 18
+    assert len(urls) == len(set(urls))
+    assert any(name == "The Verge" for sources in feeds.values() for name, _ in sources)
+    assert any(name == "NASA Breaking News" for sources in feeds.values() for name, _ in sources)
+    assert "Segurança digital" in feeds
