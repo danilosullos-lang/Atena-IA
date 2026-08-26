@@ -296,6 +296,96 @@
       "weight": 0.84,
       "enabled": true,
       "keywords": ["technology", "ai", "science", "security", "internet"]
+    },
+    {
+      "name": "Ars Technica",
+      "type": "rss",
+      "url": "https://feeds.arstechnica.com/arstechnica/index",
+      "category": "technology",
+      "mode": "autonomous",
+      "weight": 0.9,
+      "enabled": true,
+      "keywords": ["technology", "ai", "science", "security", "software"]
+    },
+    {
+      "name": "Engadget",
+      "type": "rss",
+      "url": "https://www.engadget.com/rss.xml",
+      "category": "technology_gadgets",
+      "mode": "autonomous",
+      "weight": 0.8,
+      "enabled": true,
+      "keywords": ["technology", "gadgets", "ai", "mobile", "internet"]
+    },
+    {
+      "name": "WIRED AI",
+      "type": "rss",
+      "url": "https://www.wired.com/feed/tag/ai/latest/rss",
+      "category": "artificial_intelligence",
+      "mode": "autonomous",
+      "weight": 0.88,
+      "enabled": true,
+      "keywords": ["ai", "artificial intelligence", "machine learning", "technology"]
+    },
+    {
+      "name": "WIRED Security",
+      "type": "rss",
+      "url": "https://www.wired.com/feed/category/security/latest/rss",
+      "category": "cybersecurity",
+      "mode": "autonomous",
+      "weight": 0.88,
+      "enabled": true,
+      "keywords": ["security", "cybersecurity", "privacy", "vulnerability", "internet"]
+    },
+    {
+      "name": "NVIDIA Technical Blog",
+      "type": "rss",
+      "url": "https://blogs.nvidia.com/feed/",
+      "category": "artificial_intelligence",
+      "mode": "autonomous",
+      "weight": 0.82,
+      "enabled": true,
+      "keywords": ["ai", "gpu", "machine learning", "robotics", "technology"]
+    },
+    {
+      "name": "Google AI Blog",
+      "type": "rss",
+      "url": "https://blog.google/technology/ai/rss/",
+      "category": "artificial_intelligence",
+      "mode": "autonomous",
+      "weight": 0.88,
+      "enabled": true,
+      "keywords": ["ai", "artificial intelligence", "machine learning", "gemini", "research"]
+    },
+    {
+      "name": "Hacker News Front Page",
+      "type": "rss",
+      "url": "https://hnrss.org/frontpage",
+      "category": "technology_business",
+      "mode": "autonomous",
+      "weight": 0.76,
+      "enabled": true,
+      "keywords": ["technology", "startups", "programming", "ai", "security"]
+    },
+    {
+      "name": "Dark Reading",
+      "type": "rss",
+      "url": "https://www.darkreading.com/rss.xml",
+      "category": "cybersecurity",
+      "mode": "autonomous",
+      "weight": 0.86,
+      "enabled": true,
+      "keywords": ["cybersecurity", "threats", "ransomware", "vulnerability", "security"]
+    },
+    {
+      "name": "Zero Day Initiative",
+      "type": "rss",
+      "url": "https://www.zerodayinitiative.com/rss/",
+      "category": "cybersecurity",
+      "mode": "autonomous",
+      "weight": 0.9,
+      "enabled": true,
+      "keywords": ["vulnerability", "zero day", "security", "cve", "exploit"]
     }
   ]
 }

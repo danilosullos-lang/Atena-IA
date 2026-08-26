@@ -166,6 +166,15 @@ SOURCE_WEIGHT = {
     "X": 0.55,
 }
 
+DEFAULT_X_TREND_QUERIES: tuple[tuple[str, str], ...] = (
+    ("IA", "(\"inteligência artificial\" OR IA OR OpenAI OR Gemini OR ChatGPT)"),
+    ("Tecnologia", "(tecnologia OR inovação OR software OR smartphone)"),
+    ("Cibersegurança", "(cibersegurança OR cybersecurity OR ransomware OR vulnerabilidade)"),
+    ("Brasil e política", "(Brasil OR política OR economia OR Congresso)"),
+    ("Esportes", "(futebol OR esporte OR Brasileirão)"),
+    ("Jogos", "(jogos OR games OR videogame OR Nintendo OR PlayStation OR Xbox)"),
+)
+
 
 def _text(element: ET.Element | None) -> str:
     if element is None:
@@ -452,19 +461,56 @@ def collect_santos(items: Iterable[NewsItem], limit: int = 3) -> list[NewsItem]:
     return sorted(unique, key=lambda item: _rank(item), reverse=True)[:max(1, min(limit, 5))]
 
 
-def collect_x(query: str = "(futebol OR política OR jogos OR tecnologia) lang:pt", limit: int = 10) -> list[NewsItem]:
+def _x_trend_queries() -> list[tuple[str, str]]:
+    configured = os.getenv("ATENA_X_TREND_QUERIES", "").strip()
+    if not configured:
+        return list(DEFAULT_X_TREND_QUERIES)
+    queries: list[tuple[str, str]] = []
+    for raw in configured.split("||"):
+        value = raw.strip()
+        if not value:
+            continue
+        if "=" in value:
+            label, query = value.split("=", 1)
+            queries.append((label.strip()[:40] or "Tema", query.strip()))
+        else:
+            queries.append((value[:40], value))
+    return queries or list(DEFAULT_X_TREND_QUERIES)
+
+
+def collect_x(query: str | None = None, limit: int = 10) -> list[NewsItem]:
+    """Agrega sinais de múltiplos temas do X e ranqueia por engajamento e recência."""
+    researcher = XNewsResearch()
+    query_sets = [("Consulta personalizada", query)] if query else _x_trend_queries()
+    posts_by_id = {}
+    labels_by_id: dict[str, str] = {}
     try:
-        posts = XNewsResearch().search(query, limit)
+        for label, trend_query in query_sets:
+            for post in researcher.search(trend_query, max(10, min(limit, 20))):
+                if post.post_id:
+                    posts_by_id[post.post_id] = post
+                    labels_by_id[post.post_id] = label
     except XNotConfigured:
         return []
 
-    def score(post) -> int:
+    def score(post) -> float:
         metrics = post.public_metrics or {}
-        return int(metrics.get("like_count", 0)) + 2 * int(metrics.get("retweet_count", 0)) + int(metrics.get("reply_count", 0))
+        likes = int(metrics.get("like_count", 0))
+        reposts = int(metrics.get("retweet_count", 0))
+        replies = int(metrics.get("reply_count", 0))
+        return 1.0 * likes + 2.5 * reposts + 1.5 * replies + 100.0 * _published_score(post.created_at or "")
 
+    ranked = sorted(posts_by_id.values(), key=score, reverse=True)[:max(1, min(limit, 20))]
     return [
-        NewsItem("Em alta no X", " ".join(post.text.split())[:220], post.url, "X", post.created_at or "", "Sinal de interesse público; confirme na fonte original.")
-        for post in sorted(posts, key=score, reverse=True)[:limit]
+        NewsItem(
+            "Em alta no X",
+            " ".join(post.text.split())[:220],
+            post.url,
+            "X",
+            post.created_at or "",
+            f"Tema monitorado: {labels_by_id.get(post.post_id, 'geral')}. Sinal de interesse público; confirme na fonte original.",
+        )
+        for post in ranked
     ]
 
 
