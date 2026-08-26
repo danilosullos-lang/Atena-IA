@@ -490,7 +490,9 @@ def collect_x(query: str | None = None, limit: int = 10) -> list[NewsItem]:
                 if post.post_id:
                     posts_by_id[post.post_id] = post
                     labels_by_id[post.post_id] = label
-    except XNotConfigured:
+    except (XNotConfigured, requests.RequestException):
+        # O X é opcional: token ausente, plano sem acesso ou indisponibilidade
+        # não podem interromper o briefing RSS nem provocar tentativas repetidas.
         return []
 
     def score(post) -> float:
@@ -662,16 +664,17 @@ def main() -> int:
         items.extend(santos_items)
         items.extend(collect_santos(items, limit=args.items_per_category))
     items = _deduplicate_global(items)
-    if args.include_x:
+    include_x = args.include_x and bool(os.getenv("ATENA_X_BEARER_TOKEN", "").strip())
+    if include_x:
         items.extend(collect_x())
-    message = format_digest(items, errors, include_x=args.include_x, max_items_per_category=args.items_per_category)
+    message = format_digest(items, errors, include_x=include_x, max_items_per_category=args.items_per_category)
     if args.dry_run:
         print(message)
     elif args.no_images:
         send_telegram(message)
         print(f"Briefing diário enviado com {len(items)} itens e {len(errors)} erros de fonte.")
     else:
-        photos, text_fallbacks = send_telegram_news(items, errors, include_x=args.include_x, max_items_per_category=args.items_per_category)
+        photos, text_fallbacks = send_telegram_news(items, errors, include_x=include_x, max_items_per_category=args.items_per_category)
         print(f"Briefing diário enviado com {len(items)} itens, {photos} imagens e {text_fallbacks} fallbacks de texto.")
     return 0
 

@@ -11,7 +11,7 @@ on:
       include_x:
         description: "Consultar também a API oficial do X"
         required: false
-        default: true
+        default: false
         type: boolean
 
 permissions:
@@ -45,9 +45,9 @@ jobs:
           ATENA_TELEGRAM_CHAT_ID: ${{ secrets.ATENA_TELEGRAM_CHAT_ID }}
           ATENA_X_BEARER_TOKEN: ${{ secrets.ATENA_X_BEARER_TOKEN }}
         run: |
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            INCLUDE_X="1"
-          elif [ "${{ inputs.include_x }}" = "true" ]; then
+          # O X fica opt-in para evitar chamadas à API com cobrança ou limites de plano.
+          # Os ciclos agendados são sempre RSS-only; a pesquisa do X só ocorre em dispatch manual explícito.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.include_x }}" = "true" ]; then
             INCLUDE_X="1"
           else
             INCLUDE_X="0"
