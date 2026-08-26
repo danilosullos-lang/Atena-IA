@@ -166,6 +166,136 @@
       "weight": 0.7,
       "enabled": true,
       "keywords": ["santos", "palmeiras", "jogo", "notícia"]
+    },
+    {
+      "name": "G1 Brasil",
+      "type": "rss",
+      "url": "https://g1.globo.com/rss/g1/",
+      "category": "general_news",
+      "mode": "autonomous",
+      "weight": 0.86,
+      "enabled": true,
+      "keywords": ["brasil", "política", "economia", "mundo", "saúde", "notícias"]
+    },
+    {
+      "name": "UOL Notícias",
+      "type": "rss",
+      "url": "https://rss.uol.com.br/feed/noticias.xml",
+      "category": "general_news",
+      "mode": "autonomous",
+      "weight": 0.82,
+      "enabled": true,
+      "keywords": ["brasil", "política", "economia", "mundo", "notícias"]
+    },
+    {
+      "name": "The Guardian World",
+      "type": "rss",
+      "url": "https://www.theguardian.com/world/rss",
+      "category": "general_news",
+      "mode": "autonomous",
+      "weight": 0.84,
+      "enabled": true,
+      "keywords": ["world", "mundo", "politics", "climate", "technology"]
+    },
+    {
+      "name": "NPR News",
+      "type": "rss",
+      "url": "https://feeds.npr.org/1001/rss.xml",
+      "category": "general_news",
+      "mode": "autonomous",
+      "weight": 0.82,
+      "enabled": true,
+      "keywords": ["world", "us", "politics", "science", "technology"]
+    },
+    {
+      "name": "BBC World News",
+      "type": "rss",
+      "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+      "category": "general_news",
+      "mode": "autonomous",
+      "weight": 0.86,
+      "enabled": true,
+      "keywords": ["world", "international", "politics", "science", "technology"]
+    },
+    {
+      "name": "Al Jazeera English",
+      "type": "rss",
+      "url": "https://www.aljazeera.com/xml/rss/all.xml",
+      "category": "general_news",
+      "mode": "autonomous",
+      "weight": 0.78,
+      "enabled": true,
+      "keywords": ["world", "middle east", "politics", "international"]
+    },
+    {
+      "name": "ScienceDaily All Science",
+      "type": "rss",
+      "url": "https://www.sciencedaily.com/rss/all.xml",
+      "category": "science_policy",
+      "mode": "autonomous",
+      "weight": 0.84,
+      "enabled": true,
+      "keywords": ["science", "research", "health", "space", "technology"]
+    },
+    {
+      "name": "Nature News",
+      "type": "rss",
+      "url": "https://www.nature.com/nature.rss",
+      "category": "science_policy",
+      "mode": "autonomous",
+      "weight": 0.92,
+      "enabled": true,
+      "keywords": ["science", "research", "biology", "climate", "technology"]
+    },
+    {
+      "name": "WHO News",
+      "type": "rss",
+      "url": "https://www.who.int/rss-feeds/news-english.xml",
+      "category": "health",
+      "mode": "autonomous",
+      "weight": 0.9,
+      "enabled": true,
+      "keywords": ["health", "public health", "disease", "pandemic", "medicine"]
+    },
+    {
+      "name": "European Space Agency Top News",
+      "type": "rss",
+      "url": "https://www.esa.int/rssfeed/TopNews",
+      "category": "space_science",
+      "mode": "autonomous",
+      "weight": 0.9,
+      "enabled": true,
+      "keywords": ["space", "esa", "astronomy", "earth", "science"]
+    },
+    {
+      "name": "NIST Cybersecurity News",
+      "type": "rss",
+      "url": "https://www.nist.gov/news-events/news/rss.xml",
+      "category": "cybersecurity",
+      "mode": "autonomous",
+      "weight": 0.9,
+      "enabled": true,
+      "keywords": ["cybersecurity", "security", "vulnerability", "nist", "technology"]
+    },
+    {
+      "name": "The New York Times World",
+      "type": "rss",
+      "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
+      "category": "general_news",
+      "mode": "autonomous",
+      "weight": 0.84,
+      "enabled": true,
+      "keywords": ["world", "international", "politics", "diplomacy"]
+    },
+    {
+      "name": "WIRED",
+      "type": "rss",
+      "url": "https://www.wired.com/feed/rss",
+      "category": "technology",
+      "mode": "autonomous",
+      "weight": 0.84,
+      "enabled": true,
+      "keywords": ["technology", "ai", "science", "security", "internet"]
     }
   ]
 }
