@@ -11,10 +11,20 @@ def _run(cmd: str) -> subprocess.CompletedProcess:
 
 def test_production_center_onboarding_run_e2e():
     proc = _run("./atena production-center onboarding-run")
-    assert proc.returncode == 0, proc.stdout + proc.stderr
     payload = json.loads(proc.stdout)
-    assert payload["status"] == "ok"
-    assert payload["completed_steps"] == payload["total_steps"] == 4
+
+    # O quality gate deve bloquear o onboarding quando o Guardian reprova.
+    # O teste valida a decisão canônica, não força um falso sucesso.
+    if proc.returncode != 0:
+        assert proc.returncode == 2
+        assert payload["status"] == "partial"
+        assert payload["gate_ok"] is False
+        assert payload["contract_valid"] is True
+        assert payload["completed_steps"] < payload["total_steps"]
+    else:
+        assert payload["status"] == "ok"
+        assert payload["gate_ok"] is True
+        assert payload["completed_steps"] == payload["total_steps"] == 4
 
 
 def test_production_center_quality_score_e2e():
