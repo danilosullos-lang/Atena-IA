@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 from datetime import datetime, timezone
@@ -16,17 +17,7 @@ if str(ROOT) not in sys.path:
 
 from modules.atena_codex import AtenaCodex
 from modules.atena_telemetry_hub import AtenaTelemetryHub, TelemetryEvent
-
-
-def is_autopilot_acceptable(autopilot: dict[str, object]) -> bool:
-    status = str(autopilot.get("status", "")).lower()
-    if status == "ok":
-        return True
-    if status != "partial":
-        return False
-    risk = float(autopilot.get("risk_score", 1.0) or 1.0)
-    confidence = float(autopilot.get("confidence", 0.0) or 0.0)
-    return risk <= 0.50 and confidence >= 0.50
+from core.atena_quality_gate import evaluate_guardian, is_autopilot_acceptable
 
 
 def main() -> int:
@@ -44,15 +35,14 @@ def main() -> int:
     now = datetime.now(timezone.utc)
     stamp = now.strftime("%Y-%m-%d")
 
-    autopilot_acceptable = is_autopilot_acceptable(autopilot)
-    guardian_ok = autopilot_acceptable and smoke.get("status") == "ok"
-
+    gate = evaluate_guardian(
+        autopilot,
+        smoke,
+        commit_sha=os.getenv("GITHUB_SHA") or None,
+    )
+    guardian_ok = gate.guardian_ok
     failed_smoke = [r for r in smoke.get("results", []) if not r.get("ok", False)]
-    blockers = []
-    if not autopilot_acceptable:
-        blockers.append("Autopilot fora da faixa aceitável (ok ou partial com risco/confiança mínimos)")
-    if failed_smoke:
-        blockers.append(f"Smoke suite com {len(failed_smoke)} falhas")
+    blockers = list(gate.blockers)
 
     docs_dir = ROOT / "docs"
     evo_dir = ROOT / "atena_evolution"
@@ -87,8 +77,16 @@ def main() -> int:
 
     payload = {
         "generated_at": now.isoformat(),
-        "guardian_ok": guardian_ok,
-        "autopilot": {
+                    "guardian_ok": guardian_ok,
+            "approved": gate.approved,
+            "decision": gate.decision,
+            "smoke_ok": gate.smoke_ok,
+            "autopilot_status": gate.autopilot_status,
+            "risk_score": gate.risk_score,
+            "confidence": gate.confidence,
+            "commit_sha": gate.commit_sha,
+            "autopilot": {
+
             "status": autopilot.get("status"),
             "risk_score": autopilot.get("risk_score"),
             "confidence": autopilot.get("confidence"),
