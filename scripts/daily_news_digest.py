@@ -19,6 +19,7 @@ import requests
 
 from core.x_news_research import XNewsResearch, XNotConfigured
 from core.monitoring_health import MonitoringHealth
+from core.news_provider_cascade import SearchProviderCascade
 from core.semantic_dedup import MonitoredItem, SemanticDeduplicator
 from core.research_sources import load_config
 
@@ -402,6 +403,38 @@ def collect_rss(limit_per_category: int = 4) -> tuple[list[NewsItem], list[str]]
             health.close()
 
 
+def collect_public_search_fallback(items: Iterable[NewsItem], limit: int = 8) -> tuple[list[NewsItem], dict]:
+    """Completa um RSS insuficiente com GDELT e Brave, sem tornar busca obrigatória."""
+    current = list(items)
+    query = os.getenv(
+        "ATENA_SEARCH_QUERY",
+        "latest technology artificial intelligence cybersecurity science",
+    )
+    cascade = SearchProviderCascade(
+        cache_path=os.getenv("ATENA_SEARCH_CACHE_PATH", "atena_evolution/search_provider_cache.json"),
+        cache_ttl_seconds=int(os.getenv("ATENA_SEARCH_CACHE_TTL_SECONDS", "1800")),
+    )
+    payload = cascade.search(
+        query,
+        rss_items=[{"title": item.title, "url": item.url, "summary": item.summary, "source": item.source} for item in current],
+        limit=max(1, min(limit, 20)),
+        minimum_rss=int(os.getenv("ATENA_MINIMUM_RSS_ITEMS", "6")),
+    )
+    known = {item.url for item in current}
+    additions = []
+    for result in payload:
+        url = str(result.get("url", "")).strip()
+        title = str(result.get("title", "")).strip()
+        if not url or not title or url in known:
+            continue
+        additions.append(NewsItem(
+            "Mundo", title[:240], url, str(result.get("source", "Pesquisa pública")),
+            summary=_clean_summary(str(result.get("summary", ""))),
+        ))
+        known.add(url)
+    return current + additions, cascade.stats
+
+
 def collect_santos_feeds(limit: int = 8) -> tuple[list[NewsItem], list[str]]:
     """Coleta fontes dedicadas e retorna apenas notícias explicitamente do clube."""
     items: list[NewsItem] = []
@@ -658,6 +691,14 @@ def main() -> int:
     parser.add_argument("--no-santos", action="store_true", help="Não incluir a seção Santos FC")
     args = parser.parse_args()
     items, errors = collect_rss(limit_per_category=max(1, min(args.items_per_category, 8)))
+    if os.getenv("ATENA_ENABLE_SEARCH_FALLBACK", "true").strip().lower() in {"1", "true", "yes", "on"}:
+        items, fallback_stats = collect_public_search_fallback(items, limit=max(4, args.items_per_category * 3))
+        if fallback_stats:
+            errors.extend(
+                f"search:{provider}:{metrics.get('rate_limited', 0)} rate-limits, {metrics.get('errors', 0)} errors"
+                for provider, metrics in fallback_stats.items()
+                if metrics.get("rate_limited", 0) or metrics.get("errors", 0)
+            )
     if not args.no_santos:
         santos_items, santos_errors = collect_santos_feeds(limit=max(6, args.items_per_category * 2))
         errors.extend(santos_errors)
