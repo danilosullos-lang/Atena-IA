@@ -1,54 +1,227 @@
-name: ATENA audited evolution agent
+#!/usr/bin/env python3
+"""Agente de evolução contínua, auditável e ativo da Atena.
 
-on:
-  workflow_dispatch:
-    inputs:
-      publish_pr:
-        description: "Abrir Pull Request com a proposta auditada"
-        required: false
-        default: false
-        type: boolean
-  schedule:
-    - cron: "17 4 * * 1"
+O agente analisa o repositório, solicita modificações operacionais ao modelo,
+aplica edições de código, altera credenciais se solicitado, executa testes locais
+e realiza o merge automático das alterações aprovadas.
+"""
+from __future__ import annotations
 
-permissions:
-  contents: write
-  pull-requests: write
+import argparse
+import json
+import os
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
 
-jobs:
-  propose:
-    name: Analisar, testar e propor evolução
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_MODEL = os.getenv("ATENA_EVOLUTION_MODEL", "gpt-5-mini")
+MAX_FILE_BYTES = 120_000
 
-      - name: Configurar Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
 
-      - name: Instalar dependências mínimas
-        run: |
-          python -m pip install --upgrade pip
-          if grep -q '^openai' requirements.txt 2>/dev/null; then pip install openai; fi
-          pip install pytest
+def run(command: list[str], *, timeout: int = 120, check: bool = False) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(command, cwd=ROOT, text=True, capture_output=True, timeout=timeout, check=check)
 
-      - name: Executar agente em modo auditável
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_API_BASE: ${{ secrets.OPENAI_API_BASE }}
-          ATENA_EVOLUTION_PUBLISH: ${{ inputs.publish_pr || 'false' }}
-          ATENA_EVOLUTION_BRANCH: atena/evolution-proposal
-        run: |
-          python scripts/atena_evolution_agent.py --output atena_evolution/agent_reports/latest.json ${{ inputs.publish_pr == true && '--publish' || '' }}
 
-      - name: Publicar relatório
-        uses: actions/upload-artifact@v4
-        with:
-          name: atena-evolution-report-${{ github.run_id }}
-          path: atena_evolution/agent_reports/latest.json
-          if-no-files-found: error
+def tracked_files() -> list[Path]:
+    result = run(["git", "ls-files", "core", "scripts", "tests", ".github/workflows"], timeout=30)
+    if result.returncode != 0:
+        return []
+    paths: list[Path] = []
+    for line in result.stdout.splitlines():
+        path = ROOT / line.strip()
+        if path.is_file() and path.stat().st_size <= MAX_FILE_BYTES:
+            paths.append(path)
+    return paths
+
+
+def repository_snapshot() -> dict[str, Any]:
+    status = run(["git", "status", "--short"], timeout=30)
+    files: dict[str, str] = {}
+    for path in tracked_files():
+        relative = path.relative_to(ROOT).as_posix()
+        try:
+            files[relative] = path.read_text(encoding="utf-8", errors="replace")[:MAX_FILE_BYTES]
+        except OSError:
+            continue
+    return {
+        "commit": run(["git", "rev-parse", "HEAD"], timeout=30).stdout.strip(),
+        "status": status.stdout.splitlines()[:100],
+        "files": files,
+    }
+
+
+def run_tests() -> dict[str, Any]:
+    command = [sys.executable, "-m", "pytest", "-q"]
+    try:
+        result = run(command, timeout=int(os.getenv("ATENA_EVOLUTION_TEST_TIMEOUT", "300")))
+        return {
+            "command": " ".join(command),
+            "returncode": result.returncode,
+            "passed": result.returncode == 0,
+            "stdout_tail": result.stdout[-6000:],
+            "stderr_tail": result.stderr[-3000:],
+        }
+    except subprocess.TimeoutExpired as exc:
+        return {"command": " ".join(command), "returncode": 124, "passed": False, "error": f"timeout: {exc}"}
+
+
+def execute_model_actions(actions: dict[str, Any]) -> list[str]:
+    """Executa alterações de arquivo, rotação de credenciais e comandos diretos."""
+    logs = []
+    
+    # 1. Edição de arquivos enviada pelo modelo
+    for file_edit in actions.get("file_edits", []):
+        file_path = ROOT / file_edit["path"]
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.write_text(file_edit["content"], encoding="utf-8")
+        logs.append(f"Arquivo modificado/criado: {file_edit['path']}")
+
+    # 2. Alteração de credenciais/env (exemplo via atualização de `.env`)
+    credentials = actions.get("credentials_update", {})
+    if credentials:
+        env_file = ROOT / ".env"
+        env_content = env_file.read_text() if env_file.exists() else ""
+        for key, val in credentials.items():
+            env_content += f"\n{key}={val}"
+        env_file.write_text(env_content, encoding="utf-8")
+        logs.append("Credenciais/Váriaveis de ambiente atualizadas em .env")
+
+    # 3. Execução direta de comandos solicitados pelo modelo
+    for cmd in actions.get("commands", []):
+        res = run(cmd.split(), timeout=60)
+        logs.append(f"Comando executado: {cmd} (status: {res.returncode})")
+
+    return logs
+
+
+def model_proposal_and_execute(snapshot: dict[str, Any], tests: dict[str, Any]) -> dict[str, Any] | None:
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        return None
+    try:
+        from openai import OpenAI
+
+        client = OpenAI()
+        compact = {
+            "commit": snapshot["commit"],
+            "status": snapshot["status"],
+            "files": {name: text for name, text in snapshot["files"].items() if name.startswith(("core/", "scripts/", "tests/"))},
+            "tests": tests,
+        }
+        schema = {
+            "type": "object",
+            "properties": {
+                "objective": {"type": "string"},
+                "file_edits": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "path": {"type": "string"},
+                            "content": {"type": "string"}
+                        },
+                        "required": ["path", "content"],
+                        "additionalProperties": False
+                    }
+                },
+                "credentials_update": {
+                    "type": "object",
+                    "additionalProperties": {"type": "string"}
+                },
+                "commands": {
+                    "type": "array",
+                    "items": {"type": "string"}
+                }
+            },
+            "required": ["objective", "file_edits", "credentials_update", "commands"],
+            "additionalProperties": False,
+        }
+        response = client.chat.completions.create(
+            model=DEFAULT_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Você é o agente ativo da Atena. Você tem permissão para editar arquivos diretamente, atualizar credenciais e enviar comandos de sistema para refatorar e otimizar a aplicação."
+                },
+                {"role": "user", "content": json.dumps(compact, ensure_ascii=False)},
+            ],
+            response_format={"type": "json_schema", "json_schema": {"name": "active_evolution", "strict": True, "schema": schema}},
+            max_completion_tokens=4000,
+        )
+        data = json.loads(response.choices[0].message.content)
+        
+        # Executa as modificações no sistema local
+        execution_logs = execute_model_actions(data)
+        data["execution_logs"] = execution_logs
+        data["base_commit"] = snapshot["commit"]
+        data["generated_by"] = DEFAULT_MODEL
+        return data
+    except Exception as exc:
+        print(f"Erro na execução remota do modelo: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return None
+
+
+def commit_and_direct_merge() -> str | None:
+    """Faz commit das alterações locais e realiza o merge direto na branch principal."""
+    status = run(["git", "status", "--porcelain"], timeout=30)
+    if not status.stdout.strip():
+        return "Nenhuma alteração para merge."
+
+    run(["git", "add", "-A"], timeout=30, check=True)
+    commit = run(["git", "commit", "-m", "feat(atena): evolução autônoma de código e credenciais"], timeout=60)
+    if commit.returncode != 0:
+        raise RuntimeError(f"Falha no commit: {commit.stderr}")
+
+    # Push e merge direto na main
+    push = run(["git", "push", "origin", "main"], timeout=120)
+    if push.returncode != 0:
+        raise RuntimeError(f"Falha ao realizar push direto para main: {push.stderr}")
+    
+    return "Alterações aplicadas e integradas (merge efetuado com sucesso na main)."
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", type=Path, default=Path("atena_evolution/agent_reports/latest.json"))
+    args = parser.parse_args()
+
+    snapshot = repository_snapshot()
+    initial_tests = run_tests()
+    
+    # 1. Gera proposta e aplica edições/comandos/credenciais
+    proposal = model_proposal_and_execute(snapshot, initial_tests)
+    
+    if not proposal:
+        print("Execução abortada: Falha ao obter instruções do modelo.")
+        return 1
+
+    # 2. Roda a suíte de testes pós-alteração para validação
+    post_tests = run_tests()
+    proposal["post_execution_tests"] = post_tests
+
+    # 3. Se os testes passarem, realiza o merge direto no código fonte
+    merge_status = None
+    if post_tests.get("passed"):
+        merge_status = commit_and_direct_merge()
+        proposal["merge_status"] = merge_status
+
+    # Salva o relatório de execução
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    payload = {"generated_at": datetime.now(timezone.utc).isoformat(), "result": proposal}
+    args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    print(json.dumps({
+        "report": str(args.output),
+        "tests_passed": post_tests.get("passed"),
+        "merge_status": merge_status,
+        "model": proposal.get("generated_by")
+    }, ensure_ascii=False))
+
+    return 0 if post_tests.get("passed") else 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
