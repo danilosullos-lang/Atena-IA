@@ -12,6 +12,11 @@ class GateResult:
     reasons: tuple[str, ...]
     metrics: dict[str, Any]
 
+    @property
+    def passed(self) -> bool:
+        """Alias legado para consumidores antigos; o contrato canônico é ``accepted``."""
+        return self.accepted
+
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 

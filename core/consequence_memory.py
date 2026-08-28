@@ -199,6 +199,12 @@ class ConsequenceMemory:
     def close(self) -> None:
         self.connection.close()
 
+    def __enter__(self) -> "ConsequenceMemory":
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self.close()
+
     def record_episode(self, episode: ConsequenceEpisode) -> str:
         episode.seal()
         payload = json.dumps(episode.model_dump(mode="json"), ensure_ascii=False, sort_keys=True)

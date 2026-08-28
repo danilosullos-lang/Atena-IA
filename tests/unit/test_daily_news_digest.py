@@ -110,3 +110,43 @@ def test_configured_catalog_is_merged_without_duplicate_urls():
     assert any(name == "The Verge" for sources in feeds.values() for name, _ in sources)
     assert any(name == "NASA Breaking News" for sources in feeds.values() for name, _ in sources)
     assert "Segurança digital" in feeds
+
+
+def test_normalize_items_to_portuguese_translates_foreign_fields(monkeypatch):
+    from scripts.daily_news_digest import normalize_items_to_portuguese
+
+    translations = {
+        "Global technology update": "Atualização global de tecnologia",
+        "New tools improve artificial intelligence": "Novas ferramentas melhoram a inteligência artificial",
+    }
+    monkeypatch.setattr(
+        "scripts.daily_news_digest._translate_to_portuguese",
+        lambda value: translations.get(value, value),
+    )
+    errors = []
+    items = [NewsItem(
+        "Mundo", "Global technology update", "https://example.com/story", "Fonte",
+        summary="New tools improve artificial intelligence",
+    )]
+
+    result = normalize_items_to_portuguese(items, errors)
+
+    assert result[0].title == "Atualização global de tecnologia"
+    assert result[0].summary.startswith("Novas ferramentas")
+    assert errors == []
+
+
+def test_normalize_items_to_portuguese_fails_closed_when_translation_fails(monkeypatch):
+    from scripts.daily_news_digest import normalize_items_to_portuguese
+
+    def fail(_value):
+        raise ValueError("tradução não confirmada")
+
+    monkeypatch.setattr("scripts.daily_news_digest._translate_to_portuguese", fail)
+    errors = []
+    items = [NewsItem("Mundo", "Foreign headline", "https://example.com/story", "Fonte")]
+
+    result = normalize_items_to_portuguese(items, errors)
+
+    assert result == []
+    assert errors == ["tradução:Fonte:ValueError"]

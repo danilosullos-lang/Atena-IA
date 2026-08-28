@@ -210,6 +210,54 @@ def _clean_summary(value: str, limit: int = 280) -> str:
     return value[:limit].rstrip(" .") + ("…" if len(value) > limit else "")
 
 
+_PORTUGUESE_MARKERS = {
+    "a", "ao", "aos", "as", "com", "da", "das", "de", "do", "dos", "e", "em",
+    "é", "foi", "para", "por", "que", "se", "sem", "uma", "um", "os", "na", "nas",
+    "no", "nos", "sobre", "não", "mais", "como", "brasil", "brasileiro", "tecnologia",
+}
+
+
+def _looks_portuguese(text: str) -> bool:
+    """Heurística conservadora para evitar enviar texto claramente estrangeiro."""
+    normalized = re.sub(r"[^\wÀ-ÿ]+", " ", text.casefold())
+    words = set(normalized.split())
+    if len(words & _PORTUGUESE_MARKERS) >= 2:
+        return True
+    return bool(re.search(r"[ãõáéíóúâêôç]", text.casefold()))
+
+
+def _translate_to_portuguese(text: str, *, timeout: int = 12) -> str:
+    """Traduz um campo curto usando endpoint configurável; falha fechada."""
+    clean = re.sub(r"\s+", " ", text or "").strip()
+    if not clean or _looks_portuguese(clean):
+        return clean
+    endpoint = os.getenv("ATENA_TRANSLATION_ENDPOINT", "https://api.mymemory.translated.net/get")
+    response = requests.get(endpoint, params={"q": clean[:1000], "langpair": "auto|pt-BR"}, timeout=timeout)
+    response.raise_for_status()
+    payload = response.json()
+    translated = str(payload.get("responseData", {}).get("translatedText", "")).strip()
+    if not translated or translated.casefold() == clean.casefold() or not _looks_portuguese(translated):
+        raise ValueError("tradução para português não confirmada")
+    return translated
+
+
+def normalize_items_to_portuguese(items: Iterable[NewsItem], errors: list[str]) -> list[NewsItem]:
+    """Garante que título e resumo enviados sejam portugueses; itens sem tradução são omitidos."""
+    if os.getenv("ATENA_TRANSLATION_ENABLED", "true").strip().lower() not in {"1", "true", "yes", "on"}:
+        errors.append("tradução desativada; nenhum item estrangeiro é garantido como português")
+        return list(items)
+    normalized: list[NewsItem] = []
+    for item in items:
+        try:
+            title = _translate_to_portuguese(item.title)
+            summary = _translate_to_portuguese(item.summary) if item.summary else ""
+            normalized.append(NewsItem(item.category, title[:240], item.url, item.source,
+                                      item.published, _clean_summary(summary), item.image_url))
+        except (requests.RequestException, ValueError, TypeError, KeyError) as exc:
+            errors.append(f"tradução:{item.source}:{type(exc).__name__}")
+    return normalized
+
+
 def _rss_image_url(node: ET.Element, article_url: str) -> str:
     """Extrai imagens de enclosure/media RSS sem confiar em HTML arbitrário."""
     candidates: list[str] = []
@@ -708,6 +756,8 @@ def main() -> int:
     include_x = args.include_x and bool(os.getenv("ATENA_X_BEARER_TOKEN", "").strip())
     if include_x:
         items.extend(collect_x())
+    items = normalize_items_to_portuguese(items, errors)
+    items = _deduplicate_global(items)
     message = format_digest(items, errors, include_x=include_x, max_items_per_category=args.items_per_category)
     if args.dry_run:
         print(message)

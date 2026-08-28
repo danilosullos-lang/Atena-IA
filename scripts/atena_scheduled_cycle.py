@@ -20,6 +20,10 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from core.episodic_memory import build_episode
 from core.memory_store import MemoryStore
 from core.memory_consolidation import compact_context
@@ -30,7 +34,6 @@ from core.consequence_memory import ConsequenceMemory
 from core.research_sources import fetch_configured_sources
 from core.atena_llm_router import AtenaLLMRouterAdvanced
 
-ROOT = Path(__file__).resolve().parents[1]
 MEMORY_PATH = ROOT / "atena_evolution" / "llm_learning_memory.json"
 PROPOSALS_DIR = ROOT / "atena_evolution" / "proposals"
 SQLITE_PATH = Path(os.getenv("ATENA_MEMORY_DB", str(ROOT / "atena_evolution" / "memory.sqlite3")))
