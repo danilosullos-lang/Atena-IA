@@ -1,0 +1,54 @@
+name: ATENA audited evolution agent
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_pr:
+        description: "Abrir Pull Request com a proposta auditada"
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: "17 4 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  propose:
+    name: Analisar, testar e propor evolução
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependências mínimas
+        run: |
+          python -m pip install --upgrade pip
+          if grep -q '^openai' requirements.txt 2>/dev/null; then pip install openai; fi
+          pip install pytest
+
+      - name: Executar agente em modo auditável
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_BASE: ${{ secrets.OPENAI_API_BASE }}
+          ATENA_EVOLUTION_PUBLISH: ${{ inputs.publish_pr || 'false' }}
+          ATENA_EVOLUTION_BRANCH: atena/evolution-proposal
+        run: |
+          python scripts/atena_evolution_agent.py --output atena_evolution/agent_reports/latest.json ${{ inputs.publish_pr == true && '--publish' || '' }}
+
+      - name: Publicar relatório
+        uses: actions/upload-artifact@v4
+        with:
+          name: atena-evolution-report-${{ github.run_id }}
+          path: atena_evolution/agent_reports/latest.json
+          if-no-files-found: error
