@@ -1,0 +1,94 @@
+{
+  "timestamp": "2026-08-29T22:46:08.419891+00:00",
+  "model": "qwen2.5:3b-instruct",
+  "provider": "local",
+  "task_type": "github_evolution",
+  "duration_limit_seconds": 300,
+  "research": {
+    "topic": "memória histórica",
+    "question": "Como recuperar evidências antigas sem confundir hipótese com fato?",
+    "query": "ATENA memória histórica: Como recuperar evidências antigas sem confundir hipótese com fato?",
+    "mode": "autonomous",
+    "sources": [],
+    "rss_sources": [
+      {
+        "source": "Nature News",
+        "category": "science_policy",
+        "ok": false,
+        "items": [],
+        "error": "ParseError: not well-formed (invalid token): line 14, column 4",
+        "response_time_ms": 94.03
+      },
+      {
+        "source": "ArXiv Quantum Physics",
+        "category": "quantum_technology",
+        "ok": true,
+        "items": [],
+        "response_time_ms": 81.53
+      },
+      {
+        "source": "NASA Breaking News",
+        "category": "space_science",
+        "ok": false,
+        "items": [],
+        "error": "HTTPError: HTTP Error 429: Too Many Requests",
+        "response_time_ms": 168.83
+      },
+      {
+        "source": "CISA Cybersecurity Advisories",
+        "category": "cybersecurity",
+        "ok": false,
+        "items": [],
+        "error": "HTTPError: HTTP Error 403: Forbidden",
+        "response_time_ms": 127.32
+      }
+    ],
+    "errors": [],
+    "requested_by": "rotation",
+    "intent_id": null
+  },
+  "observations": {
+    "insights": [
+      {
+        "text": "Nenhuma conclusão nova foi confirmada sobre as referências de links, FAISS e recuperação; a lacuna de evidência será investigada antes de consolidar uma memória.",
+        "evidence_refs": [],
+        "type": "limitation",
+        "confidence": 0.0
+      }
+    ],
+    "risks": [],
+    "proposed_changes": [],
+    "next_cycle": [],
+    "quality_gate": {
+      "accepted": false,
+      "reasons": [
+        "evidência insuficiente para o ciclo",
+        "insights sem próximo teste ou plano de verificação"
+      ],
+      "metrics": {
+        "insights": 1,
+        "evidence_refs": 0,
+        "duplicate_ratio": 0.0,
+        "proposals": 0,
+        "risks": 0
+      }
+    },
+    "learning_trace": {
+      "validated_lessons_consulted": [],
+      "lesson_query": "memória histórica Como recuperar evidências antigas sem confundir hipótese com fato?",
+      "lesson_use_claim": "consulted_not_proven_applied"
+    },
+    "research_plan": {
+      "topic": "memória histórica",
+      "question": "Como recuperar evidências antigas sem confundir hipótese com fato?",
+      "sources_to_consult": [],
+      "evidence_expected": "comparar pelo menos duas evidências independentes antes de consolidar um fato",
+      "next_test": "verificar uma instância inédita relacionada a memória histórica",
+      "retrieval": {
+        "source": "sqlite",
+        "episode_limit": 12,
+        "context_chars": 8600
+      }
+    }
+  }
+}
