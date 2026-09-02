@@ -34317,5 +34317,262 @@
         }
       }
     }
+  },
+  {
+    "timestamp": "2026-09-02T19:42:20.537262+00:00",
+    "model": "qwen2.5:3b-instruct",
+    "provider": "local",
+    "task_type": "github_evolution",
+    "duration_limit_seconds": 300,
+    "research": {
+      "topic": "FAISS e recuperação",
+      "question": "Como melhorar a busca semântica e a diversidade do contexto?",
+      "query": "ATENA FAISS e recuperação: Como melhorar a busca semântica e a diversidade do contexto?",
+      "mode": "autonomous",
+      "sources": [],
+      "rss_sources": [
+        {
+          "source": "Nature News",
+          "category": "science_policy",
+          "ok": true,
+          "items": [
+            {
+              "source": "Nature News",
+              "category": "science_policy",
+              "title": "Author Correction: Endocannabinoids facilitate reward engagement through retrograde gain control",
+              "link": "https://www.nature.com/articles/s41586-026-11104-3",
+              "published_at": "2026-09-02",
+              "summary": "",
+              "content_hash": "sha256:e8f5c8af5dcf5acd28abeb15a8f561a207c120c4158eba977e7392a59d5867e5",
+              "source_url": "https://www.nature.com/nature.rss",
+              "evidence_ref": "mem-20260902194221-fcb1846da345"
+            },
+            {
+              "source": "Nature News",
+              "category": "science_policy",
+              "title": "Author Correction: Signalling thresholds and negative B-cell selection in acute lymphoblastic leukaemia",
+              "link": "https://www.nature.com/articles/s41586-026-11080-8",
+              "published_at": "2026-09-02",
+              "summary": "",
+              "content_hash": "sha256:7c9df55c45198e9a758ecd33dd3caedc6d745a0b410162da899377ee5cb59198",
+              "source_url": "https://www.nature.com/nature.rss",
+              "evidence_ref": "mem-20260902194221-acebb52932d6"
+            },
+            {
+              "source": "Nature News",
+              "category": "science_policy",
+              "title": "Retraction Note: Warming accelerates global drought severity",
+              "link": "https://www.nature.com/articles/s41586-026-11027-z",
+              "published_at": "2026-09-02",
+              "summary": "",
+              "content_hash": "sha256:b53b20b91a2fd672cc70961a851c9e6d4ccaef1e16fd4a677e2181a6fd393d0a",
+              "source_url": "https://www.nature.com/nature.rss",
+              "evidence_ref": "mem-20260902194221-085915bfbeb1"
+            },
+            {
+              "source": "Nature News",
+              "category": "science_policy",
+              "title": "Audio long read: Could mending damaged DNA prolong life?",
+              "link": "https://www.nature.com/articles/d41586-026-02762-4",
+              "published_at": "2026-09-02",
+              "summary": "",
+              "content_hash": "sha256:fea3db93f6f78296875b6b1af70510ddef57adae5a8fc00972315e39d42f6e56",
+              "source_url": "https://www.nature.com/nature.rss",
+              "evidence_ref": "mem-20260902194221-04539399adf3"
+            },
+            {
+              "source": "Nature News",
+              "category": "science_policy",
+              "title": "Functional chimeric mRNAs encode proteins in mammalian immunity",
+              "link": "https://www.nature.com/articles/s41586-026-10982-x",
+              "published_at": "2026-09-02",
+              "summary": "",
+              "content_hash": "sha256:8addcb8afe8031e4727fcef5a4baf4395d6a4878a1ed4ce43bdc32dc82f839e9",
+              "source_url": "https://www.nature.com/nature.rss",
+              "evidence_ref": "mem-20260902194222-20e47b37a62f"
+            }
+          ],
+          "response_time_ms": 157.86
+        },
+        {
+          "source": "ArXiv Quantum Physics",
+          "category": "quantum_technology",
+          "ok": true,
+          "items": [
+            {
+              "source": "ArXiv Quantum Physics",
+              "category": "quantum_technology",
+              "title": "Isospectral potentials with Dirac delta interaction: Constrained Spectra",
+              "link": "https://arxiv.org/abs/2609.00056",
+              "published_at": "Wed, 02 Sep 2026 00:00:00 -0400",
+              "summary": "arXiv:2609.00056v1 Announce Type: new Abstract: We study quantum potentials containing Dirac delta function (DDF) within its supersymmetric (isospectral) construction via a discontinuous superpotential, instead of being simply an added part. This construction comprises of two independently solvable sectors joined at the singular point by matching conditions imposed by the corresponding self-adjoint extension. Needing careful regularization, these boundary conditions impose independent algebraic constraints on each of the eigenstates, that restrict and truncate the spectrum. The number of surviving bound states, which are required to be parity-even, is thus fixed by the available system parameters rather than by the usual quantization rule. The specific cases of the Harmonic oscillator and the Rosen-Morse potential isospectrally infused with the DDF demonstrate such highly restrictive spectra, while the similar combination of the DDF with a Calogero-type singularity turns out to be largely incompatible as the regularization breaks down. Therefore, localized singularities are capable of controlling and engineering the discrete spectrum of quantum systems, with possible use in myriads of physical systems with very localized interactions.",
+              "content_hash": "sha256:4dd27b4e5325cb2833e6ead67284f67713b0035f10a0dba0c917e98fd3e23481",
+              "source_url": "https://export.arxiv.org/rss/quant-ph",
+              "evidence_ref": "mem-20260902194222-ae67c717d663"
+            },
+            {
+              "source": "ArXiv Quantum Physics",
+              "category": "quantum_technology",
+              "title": "Encoding Compact U(1) Gauge Fields in Bosonic Modes with GKP Stabilization",
+              "link": "https://arxiv.org/abs/2609.00167",
+              "published_at": "Wed, 02 Sep 2026 00:00:00 -0400",
+              "summary": "arXiv:2609.00167v1 Announce Type: new Abstract: Compact lattice gauge theories are formulated in terms of angular variables and integer electric fluxes, while bosonic quantum hardware provides oscillator modes with continuous, unbounded quadratures. We bridge this gap with a one-to-one encoding. After Gauss's law is solved, each remaining gauge degree of freedom is carried by a single oscillator mode, with its interactions built from trigonometric gates, and a Gottesman--Kitaev--Preskill (GKP)-type stabilizer provides the compactness that the hardware does not. The encoding becomes exact in the limit of infinite squeezing, and at finite squeezing, the leading imperfections act as small, computable shifts of physical observables rather than uncontrolled leakage. We apply the construction to compact QED$_3$ and derive the error budget at finite squeezing, characterizing the leading errors in closed form, and showing that they can be corrected, subtracted, or extrapolated away. We construct syndrome-extraction protocols that detect and remove the displacement component of photon loss, delimit the noise it does not reach, compare two choices of dynamical variables, and collect the scaling of mode count, gate count, and measurement cost. A one-plaquette example reproduces the exact compact-rotor dynamics, and real-time spectroscopy with controlled extrapolations recovers the exponentially small energy splitting between charge sectors, the seed of the monopole physics of the theory, at the percent level against its exact value.",
+              "content_hash": "sha256:5ebb8e24031acac824d28d92d25acedd7bd987d43d487170fd1cff57c770c58f",
+              "source_url": "https://export.arxiv.org/rss/quant-ph",
+              "evidence_ref": "mem-20260902194222-ee273e2448e4"
+            },
+            {
+              "source": "ArXiv Quantum Physics",
+              "category": "quantum_technology",
+              "title": "Entangling capability of coherently controlled quantum processes",
+              "link": "https://arxiv.org/abs/2609.00168",
+              "published_at": "Wed, 02 Sep 2026 00:00:00 -0400",
+              "summary": "arXiv:2609.00168v1 Announce Type: new Abstract: We analytically characterize entanglement generation by two paradigmatic coherently controlled quantum processes, the quantum switch and time-flip. Retaining rather than measuring or discarding the control, we treat the control and target as the bipartite system and assume pure product inputs, so that any output entanglement reflects the entangling capability of the process. For the switch of qubit unitaries, we derive exact expressions for entanglement, together with a geometric characterization and a coherence-entanglement conservation relation. We then extend our analysis to binary random unitary, Pauli, amplitude damping, and generalized amplitude damping channels. We prove that switch of channels commuting under composition cannot entangle a separable input. Yet maximal entanglement is possible even with dissipation, e.g., an entanglement-breaking damping channel switched with a bit-flip can transform a product input into a maximally entangled state. For two generalized amplitude damping channels, a common stationary state prevents entanglement, while different stationary populations can enable it. We present an analogous study for the time-flip of unitary and binary random unitary channels. Our findings provide a systematic analysis of how much entanglement can be generated by coherent control of channel order or input-output direction.",
+              "content_hash": "sha256:6ebaf07fa40d4c4e61c47455420877a139029b2aab96ccb166106144a48bdf70",
+              "source_url": "https://export.arxiv.org/rss/quant-ph",
+              "evidence_ref": "mem-20260902194222-6cba2c298455"
+            },
+            {
+              "source": "ArXiv Quantum Physics",
+              "category": "quantum_technology",
+              "title": "Exact learning of quantum noise with tensor networks",
+              "link": "https://arxiv.org/abs/2609.00169",
+              "published_at": "Wed, 02 Sep 2026 00:00:00 -0400",
+              "summary": "arXiv:2609.00169v1 Announce Type: new Abstract: Accurate noise models are essential for high-performance quantum error correction, yet characterizing the noise of a quantum device typically requires dedicated experiments. We present a variational framework that learns the noise model directly from quantum-error-correction syndrome and logical-observable data collected during error-corrected memory experiments. The fault-event probabilities are treated as variational parameters and optimized via gradient descent to minimize the binary cross-entropy between the decoder's predictions and experimental logical-observable outcomes. We prove that this objective is principled rather than ad hoc: a sufficiently expressive noise ansatz attains the information-theoretic minimum logical error rate. We instantiate this framework using a tensor-network decoder, which provides exact maximum-likelihood decoding and analytically differentiable gradients with respect to all noise parameters. Using circuit-level data from Google's Sycamore processor, and starting from an uninformed prior, the optimization recovers noise models whose logical error rates agree to within $2\\%$ with those of Google's independently characterized detector error model. The mean squared error between the learned and reference noise parameters shows a clear overall decrease throughout training, confirming that the method recovers physically meaningful noise structure, not merely parameters that happen to decode well. We further demonstrate that the optimization can track device drifts in real time via warm-started updates, maintaining near-optimal decoding performance under synthetically evolving noise without the need for re-characterization. The approach is decoder-agnostic in its formulation and naturally extends to correlated noise models.",
+              "content_hash": "sha256:79a805ca296663e73b81935365ec2659d2c766da25d4c49bdc0a3acbb304343c",
+              "source_url": "https://export.arxiv.org/rss/quant-ph",
+              "evidence_ref": "mem-20260902194222-e30777c7c5bf"
+            },
+            {
+              "source": "ArXiv Quantum Physics",
+              "category": "quantum_technology",
+              "title": "Quantum Secret Sharing with a Helper and Programmable Access Structures",
+              "link": "https://arxiv.org/abs/2609.00220",
+              "published_at": "Wed, 02 Sep 2026 00:00:00 -0400",
+              "summary": "arXiv:2609.00220v1 Announce Type: new Abstract: Quantum secret sharing (QSS) is a process in which the state of a quantum system is partitioned into multiple shares, allowing only specific subsets of shareholders to reconstruct the state, while others gain no information about its identity. In this work, we propose a variant of QSS, called ``helper QSS,'' which designates a special shareholder whose participation with any other group of parties is sufficient for recovering the state. We present different families of helper codes that function for an arbitrary number of parties and system sizes. As an application, we introduce the idea of a programmable access structure in QSS, which allows for a third-party programmer to independently choose the access structure of the code even after the shares are delivered to all the shareholders. This choice is made blindly, meaning that the programmer has no information about the secret being encoded, and it is implemented using the nonlocal process of quantum steering.",
+              "content_hash": "sha256:209959afb4ddc0428e78036a60053e6e8638dcedb41a379a9ab6836ad6ab350e",
+              "source_url": "https://export.arxiv.org/rss/quant-ph",
+              "evidence_ref": "mem-20260902194222-2a8b1454d64a"
+            }
+          ],
+          "response_time_ms": 185.05
+        },
+        {
+          "source": "NASA Breaking News",
+          "category": "space_science",
+          "ok": true,
+          "items": [
+            {
+              "source": "NASA Breaking News",
+              "category": "space_science",
+              "title": "NASA Revamps Challenge Linking Community College Studies to Aerospace Careers",
+              "link": "https://www.nasa.gov/learning-resources/linking-community-college-studies-to-aerospace-careers/",
+              "published_at": "Wed, 02 Sep 2026 19:01:05 +0000",
+              "summary": "Community college students across the U.S. now have another opportunity to discover how their education can lead to fulfilling roles at the forefront of aerospace, science, engineering, and technology. The updated NASA Community College Aerospace Scholars (NCAS) student challenge invites students to learn about the agency and its missions, engage with NASA experts, and explore [&#8230;]",
+              "content_hash": "sha256:359273a6a4a5b7ddfc1a04ae43ac1c8a27915b71f63db4923bb362d399b9c689",
+              "source_url": "https://www.nasa.gov/rss/dyn/breaking_news.rss",
+              "evidence_ref": "mem-20260902194222-afefe6448d10"
+            },
+            {
+              "source": "NASA Breaking News",
+              "category": "space_science",
+              "title": "NASA’s Hubble Tracks New Decagon Encircling Saturn’s South Pole",
+              "link": "https://science.nasa.gov/missions/hubble/nasas-hubble-tracks-new-decagon-encircling-saturns-south-pole/",
+              "published_at": "Wed, 02 Sep 2026 18:00:37 +0000",
+              "summary": "NASA’s Hubble Space Telescope observes a giant, evolving, 10-sided atmospheric wave encircling Saturn’s south pole.",
+              "content_hash": "sha256:a4473f603d7720e3e5a4034bad5a5b0fb53c8fb73c2096ce0f4f660725e7fd30",
+              "source_url": "https://www.nasa.gov/rss/dyn/breaking_news.rss",
+              "evidence_ref": "mem-20260902194222-409e957b3f03"
+            },
+            {
+              "source": "NASA Breaking News",
+              "category": "space_science",
+              "title": "Rising Over Louisiana",
+              "link": "https://www.nasa.gov/image-article/rising-over-louisiana/",
+              "published_at": "Wed, 02 Sep 2026 15:38:50 +0000",
+              "summary": "On Aug. 28, 2026 (the evening of Aug. 27 in some time zones), the Moon passed into Earth’s shadow, creating a deep partial lunar eclipse. At the moment of greatest eclipse, 12:13 a.m. EDT, 96.3% of the Moon’s disk was immersed in Earth’s umbra—the central, darkest part of the shadow where sunlight is completely blocked. [&#8230;]",
+              "content_hash": "sha256:f7ce0bb1a125be846492a28eaa8fc73797c91e9bcc7e0a5dee8726b0579d874c",
+              "source_url": "https://www.nasa.gov/rss/dyn/breaking_news.rss",
+              "evidence_ref": "mem-20260902194222-b442f037757c"
+            },
+            {
+              "source": "NASA Breaking News",
+              "category": "space_science",
+              "title": "NASA Rocket Takes First Multi-Point Look Inside Radio-Disrupting Clouds",
+              "link": "https://science.nasa.gov/science-research/heliophysics/nasa-rocket-takes-first-multi-point-look-inside-radio-disrupting-clouds/",
+              "published_at": "Wed, 02 Sep 2026 14:53:54 +0000",
+              "summary": "High above Earth, thin veils of metallic haze drift through the edge of space. Known as sporadic E layers, these high-altitude “clouds” form from the vaporized dust of burnt-up meteors, earning their name from the unpredictable way they emerge and then dissipate. Now, new results from a NASA sounding rocket — a suborbital research rocket […]",
+              "content_hash": "sha256:3dc9e2147f50cfb913b76a0205b5c349e598c33d17a45d86a4b031f01de2db78",
+              "source_url": "https://www.nasa.gov/rss/dyn/breaking_news.rss",
+              "evidence_ref": "mem-20260902194222-f5b822009d9e"
+            },
+            {
+              "source": "NASA Breaking News",
+              "category": "space_science",
+              "title": "APOD: 2026 September 2 – Solar Eclipses and Culture",
+              "link": "https://science.nasa.gov/image-article/apod-2026-september-2-solar-eclipses-and-culture/",
+              "published_at": "Wed, 02 Sep 2026 04:05:00 +0000",
+              "summary": "APOD Science APOD APOD: 2026 September 2 –… Today’s APOD Archive Submissions Index Search Calendar RSS Education About Discuss APOD Astronomy Picture of the Day Discover the cosmos! Each day a different image or photograph of our fascinating universe is featured, along with a brief explanation written by a professional astronomer. Solar Eclipses and [&#8230;]",
+              "content_hash": "sha256:31be9821eb84e372fd260c6de4a6cd89def097f50aecbfe05dee8e6c54fa51dc",
+              "source_url": "https://www.nasa.gov/rss/dyn/breaking_news.rss",
+              "evidence_ref": "mem-20260902194222-810c8509d8e6"
+            }
+          ],
+          "response_time_ms": 198.06
+        },
+        {
+          "source": "CISA Cybersecurity Advisories",
+          "category": "cybersecurity",
+          "ok": false,
+          "items": [],
+          "error": "HTTPError: HTTP Error 403: Forbidden",
+          "response_time_ms": 100.22
+        }
+      ],
+      "errors": [],
+      "requested_by": "rotation",
+      "intent_id": null
+    },
+    "observations": {
+      "insights": [
+        {
+          "text": "Nenhuma conclusão nova foi confirmada sobre FAISS e recuperação; a lacuna de evidência será investigada antes de consolidar uma memória.",
+          "evidence_refs": [],
+          "type": "limitation",
+          "confidence": 0.0
+        }
+      ],
+      "risks": [],
+      "proposed_changes": [],
+      "next_cycle": [],
+      "quality_gate": {
+        "accepted": true,
+        "reasons": [],
+        "metrics": {
+          "insights": 0,
+          "evidence_refs": 0,
+          "duplicate_ratio": 0.0,
+          "proposals": 0,
+          "risks": 0
+        }
+      },
+      "learning_trace": {
+        "validated_lessons_consulted": [],
+        "lesson_query": "FAISS e recuperação Como melhorar a busca semântica e a diversidade do contexto?",
+        "lesson_use_claim": "consulted_not_proven_applied"
+      },
+      "research_plan": {
+        "topic": "FAISS e recuperação",
+        "question": "Como melhorar a busca semântica e a diversidade do contexto?",
+        "sources_to_consult": [],
+        "evidence_expected": "comparar pelo menos duas evidências independentes antes de consolidar um fato",
+        "next_test": "verificar uma instância inédita relacionada a FAISS e recuperação",
+        "retrieval": {
+          "source": "sqlite",
+          "episode_limit": 12,
+          "context_chars": 8621
+        }
+      }
+    }
   }
 ]
