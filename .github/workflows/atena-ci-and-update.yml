@@ -190,7 +190,7 @@ jobs:
           test -n "$ATENA_TELEGRAM_BOT_TOKEN" || { echo 'ATENA_TELEGRAM_BOT_TOKEN não configurado'; exit 1; }
           test -n "$ATENA_TELEGRAM_CHAT_ID" || { echo 'ATENA_TELEGRAM_CHAT_ID não configurado'; exit 1; }
 
-      - name: Executar ciclo e atender Telegram por cinco minutos
+      - name: Executar ciclo autônomo sem assumir o polling do Telegram
         env:
           ATENA_LOCAL_MODEL: qwen2.5:3b-instruct
           ATENA_ROOT: ${{ github.workspace }}
@@ -254,23 +254,8 @@ jobs:
           done
           python -m py_compile "${runtime_files[@]}"
 
-          python scripts/atena_telegram_chat.py --poll-timeout 20 > /tmp/atena_telegram_chat.log 2>&1 &
-          TELEGRAM_PID=$!
-
-          cleanup() {
-            if kill -0 "$TELEGRAM_PID" 2>/dev/null; then
-              kill -TERM "$TELEGRAM_PID" 2>/dev/null || true
-              sleep 2
-              kill -KILL "$TELEGRAM_PID" 2>/dev/null || true
-            fi
-            wait "$TELEGRAM_PID" 2>/dev/null || true
-            echo "=== LOG TELEGRAM (janela de cinco minutos) ==="
-            cat /tmp/atena_telegram_chat.log || true
-          }
-          trap cleanup EXIT TERM INT
-
           echo "Modo do job: $ATENA_CYCLE_ROLE"
-          echo "Fontes autônomas por padrão; fontes interativas somente via intenção Telegram."
+          echo "Fontes autônomas por padrão; o polling contínuo do Telegram é executado pelo worker persistente."
           timeout --signal=TERM --kill-after=15s 300s python scripts/atena_scheduled_cycle.py
 
       - name: Validar memória e proposta do ciclo atual
