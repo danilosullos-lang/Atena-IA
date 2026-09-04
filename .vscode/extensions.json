@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Python",
+    "extensions": ["py"],
+    "documentation": "ms-python.python"
+  },
+  {
+    "name": "Pylance",
+    "extensions": ["pylance"],
+    "documentation": "ms-python.vscode-pylance"
+  },
+  {
+    "name": "Black Formatter",
+    "extensions": ["black-formatter"],
+    "documentation": "ms-python.black-formatter"
+  },
+  {
+    "name": "Pylint",
+    "extensions": ["pylint"],
+    "documentation": "ms-python.pylint"
+  },
+  {
+    "name": "GitLens",
+    "extensions": ["gitlens"],
+    "documentation": "eamodio.gitlens"
+  },
+  {
+    "name": "Better Comments",
+    "extensions": ["better-comments"],
+    "documentation": "aaron-bond.better-comments"
+  },
+  {
+    "name": "Material Icon Theme",
+    "extensions": ["material-icon-theme"],
+    "documentation": "PKief.material-icon-theme"
+  },
+  {
+    "name": "One Dark Pro",
+    "extensions": ["one-dark-pro"],
+    "documentation": "zhuangtongfa.Material-theme"
+  },
+  {
+    "name": "Remote - Containers",
+    "extensions": ["remote-containers"],
+    "documentation": "ms-vscode-remote.remote-containers"
+  },
+  {
+    "name": "GitHub Copilot",
+    "extensions": ["copilot"],
+    "documentation": "GitHub.Copilot"
+  }
+]
