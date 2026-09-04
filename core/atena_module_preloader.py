@@ -42,7 +42,7 @@ SKIP_PRELOAD_MODULES = {
     "computer_actuator.py",
     "file_actuator.py",
     "multi_agent_orchestrator.py",
-    "autom#U00e1tion_actuator.py",
+    "automation_actuator.py",
 }
 
 

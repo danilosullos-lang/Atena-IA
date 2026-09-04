@@ -2,9 +2,9 @@
 import asyncio
 import sys
 from pathlib import Path
-# Adiciona o diretório raiz ao path (assumindo que o script está em atena_evolution/scripts)
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from atena_evolution.consciousness.cli import run_once
+# Adiciona o diretório raiz ao path (este arquivo está em scripts/utils/, dois níveis abaixo da raiz)
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from consciousness.cli import run_once
 
 if __name__ == "__main__":
     # Executa um ciclo, salva no banco SQLite dentro do diretório de trabalho

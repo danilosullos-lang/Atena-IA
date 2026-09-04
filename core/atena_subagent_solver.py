@@ -518,7 +518,18 @@ class CodeGenerator:
     
     @classmethod
     def _save_cache(cls, problem: str, code: str) -> None:
-        """Salva solução em cache."""
+        """Salva solução em cache.
+
+        Valida com ast.parse() antes de gravar: cerca de 55% das entradas
+        pré-existentes deste cache estavam truncadas (código cortado no meio
+        de uma linha/string), provavelmente por geração interrompida. Uma
+        entrada de cache que não é Python válido é pior que nenhum cache,
+        porque falha silenciosamente na hora de reutilizar.
+        """
+        try:
+            ast.parse(code)
+        except SyntaxError:
+            return
         key = cls._get_cache_key(problem)
         cache_file = SOLVER_CACHE_DIR / f"{key}.py"
         try:

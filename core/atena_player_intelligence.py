@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from atena_football_oracle import AtenaFootballOracle
+from core.atena_football_oracle import AtenaFootballOracle
 
 class PlayerIntelligenceOracle(AtenaFootballOracle):
     def __init__(self):
