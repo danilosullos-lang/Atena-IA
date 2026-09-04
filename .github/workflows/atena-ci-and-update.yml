@@ -71,9 +71,9 @@ jobs:
       - name: Healthcheck de integração por camadas
         env:
           PYTHONPATH: ${{ github.workspace }}
-          ALLOW_DEEP_SELF_MOD: "true"
-          ALLOW_CHECKER_EVOLVE: "true"
-          ALLOW_WORKFLOW_MUTATION: "true"
+          ALLOW_DEEP_SELF_MOD: "false"
+          ALLOW_CHECKER_EVOLVE: "false"
+          ALLOW_WORKFLOW_MUTATION: "false"
           DEPLOY_COMMAND: ""
         run: python scripts/integration_healthcheck.py --output /tmp/atena-integration-healthcheck.json
 
