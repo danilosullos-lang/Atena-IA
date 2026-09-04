@@ -11,13 +11,13 @@ on:
     inputs:
       publish_generated_state:
         description: "Executar a Atena e publicar somente o estado gerado permitido"
-        required: false
-        default: false
+        required: true
+        default: true
         type: boolean
       telegram_smoke_test:
         description: "Enviar uma mensagem de exemplo formatada no Telegram"
-        required: false
-        default: false
+        required: true
+        default: true
         type: boolean
 
 permissions:
