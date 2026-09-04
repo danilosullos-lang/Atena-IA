@@ -30,6 +30,7 @@ from pathlib import Path
 from xml.etree import ElementTree
 from typing import Dict, List, Optional, Tuple, Any
 from collections import defaultdict, deque
+from concurrent.futures import TimeoutError as FuturesTimeoutError
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Cache e configurações
@@ -1071,16 +1072,26 @@ def run_internet_challenge(topic: str, adaptive_sources: bool = True) -> dict[st
             executor.submit(fetch_source_parallel, src, query, topic_raw): src 
             for src in selected_sources
         }
-        for future in as_completed(futures, timeout=30):
-            try:
-                result = future.result(timeout=5)
-                if result:
-                    sources.append(result)
-                    # Registra performance
-                    _performance_tracker.record(result.source, result.ok, result.response_time_ms)
-            except Exception as e:
-                src = futures[future]
-                sources.append(SourceResult(source=src, ok=False, details={"error": str(e)}, response_time_ms=0))
+        try:
+            completed_futures = as_completed(futures, timeout=30)
+            for future in completed_futures:
+                try:
+                    result = future.result(timeout=5)
+                    if result:
+                        sources.append(result)
+                        # Registra performance
+                        _performance_tracker.record(result.source, result.ok, result.response_time_ms)
+                except Exception as e:
+                    src = futures[future]
+                    sources.append(SourceResult(source=src, ok=False, details={"error": str(e)}, response_time_ms=0))
+                    _performance_tracker.record(src, False, 0)
+        except FuturesTimeoutError:
+            completed = {future for future in futures if future.done()}
+            for future, src in futures.items():
+                if future in completed:
+                    continue
+                future.cancel()
+                sources.append(SourceResult(source=src, ok=False, details={"error": "source timeout"}, response_time_ms=0))
                 _performance_tracker.record(src, False, 0)
     
     # Processa resultados

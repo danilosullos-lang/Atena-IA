@@ -144,35 +144,58 @@ class LearningProgress:
             ).fetchall()
         return [json.loads(row[0]) for row in rows]
 
-    def trend(self, benchmark_version: str, limit: int = 30) -> dict[str, Any]:
+    def benchmark_summary(self, benchmark_version: str, limit: int = 30) -> dict[str, Any]:
         limit = max(1, min(int(limit), 500))
-        if benchmark_version:
-            rows = self.connection.execute(
-                "SELECT payload_json FROM learning_progress WHERE benchmark_version=? ORDER BY created_at ASC, rowid ASC LIMIT ?",
-                (benchmark_version, limit),
-            ).fetchall()
-        else:
-            rows = self.connection.execute(
-                "SELECT payload_json FROM learning_progress ORDER BY created_at ASC, rowid ASC LIMIT ?", (limit,)
-            ).fetchall()
+        rows = self.connection.execute(
+            "SELECT payload_json FROM learning_progress WHERE benchmark_version=? ORDER BY created_at ASC, rowid ASC LIMIT ?",
+            (benchmark_version, limit),
+        ).fetchall()
+
         scored = [json.loads(row[0]) for row in rows if json.loads(row[0]).get("benchmark_score") is not None]
-        if len(scored) < 2:
-            return {"decision": "insufficient_data", "samples": len(scored), "benchmark_version": benchmark_version}
+        if not scored:
+            return {
+                "decision": "insufficient_data",
+                "samples": 0,
+                "benchmark_version": benchmark_version,
+                "first_score": None,
+                "last_score": None,
+                "best_score": None,
+                "delta": None,
+                "regression_failures": 0,
+                "scores": [],
+            }
+
         first = float(scored[0]["benchmark_score"])
         last = float(scored[-1]["benchmark_score"])
+        best = max(float(item["benchmark_score"]) for item in scored)
         failures = sum(item.get("regression_status") == "fail" for item in scored)
         delta = round(last - first, 6)
-        decision = "improved" if delta > 0 and failures == 0 else "stable" if delta >= 0 and failures == 0 else "regressed"
+
+        if failures > 0 and delta > 0:
+            decision = "mixed"
+        elif failures > 0:
+            decision = "regressed"
+        elif delta > 0:
+            decision = "improved"
+        elif abs(delta) < 1e-9:
+            decision = "stable"
+        else:
+            decision = "regressed"
+
         return {
             "decision": decision,
             "samples": len(scored),
             "benchmark_version": benchmark_version,
             "first_score": first,
             "last_score": last,
+            "best_score": best,
             "delta": delta,
             "regression_failures": failures,
             "scores": [float(item["benchmark_score"]) for item in scored],
         }
+
+    def trend(self, benchmark_version: str, limit: int = 30) -> dict[str, Any]:
+        return self.benchmark_summary(benchmark_version, limit=limit)
 
     def counts(self) -> dict[str, int]:
         progress = int(self.connection.execute("SELECT COUNT(*) FROM learning_progress").fetchone()[0])

@@ -25,12 +25,14 @@ def ensure_launcher_permissions(dry_run: bool) -> None:
         run(["chmod", "+x", str(launcher)], dry_run)
 
 
-def install_python_deps(with_dev: bool, dry_run: bool) -> None:
+def install_python_deps(with_dev: bool, with_model: bool, dry_run: bool) -> None:
     py = sys.executable
     run([py, "-m", "pip", "install", "--upgrade", "pip"], dry_run)
     run([py, "-m", "pip", "install", "-r", str(ROOT / "setup/requirements-pinned.txt")], dry_run)
     if with_dev:
         run([py, "-m", "pip", "install", "-r", str(ROOT / "setup/requirements-dev.txt")], dry_run)
+    if with_model:
+        run([py, "-m", "pip", "install", "-r", str(ROOT / "setup/requirements-ultimate.txt")], dry_run)
 
 
 def install_system_deps(dry_run: bool) -> None:
@@ -49,6 +51,7 @@ def install_system_deps(dry_run: bool) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Bootstrap portátil da ATENA")
     parser.add_argument("--with-dev", action="store_true", help="Instala requirements-dev também")
+    parser.add_argument("--with-model", action="store_true", help="Instala dependências para modelos locais")
     parser.add_argument("--with-playwright", action="store_true", help="Instala Chromium do Playwright")
     parser.add_argument("--doctor", action="store_true", help="Executa diagnóstico final")
     parser.add_argument("--skip-system", action="store_true", help="Não instala dependências do sistema")
@@ -62,11 +65,12 @@ def main() -> None:
 
     if args.full_auto:
         args.with_dev = True
+        args.with_model = True
         args.with_playwright = True
         args.doctor = True
 
     ensure_launcher_permissions(args.dry_run)
-    install_python_deps(with_dev=args.with_dev, dry_run=args.dry_run)
+    install_python_deps(with_dev=args.with_dev, with_model=args.with_model, dry_run=args.dry_run)
 
     if not args.skip_system:
         install_system_deps(dry_run=args.dry_run)

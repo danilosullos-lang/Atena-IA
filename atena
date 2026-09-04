@@ -384,6 +384,27 @@ auto_setup_endpoint_readiness() {
     "$installer" --apply || log WARNING "Instalação automática parcial/sem permissões completas."
 }
 
+auto_download_model() {
+    if [[ "${ATENA_AUTO_DOWNLOAD_MODEL:-false}" != "true" ]]; then
+        return 0
+    fi
+    local model_dir="${ATENA_MODEL_DIR:-$ROOT_DIR/models/deepseek-r1-1.5b}"
+    if [[ -f "$model_dir/config.json" ]]; then
+        log INFO "Modelo local já disponível: $model_dir"
+        return 0
+    fi
+    if ! "$PYTHON_CMD" -c 'import torch, transformers' >/dev/null 2>&1; then
+        log INFO "Dependências de modelo ausentes. Instalando requirements-ultimate.txt..."
+        "$PYTHON_CMD" -m pip install -r "$ROOT_DIR/setup/requirements-ultimate.txt" || {
+            log WARNING "Não foi possível instalar as dependências de modelo."
+            return 0
+        }
+    fi
+    log INFO "Modelo local ausente. Iniciando download em $model_dir..."
+    "$PYTHON_CMD" "$ROOT_DIR/setup/download_model.py" || \
+        log WARNING "Download automático não concluído; instale setup/requirements-ultimate.txt e tente novamente."
+}
+
 # Gate de prontidão: impede iniciar atuadores de endpoint sem requisitos mínimos.
 enforce_endpoint_readiness_gate() {
     local require_gate="${ATENA_REQUIRE_READY:-false}"
@@ -643,6 +664,7 @@ ${BOLD}Opções:${NC}
     --no-color          Desativa cores no output
     --venv              Usa virtual environment
     --auto              Modo autônomo (executa e sai)
+    learn               Aprendizado contínuo em background
     --doctor            Executa diagnóstico do sistema
     --update            Auto-atualização via git
     --metrics           Exibe métricas de performance
@@ -670,6 +692,7 @@ ${BOLD}Variáveis de Ambiente:${NC}
     ATENA_PARALLEL_WORKERS  Número de workers paralelos
     ATENA_LOG_LEVEL     DEBUG|INFO|WARNING|ERROR
     ATENA_AUTO_ENDPOINT_SETUP  Auto-configura dependências de automação (true/false)
+    ATENA_AUTO_DOWNLOAD_MODEL  Baixa o modelo local na inicialização (true/false)
 
 ${BOLD}Exemplos:${NC}
     $0                           # Inicia modo interativo com banner
@@ -679,6 +702,7 @@ ${BOLD}Exemplos:${NC}
     $0 --metrics                 # Exibe métricas do sistema
     $0 --scale --monitor         # Inicia com auto-scale e monitoramento
     $0 install-deps --apply      # Instala dependências da ATENA
+    $0 model-download            # Baixa o modelo local configurado
     $0 github-scan ai agents     # Busca sinais no GitHub para evolução
     $0 --update                  # Auto-atualização
 
@@ -772,7 +796,7 @@ main() {
                 mode="perf_diag"
                 shift
                 ;;
-            assistant|manus|codex|claude-code|benchmark|self-test|release-gate|install-deps|github-scan|future-ai-fabric|aegis-mythos|production-center|modules-smoke|go-no-go|agi-uplift|guardian|production-ready|research-lab|future-ai|codex-advanced|genius|digital-organism-audit|orchestrator-mission|invoke|dialog|doctor|metrics|update|perf-diag|scale|monitor)
+            assistant|manus|codex|claude-code|learn|model-download|benchmark|self-test|release-gate|install-deps|github-scan|future-ai-fabric|aegis-mythos|production-center|modules-smoke|go-no-go|agi-uplift|guardian|production-ready|research-lab|future-ai|codex-advanced|genius|digital-organism-audit|orchestrator-mission|invoke|dialog|doctor|metrics|update|perf-diag|scale|monitor)
                 mode="$1"
                 shift
                 ;;
@@ -848,6 +872,14 @@ main() {
             log INFO "Modo autônomo ativado"
             export ATENA_AUTO_MODE=true
             exec $PYTHON_CMD "$CORE_DIR/atena_launcher.py" start "${args[@]}"
+            ;;
+        learn)
+            log INFO "Iniciando aprendizado contínuo..."
+            exec $PYTHON_CMD "$CORE_DIR/atena_learning_daemon.py" "${args[@]}"
+            ;;
+        model-download)
+            log INFO "Preparando download do modelo local..."
+            exec $PYTHON_CMD "$ROOT_DIR/setup/download_model.py" "${args[@]}"
             ;;
         benchmark)
             log INFO "Executando benchmark..."
@@ -932,6 +964,7 @@ main() {
         assistant|manus|codex|claude-code)
             log INFO "Iniciando assistente de terminal..."
             auto_setup_endpoint_readiness
+            auto_download_model
             enforce_endpoint_readiness_gate
             exec $PYTHON_CMD "$CORE_DIR/atena_terminal_assistant.py" "${args[@]}"
             ;;
@@ -942,6 +975,7 @@ main() {
             # Modo padrão - interativo
             log INFO "Iniciando $ATENA_NAME em modo interativo..."
             auto_setup_endpoint_readiness
+            auto_download_model
             enforce_endpoint_readiness_gate
             exec $PYTHON_CMD "$CORE_DIR/atena_terminal_assistant.py" "${args[@]}"
             ;;

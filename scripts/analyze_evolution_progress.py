@@ -2,8 +2,15 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import sys
 from pathlib import Path
 from statistics import mean
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from core.learning_progress import LearningProgress
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT_DIR = ROOT / "analysis_reports"
@@ -66,10 +73,21 @@ def main() -> None:
             evaluations.append(summarize_eval(path, data))
     cycles = sorted(EVOLUTION.glob("**/cycle-*.json"))
     proposals = sorted((EVOLUTION / "proposals").glob("*.json")) if (EVOLUTION / "proposals").exists() else []
+    memory_db = EVOLUTION / "memory.sqlite3"
+    learning_trend = {}
+    if memory_db.exists():
+        with LearningProgress(memory_db) as progress:
+            rows = progress.connection.execute(
+                "SELECT DISTINCT benchmark_version FROM learning_progress WHERE benchmark_version IS NOT NULL ORDER BY benchmark_version"
+            ).fetchall()
+            for (benchmark_version,) in rows:
+                learning_trend[benchmark_version] = progress.benchmark_summary(benchmark_version)
+
     output = {
         "evaluation_reports": evaluations,
         "cycle_files": len(cycles),
         "proposal_files": len(proposals),
+        "learning_trend": learning_trend,
         "memory_databases": {
             "memory.sqlite3": sqlite_summary(EVOLUTION / "memory.sqlite3"),
             "provider_quota.sqlite3": sqlite_summary(EVOLUTION / "provider_quota.sqlite3"),
