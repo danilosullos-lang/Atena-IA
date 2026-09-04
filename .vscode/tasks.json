@@ -1,0 +1,175 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "ATENA: Doctor (Diagnóstico)",
+      "type": "shell",
+      "command": "./atena",
+      "args": ["--doctor"],
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "ATENA: Run Tests",
+      "type": "shell",
+      "command": "python",
+      "args": ["-m", "pytest", "tests/", "-v"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^([^:]*):([0-9]*):([0-9]*): ([a-zA-Z]*): (.*)$",
+          "file": 1,
+          "location": 2,
+          "message": 5
+        }
+      }
+    },
+    {
+      "label": "ATENA: Run Unit Tests",
+      "type": "shell",
+      "command": "python",
+      "args": ["-m", "pytest", "tests/unit/", "-v"],
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      }
+    },
+    {
+      "label": "ATENA: Lint (Black)",
+      "type": "shell",
+      "command": "black",
+      "args": ["core/", "modules/", "protocols/", "--check"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false
+      }
+    },
+    {
+      "label": "ATENA: Format (Black)",
+      "type": "shell",
+      "command": "black",
+      "args": ["core/", "modules/", "protocols/"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false
+      }
+    },
+    {
+      "label": "ATENA: Quality Checks",
+      "type": "shell",
+      "command": "bash",
+      "args": ["scripts/run_quality_checks.sh"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      }
+    },
+    {
+      "label": "ATENA: Self-Test",
+      "type": "shell",
+      "command": "./atena",
+      "args": ["self-test"],
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      }
+    },
+    {
+      "label": "ATENA: Production Ready",
+      "type": "shell",
+      "command": "./atena",
+      "args": ["production-ready"],
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      }
+    },
+    {
+      "label": "ATENA: Assistant",
+      "type": "shell",
+      "command": "./atena",
+      "args": ["assistant"],
+      "group": {
+        "kind": "none",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "isBackground": false
+    },
+    {
+      "label": "ATENA: Install Dependencies",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "pip install --upgrade pip && pip install -r setup/requirements-pinned.txt && pip install -r setup/requirements-dev.txt"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      }
+    }
+  ]
+}
