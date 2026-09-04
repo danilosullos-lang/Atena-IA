@@ -131,8 +131,25 @@ def fetch_source(source: dict[str, Any], timeout: int = DEFAULT_TIMEOUT, limit: 
         return {"source": source.get("name", source.get("url", "unknown")), "category": source.get("category", "custom"), "ok": False, "items": [], "error": f"{type(exc).__name__}: {exc}", "response_time_ms": round((time.monotonic() - started) * 1000, 2)}
 
 
-def fetch_configured_sources(query: str = "", config_path: str | Path = DEFAULT_CONFIG, max_sources: int = 4, limit_per_source: int = 5, mode: str = "autonomous") -> list[dict[str, Any]]:
+def select_best_sources(query: str = "", config_path: str | Path = DEFAULT_CONFIG, max_sources: int = 4, mode: str = "autonomous") -> list[dict[str, Any]]:
     query_terms = {term.lower() for term in query.split() if len(term) >= 4}
     sources = load_config(config_path, mode=mode)
-    ranked = sorted(sources, key=lambda source: (len(query_terms.intersection({str(x).lower() for x in source.get("keywords", [])})), float(source.get("weight", 0.5))), reverse=True)
-    return [fetch_source(source, limit=limit_per_source) for source in ranked[:max_sources]]
+    ranked = sorted(
+        sources,
+        key=lambda source: (
+            len(query_terms.intersection({str(x).lower() for x in source.get("keywords", [])})),
+            float(source.get("weight", 0.5)),
+        ),
+        reverse=True,
+    )
+    return [source for source in ranked[:max_sources]]
+
+
+def fetch_configured_sources(query: str = "", config_path: str | Path = DEFAULT_CONFIG, max_sources: int = 4, limit_per_source: int = 5, mode: str = "autonomous") -> list[dict[str, Any]]:
+    selected = select_best_sources(query=query, config_path=config_path, max_sources=max_sources, mode=mode)
+    return [fetch_source(source, limit=limit_per_source) for source in selected]
+
+
+def fetch_best_sources(query: str = "", config_path: str | Path = DEFAULT_CONFIG, max_sources: int = 4, limit_per_source: int = 5, mode: str = "autonomous") -> list[dict[str, Any]]:
+    selected = select_best_sources(query=query, config_path=config_path, max_sources=max_sources, mode=mode)
+    return [fetch_source(source, limit=limit_per_source) for source in selected]
